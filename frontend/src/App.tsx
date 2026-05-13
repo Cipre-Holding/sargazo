@@ -98,8 +98,8 @@ function App() {
 
   const { data: predictions }                            = useApi<any>("/predictions")
   const { data: allSirDates }                            = useApi<string[]>("/forecast/geodata/sir/dates")
-  const sirGeoUrl = layers.sir && sirDate
-    ? `/forecast/geodata/sir?date=${sirDate}`
+  const sirGeoUrl = layers.sir
+    ? (sirDate ? `/forecast/geodata/sir?date=${sirDate}` : "/forecast/geodata/sir")
     : null
   const { data: sirGeojson }                             = useApi<any>(sirGeoUrl)
   const { data: mlRisk }                                 = useApi<any>(layers.mlrisk ? "/forecast/geodata/ml-risk" : null)
