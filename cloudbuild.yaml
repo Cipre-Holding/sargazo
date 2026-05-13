@@ -1,0 +1,43 @@
+steps:
+  # Build the Docker image
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/sargazo/sargazo-app:${SHORT_SHA}"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/sargazo/sargazo-app:latest"
+      - "."
+
+  # Push to Artifact Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/sargazo/sargazo-app:${SHORT_SHA}"
+
+  # Deploy to Cloud Run
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      - "run"
+      - "deploy"
+      - "sargazo-app"
+      - "--image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/sargazo/sargazo-app:${SHORT_SHA}"
+      - "--region=${_REGION}"
+      - "--platform=managed"
+      - "--memory=4Gi"
+      - "--cpu=2"
+      - "--timeout=600"
+      - "--concurrency=1"
+      - "--port=8080"
+      - "--allow-unauthenticated"
+      - "--set-env-vars=DATABASE_URL=sqlite:////tmp/sargazo.db,ALLOWED_ORIGINS=${_ALLOWED_ORIGINS}"
+
+substitutions:
+  _REGION: us-central1
+  _ALLOWED_ORIGINS: "https://sargazo-app-${PROJECT_ID}.uc.r.appspot.com"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1200s
