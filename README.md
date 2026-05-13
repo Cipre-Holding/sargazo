@@ -1,42 +1,185 @@
 # Sargazo Cozumel — Predicción Operativa de Arribo de Sargazo
 
-**Objetivo:** Sistema de predicción de arribo de sargazo a la costa de Cozumel con 1-2 meses de anticipación.
+Sistema de monitoreo satelital, modelos estadísticos y simulación Lagrangiana para
+predecir el arribo de sargazo a las costas de Cozumel con 1–14 días y hasta 1–2 meses
+de anticipación. Desplegado en Google Cloud Run con pipeline semanal automático.
 
-**Stack:** Python/FastAPI + React/MapLibre + SQLite + Docker → Cloud Run
+**URL:** [sargazo-xvcvxyopra-pv.a.run.app](https://sargazo-xvcvxyopra-pv.a.run.app)
 
-## Quick Start
+---
 
-```bash
-./dev.sh                    # Backend :8000 + Frontend :5173
+## ¿Qué es y para qué sirve?
+
+El sargazo es un alga marina que desde 2011 arriba masivamente a las costas del Caribe
+mexicano, afectando al turismo, la navegación, los ecosistemas costeros y la calidad
+de vida. Este sistema integra **datos satelitales, boletines oficiales, modelos
+estadísticos y simulación numérica** para anticipar cuándo y dónde llegará el sargazo,
+permitiendo a autoridades y hoteleros tomar decisiones informadas.
+
+### Capacidades principales
+
+| Capacidad | Horizonte | Qué entrega |
+|-----------|-----------|-------------|
+| **Predicción mensual** | 1–2 meses | Toneladas de biomasa esperadas + intervalo de confianza |
+| **Riesgo costero satelital** | Diario (315 días históricos) | Mapa de calor con nivel LOW / WARNING / MEDIUM / HIGH |
+| **Forecast Lagrangiano** | 12h – 14 días | Mapa de densidad de partículas + trayectorias |
+| **Riesgo por playa** | Histórico (315 días) | % de días con riesgo HIGH+MED por segmento costero |
+| **Dashboard** | Tiempo real | Charts de evolución, comparación de modelos, salud del sistema |
+
+---
+
+## ¿Cómo funciona?
+
+### Arquitectura general
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   FRONTEND (React)                   │
+│  MapLibre GL (mapa) · Sidebar (pred/capas/sistema)  │
+│  Dashboard (charts SVG) · InfoPanel (documentación)  │
+│                  sirve estáticos                     │
+└────────────────────────┬────────────────────────────┘
+                         │ HTTP /api/*
+┌────────────────────────▼────────────────────────────┐
+│                   BACKEND (FastAPI)                   │
+│  predictions · observations · forecast · download    │
+│  manual · scheduler (APScheduler semanal)            │
+│               + SQLite (sargazo.db)                  │
+└────────────────────────┬────────────────────────────┘
+                         │ import
+┌────────────────────────▼────────────────────────────┐
+│              PIPELINE DE DATOS (Python)               │
+│  combine_datasets → prepare_features →               │
+│  modelos_fase0 → modelos_fase1 → confidence_score →  │
+│  interpolar_riesgo_ml_v2 → risk_by_beach →           │
+│  modelo_pronostico_7dias                              │
+│    ↓ datos ↓                                          │
+│  SEMAR · Mendeley · NOAA SIR · OISST · NCEP · SATsum │
+│  RTOFS · GFS                                          │
+└─────────────────────────────────────────────────────┘
 ```
 
-## Documentación
+### Fuentes de datos
+
+| Fuente | Qué aporta | Período | Variables clave |
+|--------|-----------|---------|-----------------|
+| **SEMAR** | Boletines diarios de biomasa costera | 2024–2026 (604 reg.) | CM (ton), ACO (Mt), semáforo |
+| **Mendeley GASB** | Serie histórica atlántica (Hu et al.) | 2000–2024 (288 meses) | log_biomasa, aligned_ACO |
+| **NOAA SIR** | Riesgo costero satelital diario | 315 días, 52,551 celdas | LOW/MEDIUM/HIGH por celda |
+| **OISST SST** | Temperatura superficial del mar | 2020–2026 (76 meses) | sst, sst_anom |
+| **NCEP/NCAR** | Viento reanálisis | 2020–2026 (74 meses) | uwnd, vwnd, onshore Cozumel |
+| **SATsum** | Biomasa satelital mensual | Mensual | Caribe, ZEE Mexicana |
+| **RTOFS + GFS** | Corrientes + viento para forecast | Diario | U/V currents, U/V wind |
+
+### Modelos predictivos
+
+**Fase 0 — Modelos base (5):**
+- Regresión lineal ponderada (kernel tricúbico): log(CM) ~ log(ACOₜ₋₁)
+- Regresión delta: Δlog(CM) ~ log(ACOₜ₋₁) + Δlog(ACOₜ₋₁)
+- Logística ordinal: semáforo ~ log(ACOₜ₋₁)
+- Prophet: aligned_ACO ~ tendencia + estacionalidad
+- AR(1) fallback: log(CMₜ) ~ log(CMₜ₋₁)
+
+**Fase 1 — Modelos extendidos + Ensemble:**
+- Ridge, Bayesian Ridge, Rolling Window, ARIMAX, Segmentada, Prophet Tuneado
+- **Ensemble ponderado por R²** de LOOCV (3 mejores modelos)
+- **Bias correction por tendencia** (×1.25 si sube, ×0.85 si baja)
+- **Calibración isotónica** del IC usando RMSE del backtest
+
+**Interpolación espacial:**
+- Función Wendland C2 sobre datos NOAA SIR → malla 0.04° (~4 km)
+- Max-pooling costero para no subestimar riesgo en segmentos críticos
+
+**Forecast Lagrangiano:**
+- 2,000 partículas con OpenDrift, RTOFS (corrientes) + GFS (viento)
+- KDE gaussiano bandwidth 0.08° (~9 km)
+- 25 horizontes cada 12h hasta 336h (14 días)
+
+---
+
+## Stack tecnológico
+
+| Componente | Tecnología |
+|------------|-----------|
+| Backend | Python 3.13 / FastAPI / Uvicorn / Gunicorn |
+| Frontend | React 19 / Vite / TypeScript / Tailwind v4 |
+| Mapas | MapLibre GL JS v5 / mapcn |
+| Charts | SVG inline (sin librerías externas) |
+| Base de datos | SQLite (SQLAlchemy ORM) |
+| Pipeline | Python scripts secuenciales + APScheduler |
+| Contenedor | Docker multi-stage (Node build → Python slim) |
+| Infraestructura | Google Cloud Run + Cloud Build + Artifact Registry |
+| Tamaño imagen | ~700 MB (Python + dependencias científicas) |
+| Region | us-central1 |
+
+---
+
+## Predicción actual
+
+| Métrica | Valor |
+|---------|-------|
+| **Predicción ensemble junio 2026** | **52,571 ton** |
+| Cambio vs mayo 2026 | +1.4% |
+| IC 80% | [6,596 — 293,445] ton |
+| Confianza del sistema | **83/100 (ALTA)** |
+| Mejor predictor individual | ACO_lag1 → CM (r=0.918) |
+| Exponente Hurst (memoria) | H=0.8047 (memoria larga) |
+| Pares SEMAR disponibles | 14 |
+| R² LOOCV promedio | 0.78 |
+
+---
+
+## Documentación detallada
 
 | Documento | Contenido |
-|---|---|
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Visión general del sistema, diagrama de flujo, stack, componentes |
-| [`docs/MODELS/MODEL_CARDS.md`](docs/MODELS/MODEL_CARDS.md) | Fichas de todos los modelos: propósito, datos, performance, límites |
-| [`docs/API/API_REFERENCE.md`](docs/API/API_REFERENCE.md) | Todos los endpoints con request/response |
-| [`DATA_CATALOG.md`](DATA_CATALOG.md) | Inventario completo de archivos de datos |
-| [`compendio_matematico.md`](compendio_matematico.md) | Derivaciones matemáticas, ecuaciones, estadística |
-| [`bitacora_2026-05-12.md`](bitacora_2026-05-12.md) | Bitácora científica y acta de correcciones |
+|-----------|----------|
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Arquitectura completa del sistema |
+| [`docs/MODELS/MODEL_CARDS.md`](docs/MODELS/MODEL_CARDS.md) | Fichas de todos los modelos |
+| [`docs/API/API_REFERENCE.md`](docs/API/API_REFERENCE.md) | Endpoints REST documentados |
+| [`DATA_CATALOG.md`](DATA_CATALOG.md) | Inventario de archivos de datos |
+| [`compendio_matematico.md`](compendio_matematico.md) | Derivaciones y ecuaciones |
+| [`bitacora_2026-05-12.md`](bitacora_2026-05-12.md) | Bitácora de desarrollo |
+| `frontend/README.md` | Documentación del frontend |
 
-## Pipeline
+---
+
+## Desarrollo local
 
 ```bash
-# Ejecución completa (orden)
-venv/bin/python prepare_features.py
-venv/bin/python modelos_fase1.py
-venv/bin/python confidence_score.py
-# Opcional:
-venv/bin/python interpolar_riesgo_ml_v2.py   # ML Risk
-venv/bin/python risk_by_beach.py              # Beach Risk
-venv/bin/python modelo_pronostico_7dias.py    # Forecast 14 días (~5 min)
+# Requisitos
+python 3.13, node 22
+
+# Clonar e instalar
+git clone git@github.com:Cipre-Holding/sargazo.git
+cd sargazo
+python -m venv venv && source venv/bin/activate
+pip install -r backend/requirements.txt
+cd frontend && npm install && cd ..
+
+# Ejecutar (frontend :5173 + backend :8000)
+./dev.sh
 ```
 
-## Estado actual
+---
 
-- **Predicción junio 2026:** 52,571 ton (+1.4% vs mayo)
-- **Confianza del sistema:** 83/100 (ALTA)
-- **Últimos datos:** Mayo 2026
-- **Mejor predictor:** ACO_lag1 → CM (r=0.92)
+## Despliegue
+
+Cada push a `master` dispara Cloud Build:
+
+1. `docker build` → imagen multi-stage (~700 MB)
+2. `docker push` → Artifact Registry (`us-central1-docker.pkg.dev/...`)
+3. `gcloud run deploy` → Cloud Run (4Gi RAM, 2 CPU, timeout 600s)
+
+Variables de entorno en Cloud Run:
+- `DATABASE_URL`: sqlite:////tmp/sargazo.db
+- `ALLOWED_ORIGINS`: URL del servicio
+
+---
+
+## Limitaciones conocidas
+
+- **Datos limitados**: solo 14 pares ACO+CM. MAPE > 100% en todos los modelos.
+- **Forecast direccional**: indica zonas probables, no magnitudes exactas (cobertura 11% vs NOAA SIR).
+- **SATsum sin API pública**: requiere descarga manual del explorador GIS de SEMAR.
+- **Pipeline no corre en Cloud Run aún**: la imagen Docker no incluye datos crudos (KMZ, PDFs, NetCDF).
+- **SST y viento no mejoran significativamente**: +2.7% y +0.3% marginal de R² sobre ACO_lag1 solo.
