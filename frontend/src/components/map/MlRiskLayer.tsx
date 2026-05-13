@@ -22,16 +22,23 @@ export function MlRiskLayer({ geojson, visible, opacity = 0.6 }: MlRiskLayerProp
       type: "fill",
       source: sourceId,
       paint: {
-        "fill-color": ["get", "c"],
+        "fill-color": [
+          "match", ["get", "risk"],
+          "high",    "#ff3333",
+          "medium",  "#ff8800",
+          "warning", "#f5d000",
+          "low",     "#00d4aa",
+          "#aaaaaa"
+        ],
         "fill-opacity": [
           "match", ["get", "risk"],
-          "high", 0.55,
-          "medium", 0.45,
-          "warning", 0.3,
-          "low", 0.12,
+          "high", 0.60,
+          "medium", 0.50,
+          "warning", 0.38,
+          "low", 0.22,
           0.25
         ],
-        "fill-outline-color": "transparent",
+        "fill-outline-color": "rgba(0,0,0,0.15)",
       },
     })
     return () => {
@@ -49,10 +56,10 @@ export function MlRiskLayer({ geojson, visible, opacity = 0.6 }: MlRiskLayerProp
     try {
       map.setPaintProperty(layerId, "fill-opacity", [
         "match", ["get", "risk"],
-        "high", 0.55 * opacity,
-        "medium", 0.45 * opacity,
-        "warning", 0.3 * opacity,
-        "low", 0.12 * opacity,
+        "high", 0.60 * opacity,
+        "medium", 0.50 * opacity,
+        "warning", 0.38 * opacity,
+        "low", 0.22 * opacity,
         0.25 * opacity
       ])
     } catch {}

@@ -369,7 +369,7 @@ def modelo_16_prophet_tuned(coefs_01=None):
     param_grid = {
         "changepoint_prior_scale": [0.001, 0.01, 0.05, 0.1, 0.5],
         "seasonality_prior_scale": [0.01, 0.1, 1.0, 10.0],
-        "seasonality_mode": ["additive", "multiplicative"],
+        "seasonality_mode": ["additive"],  # multiplicative never outperforms on this series
     }
     all_params = [dict(zip(param_grid.keys(), v)) for v in itertools.product(*param_grid.values())]
     print(f"  Grid: {len(all_params)} combinaciones")

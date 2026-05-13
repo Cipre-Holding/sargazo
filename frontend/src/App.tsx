@@ -95,8 +95,9 @@ function App() {
   const [dashboardOpen, setDashboardOpen] = useState(false)
   const [infoOpen, setInfoOpen]         = useState(false)
   const [activeTab, setActiveTab]       = useState<SidebarTab>("pred")
+  const [slowLoad, setSlowLoad]         = useState(false)
 
-  const { data: predictions }                            = useApi<any>("/predictions")
+  const { data: predictions, loading: loadingPred } = useApi<any>("/predictions")
   const { data: allSirDates }                            = useApi<string[]>("/forecast/geodata/sir/dates")
   const sirGeoUrl = layers.sir
     ? (sirDate ? `/forecast/geodata/sir?date=${sirDate}` : "/forecast/geodata/sir")
@@ -108,6 +109,14 @@ function App() {
   const { data: beachRisk }                              = useApi<any>("/forecast/risk-by-beach")
   const { data: features }                               = useApi<any[]>("/observations/features/cm")
   const { data: downloadStatus, refetch: refetchDownload } = useApi<any>("/download/status")
+
+  // Detect Cloud Run cold start — show message after 6s of loading
+  useEffect(() => {
+    if (!loadingPred) return
+    const t = setTimeout(() => setSlowLoad(true), 6000)
+    return () => clearTimeout(t)
+  }, [loadingPred])
+  useEffect(() => { if (!loadingPred) setSlowLoad(false) }, [loadingPred])
 
   useEffect(() => {
     if (!allSirDates || allSirDates.length === 0) return
@@ -279,6 +288,12 @@ function App() {
                         <div className="h-3 w-20 rounded bg-border/30" />
                       </div>
                     ))}
+                    {slowLoad && (
+                      <div className="px-3 py-2.5 rounded-xl border border-border/30 text-[10px] text-muted/70 text-center">
+                        Iniciando servidor… puede tomar<br />
+                        <span className="font-semibold text-muted">20–30 segundos</span> en primer acceso
+                      </div>
+                    )}
                   </div>
                 )}
                 {/* KPI Card */}
