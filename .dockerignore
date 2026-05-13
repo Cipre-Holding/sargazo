@@ -23,15 +23,6 @@ sargazo.db
 skills/
 skills-lock.json
 
-# Frontend source (not needed in backend image)
-frontend/src/
-frontend/public/
-frontend/index.html
-frontend/tsconfig*.json
-frontend/vite.config.ts
-frontend/tailwind.config.*
-frontend/postcss.config.*
-
 # Large data files not needed at runtime
 noaa_sir_riesgo_costero_qroo.geojson
 noaa_sir_kmz/
