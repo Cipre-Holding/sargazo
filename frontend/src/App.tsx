@@ -7,9 +7,10 @@ import { TrajectoryLayer } from "@/components/map/TrajectoryLayer"
 import { useApi } from "@/hooks/useApi"
 import { Dashboard } from "@/components/panels/Dashboard"
 import { ManualInputDialog } from "@/components/panels/ManualInputDialog"
+import { InfoPanel } from "@/components/panels/InfoPanel"
 import {
   Waves, Download, ChevronLeft, LayoutDashboard, Target,
-  Layers, TrendingUp, Settings, RefreshCw, AlertTriangle,
+  Layers, TrendingUp, Settings, RefreshCw, AlertTriangle, CircleHelp,
 } from "lucide-react"
 import "./App.css"
 
@@ -92,6 +93,7 @@ function App() {
   const [sirDate, setSirDate]           = useState("")
   const [sidebarOpen, setSidebarOpen]   = useState(true)
   const [dashboardOpen, setDashboardOpen] = useState(false)
+  const [infoOpen, setInfoOpen]         = useState(false)
   const [activeTab, setActiveTab]       = useState<SidebarTab>("pred")
 
   const { data: predictions }                            = useApi<any>("/predictions")
@@ -206,6 +208,21 @@ function App() {
             {isRunning ? "Actualizando" : "Operativo"}
           </span>
         </div>
+
+        {/* Info button */}
+        <button
+          onClick={() => setInfoOpen(true)}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer"
+          style={{
+            background: 'oklch(0.63 0.20 228 / 0.15)',
+            color: 'var(--color-primary)',
+            border: '1px solid oklch(0.63 0.20 228 / 0.3)',
+          }}
+          title="Centro de Información"
+        >
+          <CircleHelp className="size-3.5" />
+          <span className="hidden sm:inline">¿Dudas? Más info</span>
+        </button>
 
         {/* Dashboard button */}
         <button
@@ -676,6 +693,11 @@ function App() {
           SEMAR · SATsum · NOAA SIR · RTOFS · GFS
         </span>
       </div>
+
+      {/* ── Info panel modal ─────────────────────────────────────────────── */}
+      {infoOpen && (
+        <InfoPanel onClose={() => setInfoOpen(false)} />
+      )}
 
       {/* ── Dashboard modal ──────────────────────────────────────────────── */}
       {dashboardOpen && (
