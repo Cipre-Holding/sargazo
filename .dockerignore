@@ -1,3 +1,4 @@
+# Dependencies & build artifacts
 node_modules/
 frontend/node_modules/
 frontend/dist/
@@ -5,7 +6,42 @@ frontend/dist/
 __pycache__/
 .venv/
 venv/
-sargazo.db
 *.egg-info/
-.DS_Store
+
+# Runtime state
+sargazo.db
 .env
+
+# Git
+.git/
+.gitignore
+
+# Dev & editor
+.DS_Store
+.claude/
+.mcp.json
+skills/
+skills-lock.json
+
+# Frontend source (not needed in backend image)
+frontend/src/
+frontend/public/
+frontend/index.html
+frontend/tsconfig*.json
+frontend/vite.config.ts
+frontend/tailwind.config.*
+frontend/postcss.config.*
+
+# Large data files not needed at runtime
+noaa_sir_riesgo_costero_qroo.geojson
+noaa_sir_kmz/
+
+# Boletines PDFs (large, pipeline-only)
+backend/boletines_2024/
+backend/boletines_2025/
+backend/boletines_2026/
+
+# Docs & misc
+docs/
+*.pdf
+*.md
