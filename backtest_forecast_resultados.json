@@ -1,0 +1,19 @@
+{
+  "fecha_sir": "20260511",
+  "resultados": {
+    "72h": {
+      "n_celdas_kde": 27,
+      "n_sir_high_med": 178,
+      "sir_cubiertos": 0,
+      "cobertura_pct": 0.0,
+      "hit_rate_pct": 0.0
+    }
+  },
+  "resumen": {
+    "mejor_horizonte": "72h",
+    "cobertura_promedio": 0.0
+  },
+  "metadata": {
+    "generado": "2026-05-12T20:31:02.063836"
+  }
+}

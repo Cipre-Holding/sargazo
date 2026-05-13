@@ -1,0 +1,129 @@
+{
+  "2.1_wind_lineal": {
+    "modelo": "2.1_wind_lineal",
+    "n": 10,
+    "rmse_log": 1.834,
+    "mae_log": 1.5058,
+    "r2": 0.5509,
+    "mape_pct": 324.23,
+    "smape_pct": 109.44,
+    "coefs": {
+      "intercept": -1.1584,
+      "log_aco_lag1": 1.8841,
+      "wind_onshore": -0.057
+    },
+    "wind_ultimo_knots": 12.0,
+    "prediccion_junio": {
+      "log_cm": -3.104,
+      "cm_mt": 0.04487,
+      "cm_ton": 44870.0,
+      "ci_80_mt": [
+        0.011591,
+        0.173693
+      ]
+    }
+  },
+  "2.2_wind_interaccion": {
+    "modelo": "2.2_wind_interaccion",
+    "n": 10,
+    "rmse_log": 1.8994,
+    "mae_log": 1.4521,
+    "r2": 0.5183,
+    "mape_pct": 230.18,
+    "smape_pct": 102.12,
+    "coefs": {
+      "intercept": -1.5875,
+      "log_aco_lag1": 1.6148,
+      "wind_onshore": 0.1943,
+      "aco_x_wind": 0.1446
+    },
+    "prediccion_junio": {
+      "log_cm": -1.4982,
+      "cm_mt": 0.223533,
+      "cm_ton": 223533.0,
+      "ci_80_mt": [
+        0.072938,
+        0.685062
+      ]
+    }
+  },
+  "2.3_wind_only": {
+    "modelo": "2.3_wind_only",
+    "n": 10,
+    "rmse_log": 4.1206,
+    "mae_log": 3.314,
+    "r2": -1.2671,
+    "mape_pct": 4376.04,
+    "smape_pct": 155.08,
+    "coefs": {
+      "intercept": -5.5416,
+      "wind_onshore": -0.0699
+    },
+    "prediccion_junio": {
+      "log_cm": -6.3804,
+      "cm_mt": 0.001695,
+      "cm_ton": 1695.0,
+      "ci_80_mt": [
+        7.7e-05,
+        0.037521
+      ]
+    }
+  },
+  "2.4_ridge_wind": {
+    "modelo": "2.4_ridge_wind",
+    "n": 10,
+    "rmse_log": 2.0913,
+    "mae_log": 1.5771,
+    "r2": 0.416,
+    "mape_pct": 158.72,
+    "smape_pct": 107.11,
+    "coefs": {
+      "log_aco_lag1": 1.2896,
+      "log_aco_lag2": 0.2771,
+      "wind_onshore": -0.0923,
+      "month_sin": 1.0149,
+      "month_cos": -0.5123
+    },
+    "prediccion_junio": {
+      "log_cm": -3.5675,
+      "cm_mt": 0.028226,
+      "cm_ton": 28226.0,
+      "ci_80_mt": [
+        0.007415,
+        0.107453
+      ]
+    }
+  },
+  "backtest_wind_vs_baseline": [
+    {
+      "Modelo": "0.1_solo_ACO",
+      "R\u00b2": 0.7332,
+      "RMSE(log)": 1.4135,
+      "SMAPE(%)": 100.8
+    },
+    {
+      "Modelo": "2.1_ACO+wind",
+      "R\u00b2": 0.5509,
+      "RMSE(log)": 1.834,
+      "SMAPE(%)": 109.44
+    },
+    {
+      "Modelo": "2.2_ACO\u00d7wind",
+      "R\u00b2": 0.5183,
+      "RMSE(log)": 1.8994,
+      "SMAPE(%)": 102.12
+    },
+    {
+      "Modelo": "2.3_solo_wind",
+      "R\u00b2": -1.2671,
+      "RMSE(log)": 4.1206,
+      "SMAPE(%)": 155.08
+    }
+  ],
+  "metadata": {
+    "generado": "2026-05-12T13:58:19.646584",
+    "proyecto": "Predicci\u00f3n Sargazo Cozumel",
+    "fase": "2_viento",
+    "n_pares_con_viento": 10
+  }
+}

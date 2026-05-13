@@ -1,0 +1,181 @@
+import { useEffect, useMemo, useRef, useState, useCallback } from "react"
+import { useMap, MapRoute } from "@/components/ui/map"
+
+interface TrajPoint {
+  lon: number; lat: number; step: number; id: number
+}
+
+interface TrajectoryLayerProps {
+  trajectories: TrajPoint[] | null
+  visible: boolean
+}
+
+export function TrajectoryLayer({ trajectories, visible }: TrajectoryLayerProps) {
+  const { map, isLoaded } = useMap()
+  const [currentStep, setCurrentStep] = useState(0)
+  const [playing, setPlaying] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const dotSourceId = "traj-dots-source"
+  const dotLayerId = "traj-dots-layer"
+  const MAX_TRAILS = 20  // show max 20 particle trails
+
+  // Group trajectory data by particle ID, filter to QRoo area
+  const particles = useMemo(() => {
+    if (!trajectories) return []
+    const filtered = trajectories.filter(
+      (t) => t.lon > -89 && t.lon < -86 && t.lat > 18 && t.lat < 22
+    )
+    const grouped: Record<number, { step: number; lon: number; lat: number }[]> = {}
+    for (const t of filtered) {
+      if (!grouped[t.id]) grouped[t.id] = []
+      grouped[t.id].push({ step: t.step, lon: t.lon, lat: t.lat })
+    }
+    // Sort each particle's points by step
+    for (const id in grouped) {
+      grouped[id].sort((a, b) => a.step - b.step)
+    }
+    return Object.entries(grouped)
+      .map(([id, pts]) => ({ id: parseInt(id), pts }))
+      .sort((a, b) => a.pts.length - b.pts.length)
+      .reverse()
+      .slice(0, MAX_TRAILS)
+  }, [trajectories])
+
+  // Extract all unique steps for the slider
+  const allSteps = useMemo(() => {
+    const stepSet = new Set<number>()
+    for (const p of particles) {
+      for (const pt of p.pts) {
+        stepSet.add(pt.step)
+      }
+    }
+    return Array.from(stepSet).sort((a, b) => a - b)
+  }, [particles])
+
+  // Map step value to slider index
+  const stepIdx = allSteps.indexOf(currentStep)
+
+  // Register dots layer
+  useEffect(() => {
+    if (!isLoaded || !map) return
+    if (map.getSource(dotSourceId)) return
+    map.addSource(dotSourceId, { type: "geojson", data: { type: "FeatureCollection", features: [] } })
+    map.addLayer({
+      id: dotLayerId, type: "circle", source: dotSourceId,
+      paint: {
+        "circle-radius": 5,
+        "circle-color": "#14b8a6",
+        "circle-opacity": 0.85,
+        "circle-stroke-width": 1.5,
+        "circle-stroke-color": "#ffffff",
+      },
+    })
+    return () => {
+      try {
+        if (map.getLayer(dotLayerId)) map.removeLayer(dotLayerId)
+        if (map.getSource(dotSourceId)) map.removeSource(dotSourceId)
+      } catch {}
+    }
+  }, [isLoaded, map])
+
+  // Update dots when step changes
+  useEffect(() => {
+    if (!isLoaded || !map) return
+    // Find positions at current step for each particle
+    const features: GeoJSON.Feature[] = []
+    for (const p of particles) {
+      const pt = p.pts.find((pt) => pt.step === currentStep)
+      if (pt) {
+        features.push({
+          type: "Feature",
+          properties: {},
+          geometry: { type: "Point", coordinates: [pt.lon, pt.lat] },
+        })
+      }
+    }
+    try {
+      const src = map.getSource(dotSourceId) as any
+      if (src) src.setData({ type: "FeatureCollection", features })
+    } catch {}
+  }, [isLoaded, map, currentStep, particles])
+
+  // Animation timer
+  useEffect(() => {
+    if (playing && allSteps.length > 1) {
+      timerRef.current = setInterval(() => {
+        setCurrentStep((prev) => {
+          const idx = allSteps.indexOf(prev)
+          const next = idx < allSteps.length - 1 ? idx + 1 : 0
+          return allSteps[next]
+        })
+      }, 500)
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current) }
+  }, [playing, allSteps])
+
+  // Visibility
+  useEffect(() => {
+    if (!isLoaded || !map) return
+    try { map.setLayoutProperty(dotLayerId, "visibility", visible ? "visible" : "none") } catch {}
+  }, [isLoaded, map, visible])
+
+  // Build trail routes: for each particle, show path from start to current step
+  const trails = useMemo(() => {
+    if (allSteps.length === 0) return []
+    const result: [number, number][][] = []
+    for (const p of particles) {
+      const upToStep = p.pts.filter((pt) => pt.step <= currentStep)
+      if (upToStep.length >= 2) {
+        result.push(upToStep.map((pt) => [pt.lon, pt.lat] as [number, number]))
+      }
+    }
+    return result
+  }, [particles, currentStep])
+
+  if (!visible || allSteps.length === 0) return null
+
+  return (
+    <>
+      {/* Trail lines */}
+      {trails.map((coords, i) => (
+        <MapRoute
+          key={`trail-${i}`}
+          coordinates={coords}
+          color="#5eead4"
+          width={0.8}
+          opacity={0.2}
+          interactive={false}
+        />
+      ))}
+
+      {/* Controls */}
+      <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 rounded-lg bg-white/90 dark:bg-slate-900/90 px-4 py-2 shadow-lg backdrop-blur border border-slate-200 dark:border-slate-700">
+        <button
+          onClick={() => setPlaying(!playing)}
+          className="flex size-7 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+          title={playing ? "Pausar" : "Reproducir"}
+        >
+          {playing ? (
+            <svg className="size-3" viewBox="0 0 8 8"><rect x="1" y="1" width="2.5" height="6" rx="0.5" fill="currentColor"/><rect x="4.5" y="1" width="2.5" height="6" rx="0.5" fill="currentColor"/></svg>
+          ) : (
+            <svg className="size-3" viewBox="0 0 8 8"><polygon points="1,0.5 7,4 1,7.5" fill="currentColor"/></svg>
+          )}
+        </button>
+        <input
+          type="range"
+          min={0}
+          max={Math.max(0, allSteps.length - 1)}
+          value={Math.max(0, stepIdx)}
+          onChange={(e) => {
+            const idx = parseInt(e.target.value)
+            if (idx >= 0 && idx < allSteps.length) setCurrentStep(allSteps[idx])
+          }}
+          className="w-28 h-1 accent-teal-500 cursor-pointer"
+        />
+        <span className="text-[10px] text-slate-500 tabular-nums min-w-16 text-right">
+          {stepIdx + 1}/{allSteps.length}
+        </span>
+      </div>
+    </>
+  )
+}

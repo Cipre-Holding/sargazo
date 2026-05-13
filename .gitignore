@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+*.egg-info/
+dist/
+
+# Data (large raw files)
+noaa_sir_kmz/
+backend/boletines_2024/
+backend/boletines_2025/
+backend/boletines_2026/
+*.pdf
+
+# Database
+*.db
+*.sqlite
+
+# Environment
+.env
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dev tools
+.mcp.json
+skills-lock.json
+.agents/
+.claude/
+
+# LibreOffice lock files
+.~lock.*
+
+# Generated GeoJSON (large, can be regenerated)
+noaa_sir_riesgo_costero_qroo.geojson

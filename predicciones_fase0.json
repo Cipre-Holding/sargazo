@@ -1,0 +1,127 @@
+{
+  "0.1_regresion": {
+    "modelo": "0.1_regresion_lineal",
+    "n": 14,
+    "r2": 0.8289,
+    "rmse_log": 1.0612,
+    "mae_log": 0.8616,
+    "beta_0": -2.1139,
+    "beta_1": 1.7178,
+    "sigma_residual": 1.1164,
+    "holdout_mayo": {
+      "real_mt": 0.051837,
+      "predicho_mt": 0.017557,
+      "error_pct": -66.1
+    },
+    "prediccion_junio": {
+      "log_cm": -3.2637,
+      "cm_mt": 0.038248,
+      "cm_ton": 38248.0,
+      "ci_80_mt": [
+        0.003107,
+        0.470877
+      ]
+    }
+  },
+  "0.2_delta": {
+    "modelo": "0.2_regresion_delta",
+    "n": 12,
+    "r2": 0.3766,
+    "sigma_residual": 2.0029,
+    "beta_0": -0.0334,
+    "beta_1_log_aco_lag1": -0.0752,
+    "beta_2_delta_aco": 1.3089,
+    "holdout_mayo": {
+      "real_delta": 0.4682,
+      "predicho_delta": 0.7922,
+      "error_pct": 38.3
+    },
+    "prediccion_junio": {
+      "delta_log_cm": 0.5533,
+      "log_cm": -2.4063,
+      "cm_mt": 0.090145,
+      "cm_ton": 90145.0,
+      "cambio_pct_vs_mayo": 73.9,
+      "ci_80_mt": [
+        0.000964,
+        8.431405
+      ]
+    }
+  },
+  "0.3_logistica": {
+    "modelo": "0.3_logistica_ordinal",
+    "n": 14,
+    "loocv_accuracy": 0.357,
+    "loocv_accuracy_mas1": 0.643,
+    "clases_entrenadas": [
+      1,
+      3,
+      4,
+      5,
+      6
+    ],
+    "prediccion_junio": {
+      "clase": 4,
+      "etiqueta": "MODERADO",
+      "probabilidades": {
+        "ESCASO": 0.2153,
+        "BAJO": 0.0579,
+        "MODERADO": 0.2868,
+        "ALTO": 0.2657,
+        "MUY ALTO": 0.1743
+      }
+    }
+  },
+  "0.4_prophet": {
+    "modelo": "0.4_prophet",
+    "n_entrenamiento": 303,
+    "changepoints": 25,
+    "proyeccion_junio_2026_aco_mt": 3.6489,
+    "estimacion_indirecta_cm_julio_mt": 1.115888,
+    "cm_reliable": false,
+    "nota": "CM estimado indirectamente v\u00eda ACO\u2192coefs 0.1. No usar para decisiones operativas."
+  },
+  "0.5_ar1": {
+    "modelo": "0.5_ar1_fallback",
+    "n": 22,
+    "r2": 0.3026,
+    "r_pearson": 0.5501,
+    "sigma_residual": 2.1849,
+    "beta_0": -2.4727,
+    "beta_1": 0.5593,
+    "holdout_mayo": {
+      "real_mt": 0.051837,
+      "predicho_mt": 0.012402,
+      "error_pct": -76.1
+    },
+    "prediccion_junio": {
+      "log_cm": -4.128,
+      "cm_mt": 0.016115,
+      "cm_ton": 16115.0,
+      "cambio_pct_vs_mayo": -68.9,
+      "ci_80_mt": [
+        0.000131,
+        1.981548
+      ]
+    }
+  },
+  "metadata": {
+    "generado": "2026-05-13T13:21:33.893066",
+    "proyecto": "Predicci\u00f3n Sargazo Cozumel",
+    "fase": "0_refinada",
+    "modelos": [
+      "regresion",
+      "delta",
+      "logistica",
+      "prophet",
+      "ar1"
+    ],
+    "datos_usados": {
+      "pares_semar_puros": 14,
+      "meses_cm_disponibles": 21,
+      "meses_aco_disponibles": 15,
+      "ultimo_aco_mayo_2026_mt": 0.512037,
+      "ultimo_cm_mayo_2026_mt": 0.051837
+    }
+  }
+}

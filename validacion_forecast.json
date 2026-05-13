@@ -1,0 +1,28 @@
+{
+  "resultados": {
+    "12h": {
+      "r_pearson": 0.5474,
+      "p_value": 0.1272,
+      "r_spearman": 0.5396,
+      "n_beaches_total": 9,
+      "n_beaches_covered": 5,
+      "direction": "concordant"
+    },
+    "144h": {
+      "r_pearson": 0.5474,
+      "p_value": 0.1272,
+      "r_spearman": 0.5396,
+      "n_beaches_total": 9,
+      "n_beaches_covered": 5,
+      "direction": "concordant"
+    }
+  },
+  "resumen": {
+    "concordant": 2,
+    "weak": 0,
+    "opposite": 0,
+    "best_horizon": "12h",
+    "best_correlation": 0.5474
+  },
+  "conclusion": "El forecast KDE correlaciona positivamente con el riesgo hist\u00f3rico"
+}
