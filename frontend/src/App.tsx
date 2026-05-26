@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { Map, MapControls, useMap, MapMarker, MarkerContent, MapPopup } from "@/components/ui/map"
 import { SirLayer } from "@/components/map/SirLayer"
 import { MlRiskLayer } from "@/components/map/MlRiskLayer"
@@ -97,6 +97,7 @@ function App() {
   const [activeTab, setActiveTab]       = useState<SidebarTab>("pred")
   const [slowLoad, setSlowLoad]         = useState(false)
   const [selectedBeach, setSelectedBeach] = useState<any>(null)
+  const mapRef                          = useRef<any>(null)
 
   const { data: predictions, loading: loadingPred } = useApi<any>("/predictions")
   const { data: allSirDates }                            = useApi<string[]>("/forecast/geodata/sir/dates")
@@ -161,7 +162,7 @@ function App() {
     <div className="relative h-screen w-full overflow-hidden" style={{ background: 'var(--color-bg)' }}>
 
       {/* ── Map (full background) ────────────────────────────────────────── */}
-      <Map className="absolute inset-0" center={[-87.0, 20.3]} zoom={8.5} theme="dark">
+      <Map ref={mapRef} className="absolute inset-0" center={[-87.0, 20.3]} zoom={8.5} theme="dark">
         <div className="absolute top-[4.5rem] right-3 z-20">
           <RecenterBtn />
         </div>
@@ -489,7 +490,7 @@ function App() {
                     <h3 className="text-xs font-bold uppercase tracking-widest text-muted mb-3">
                       Riesgo por playa
                     </h3>
-                    <div className="space-y-2.5">
+                    <div className="space-y-2">
                       {beachSegments.slice(0, 5).map((s: any) => {
                         const riskColor = s.pct_high_medium > 65
                           ? 'var(--color-risk-high)'
@@ -497,9 +498,16 @@ function App() {
                           ? 'var(--color-risk-medium)'
                           : 'var(--color-risk-warning)'
                         return (
-                          <div key={s.id}>
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm text-fg truncate flex-1 mr-2">{s.name}</span>
+                          <button
+                            key={s.id}
+                            onClick={() => {
+                              setSelectedBeach(s)
+                              mapRef.current?.flyTo({ center: [s.lon, s.lat], zoom: 11.5, duration: 1200 })
+                            }}
+                            className="w-full text-left space-y-1 block hover:bg-surface-raised/40 p-1.5 rounded-lg transition-colors cursor-pointer group"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-fg group-hover:text-primary transition-colors font-medium truncate pr-2">{s.name}</span>
                               <span className="text-xs font-mono font-bold tabular-nums shrink-0"
                                 style={{ color: riskColor }}>
                                 {s.pct_high_medium}%
@@ -511,7 +519,7 @@ function App() {
                                 background: riskColor,
                               }} />
                             </div>
-                          </div>
+                          </button>
                         )
                       })}
                     </div>
