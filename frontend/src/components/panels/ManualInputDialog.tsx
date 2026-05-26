@@ -52,9 +52,9 @@ export function ManualInputDialog({ onSuccess }: ManualInputDialogProps) {
   }
 
   const inputCls = [
-    "w-full rounded-xl border px-3 py-2 text-sm transition-colors duration-150",
-    "bg-surface-raised border-border/50 text-fg placeholder-muted/50",
-    "focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/60",
+    "w-full rounded-xl border px-3 py-2 text-sm transition-all duration-150 font-mono",
+    "bg-surface-raised border-border/40 text-fg placeholder-muted/50",
+    "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/60",
   ].join(" ")
 
   return (
@@ -62,28 +62,25 @@ export function ManualInputDialog({ onSuccess }: ManualInputDialogProps) {
       {/* Trigger button */}
       <button
         onClick={() => setOpen(true)}
-        className="w-full flex items-center justify-center gap-2 rounded-xl border border-border/40 px-4 py-2.5 text-sm text-muted hover:text-fg transition-all duration-150 cursor-pointer"
-        style={{ background: 'var(--color-surface-raised)' }}
+        className="w-full flex items-center justify-center gap-2 rounded-xl border border-border/40 px-4 py-2.5 text-sm text-muted hover:text-fg bg-surface-raised/60 hover:bg-surface-raised transition-all duration-150 cursor-pointer active:scale-[0.98]"
       >
-        <Plus className="size-4" />
+        <Plus className="size-4 text-primary" />
         Entrada manual
       </button>
 
       {/* Modal */}
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
-          style={{ background: 'rgba(0,0,0,0.65)' }}
+          className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/70 animate-in fade-in duration-200"
           onClick={() => setOpen(false)}
         >
           <div
-            className="w-full max-w-md mx-4 rounded-2xl border border-border/50 shadow-2xl shadow-black/60"
-            style={{ background: 'var(--color-surface)' }}
+            className="w-full max-w-md mx-4 rounded-2xl border border-border/40 bg-surface/95 shadow-2xl shadow-black/60 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
-              <h2 className="text-sm font-bold text-fg">Entrada manual de datos</h2>
+              <h2 className="text-sm font-bold text-fg tracking-tight">Entrada manual de datos</h2>
               <button
                 onClick={() => setOpen(false)}
                 className="flex size-7 items-center justify-center rounded-xl text-muted hover:text-fg hover:bg-surface-raised transition-colors cursor-pointer"
@@ -97,7 +94,7 @@ export function ManualInputDialog({ onSuccess }: ManualInputDialogProps) {
 
               {/* Fecha */}
               <div>
-                <label className="block text-[11px] font-semibold text-muted uppercase tracking-widest mb-1.5">
+                <label className="block text-[10px] font-bold text-muted uppercase tracking-widest mb-1.5">
                   Fecha
                 </label>
                 <input
@@ -113,7 +110,7 @@ export function ManualInputDialog({ onSuccess }: ManualInputDialogProps) {
               {/* CM + ACO side by side */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-semibold text-muted uppercase tracking-widest mb-1.5">
+                  <label className="block text-[10px] font-bold text-muted uppercase tracking-widest mb-1.5">
                     CM (ton)
                   </label>
                   <input
@@ -125,7 +122,7 @@ export function ManualInputDialog({ onSuccess }: ManualInputDialogProps) {
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-muted uppercase tracking-widest mb-1.5">
+                  <label className="block text-[10px] font-bold text-muted uppercase tracking-widest mb-1.5">
                     ACO (Mt)
                   </label>
                   <input
@@ -140,7 +137,7 @@ export function ManualInputDialog({ onSuccess }: ManualInputDialogProps) {
 
               {/* Semáforo */}
               <div>
-                <label className="block text-[11px] font-semibold text-muted uppercase tracking-widest mb-1.5">
+                <label className="block text-[10px] font-bold text-muted uppercase tracking-widest mb-1.5">
                   Semáforo
                 </label>
                 <select
@@ -158,7 +155,7 @@ export function ManualInputDialog({ onSuccess }: ManualInputDialogProps) {
 
               {/* Conglomerado Cozumel */}
               <div>
-                <label className="block text-[11px] font-semibold text-muted uppercase tracking-widest mb-1.5">
+                <label className="block text-[10px] font-bold text-muted uppercase tracking-widest mb-1.5">
                   Conglomerado Cozumel
                 </label>
                 <select
@@ -174,8 +171,7 @@ export function ManualInputDialog({ onSuccess }: ManualInputDialogProps) {
               </div>
 
               {errorMsg && (
-                <div className="px-3 py-2 rounded-lg text-xs border"
-                  style={{ background: 'oklch(0.62 0.22 28 / 0.1)', borderColor: 'oklch(0.62 0.22 28 / 0.25)', color: 'var(--color-error)' }}>
+                <div className="px-3 py-2 rounded-xl text-xs border border-error/25 bg-error/5 text-error font-mono">
                   {errorMsg}
                 </div>
               )}
@@ -185,15 +181,14 @@ export function ManualInputDialog({ onSuccess }: ManualInputDialogProps) {
                 <button
                   type="submit"
                   disabled={sending}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ background: 'var(--color-primary)', color: 'var(--color-primary-foreground)' }}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary-hover hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {sending ? "Guardando…" : "Guardar entrada"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-border/50 text-sm text-muted hover:text-fg hover:bg-surface-raised transition-all duration-150 cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl border border-border/40 bg-surface-raised/40 text-sm text-muted hover:text-fg hover:bg-surface-raised transition-all duration-150 cursor-pointer active:scale-[0.98]"
                 >
                   Cancelar
                 </button>

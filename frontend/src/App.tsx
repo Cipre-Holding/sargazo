@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react"
-import { Map, MapControls, useMap } from "@/components/ui/map"
+import { Map, MapControls, useMap, MapMarker, MarkerContent, MapPopup } from "@/components/ui/map"
 import { SirLayer } from "@/components/map/SirLayer"
 import { MlRiskLayer } from "@/components/map/MlRiskLayer"
 import { KdeLayer } from "@/components/map/KdeLayer"
@@ -27,23 +27,23 @@ const HORIZONS = [
 
 const LAYERS_CONFIG = [
   {
-    id: "mlrisk",      label: "Riesgo ML",
-    desc: "Interpolación Wendland C2 · 315 días",
+    id: "mlrisk",      label: "Riesgo ML (Machine Learning)",
+    desc: "Riesgo interpolado (Wendland C2) · Malla ~4km",
     colorVar: "--color-risk-medium",
   },
   {
-    id: "sir",         label: "NOAA SIR",
-    desc: "Riesgo costero satelital · cwcgom.aoml",
+    id: "sir",         label: "NOAA SIR (Satelital)",
+    desc: "Riesgo costero satelital NOAA AOML diario",
     colorVar: "--color-risk-high",
   },
   {
-    id: "kde",         label: "KDE",
-    desc: "Densidad de partículas · OpenDrift",
+    id: "kde",         label: "Densidad KDE (14 días)",
+    desc: "Densidad de partículas (Kernel Density Estimation)",
     colorVar: "--color-success",
   },
   {
-    id: "trajectories", label: "Trayectorias",
-    desc: "2000 partículas · RTOFS+GFS",
+    id: "trajectories", label: "Trayectorias Lagrangianas",
+    desc: "Deriva física a 14d (corrientes RTOFS + viento GFS)",
     colorVar: "--color-primary",
   },
 ]
@@ -96,6 +96,7 @@ function App() {
   const [infoOpen, setInfoOpen]         = useState(false)
   const [activeTab, setActiveTab]       = useState<SidebarTab>("pred")
   const [slowLoad, setSlowLoad]         = useState(false)
+  const [selectedBeach, setSelectedBeach] = useState<any>(null)
 
   const { data: predictions, loading: loadingPred } = useApi<any>("/predictions")
   const { data: allSirDates }                            = useApi<string[]>("/forecast/geodata/sir/dates")
@@ -174,6 +175,65 @@ function App() {
         <MlRiskLayer  geojson={mlRisk as any}         visible={layers.mlrisk} />
         <KdeLayer     kdeData={kdeData as any}         horizon={horizon}       visible={layers.kde} />
         <TrajectoryLayer trajectories={trajectories as any}                    visible={layers.trajectories} />
+
+        {/* Beach risk markers */}
+        {beachSegments.map((beach: any) => {
+          if (beach.lat === undefined || beach.lon === undefined) return null
+          const riskColor = beach.pct_high_medium > 65
+            ? 'var(--color-risk-high)'
+            : beach.pct_high_medium > 50
+            ? 'var(--color-risk-medium)'
+            : beach.pct_high_medium > 0
+            ? 'var(--color-risk-warning)'
+            : 'var(--color-risk-low)'
+          return (
+            <MapMarker
+              key={beach.id}
+              longitude={beach.lon}
+              latitude={beach.lat}
+              onClick={() => setSelectedBeach(beach)}
+            >
+              <MarkerContent>
+                <button
+                  className="size-5 rounded-full border-2 border-white shadow-lg shadow-black/50 hover:scale-110 active:scale-95 transition-all duration-150 cursor-pointer"
+                  style={{ backgroundColor: riskColor }}
+                  title={`${beach.name} (${beach.pct_high_medium}% riesgo)`}
+                />
+              </MarkerContent>
+            </MapMarker>
+          )
+        })}
+
+        {/* Beach Details Popup */}
+        {selectedBeach && (
+          <MapPopup
+            longitude={selectedBeach.lon}
+            latitude={selectedBeach.lat}
+            onClose={() => setSelectedBeach(null)}
+            closeButton={true}
+            className="w-64 bg-surface border border-border/40 text-fg p-4 rounded-2xl shadow-2xl shadow-black/80 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200"
+          >
+            <div className="space-y-2">
+              <h4 className="text-sm font-bold text-fg border-b border-border/30 pb-1.5 tracking-tight">
+                {selectedBeach.name}
+              </h4>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted">Riesgo Alto+Medio</span>
+                  <span className="font-bold text-primary font-mono">{selectedBeach.pct_high_medium}%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted">Riesgo Promedio</span>
+                  <span className="font-semibold font-mono">{selectedBeach.riesgo_promedio.toFixed(2)} / 3.0</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted">Registros con datos</span>
+                  <span className="font-mono text-muted">{selectedBeach.n_dias_con_datos} días</span>
+                </div>
+              </div>
+            </div>
+          </MapPopup>
+        )}
       </Map>
 
       {/* ── Top bar ──────────────────────────────────────────────────────── */}
@@ -189,10 +249,12 @@ function App() {
         </button>
 
         {/* Brand */}
-        <div className="flex items-center gap-2 min-w-0">
-          <Waves className="size-4 shrink-0" style={{ color: 'var(--color-primary)' }} />
+        <div className="flex items-center gap-3 min-w-0">
+          <img src="https://cipreholding.com/img/logos/LOGO-CIPRE-W.svg" className="h-4 w-auto opacity-90 brightness-110 shrink-0" alt="CIPRE" />
+          <div className="h-3.5 w-px bg-border/50 shrink-0" />
+          <Waves className="size-4 shrink-0 text-primary" />
           <span className="font-semibold text-sm tracking-tight text-fg">Sargazo Cozumel</span>
-          <span className="hidden md:inline text-[11px] text-muted border-l border-border/50 pl-2.5">
+          <span className="hidden lg:inline text-[11px] text-muted border-l border-border/50 pl-2.5">
             Monitoreo y predicción operativa
           </span>
         </div>
@@ -202,9 +264,12 @@ function App() {
         {/* Alert badge */}
         {alerts.length > 0 && (
           <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg border"
-            style={{ background: 'var(--color-accent-soft)', borderColor: 'oklch(0.78 0.17 85 / 0.25)' }}>
-            <AlertTriangle className="size-3" style={{ color: 'var(--color-warning)' }} />
-            <span className="text-[10px] font-semibold" style={{ color: 'var(--color-warning)' }}>
+            style={{
+              background: 'var(--color-accent-soft)',
+              borderColor: 'color-mix(in oklch, var(--color-warning) 25%, transparent)',
+            }}>
+            <AlertTriangle className="size-3 text-warning" />
+            <span className="text-[10px] font-semibold text-warning">
               {alerts.length} alerta{alerts.length > 1 ? "s" : ""}
             </span>
           </div>
@@ -221,12 +286,7 @@ function App() {
         {/* Info button */}
         <button
           onClick={() => setInfoOpen(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer"
-          style={{
-            background: 'oklch(0.63 0.20 228 / 0.15)',
-            color: 'var(--color-primary)',
-            border: '1px solid oklch(0.63 0.20 228 / 0.3)',
-          }}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold text-primary bg-primary-soft/15 border border-primary/30 hover:bg-primary-soft/25 transition-all duration-150 cursor-pointer"
           title="Centro de Información"
         >
           <CircleHelp className="size-3.5" />
@@ -245,8 +305,8 @@ function App() {
       </header>
 
       {/* ── Sidebar ──────────────────────────────────────────────────────── */}
-      <aside className={`absolute top-[3.75rem] left-3 z-20 w-72 bottom-14 transition-all duration-300 ease-out ${
-        sidebarOpen ? "translate-x-0 opacity-100" : "-translate-x-80 opacity-0 pointer-events-none"
+      <aside className={`absolute top-[3.75rem] left-3 z-20 w-96 bottom-14 transition-all duration-300 ease-out ${
+        sidebarOpen ? "translate-x-0 opacity-100" : "-translate-x-[420px] opacity-0 pointer-events-none"
       }`}>
         <div className="h-full flex flex-col rounded-2xl border border-border/40 bg-surface/88 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden mt-2">
 
@@ -260,7 +320,7 @@ function App() {
               <button
                 key={id}
                 onClick={() => setActiveTab(id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 pb-2 pt-1 px-1 text-[11px] font-semibold border-b-2 transition-all duration-150 cursor-pointer rounded-t-lg ${
+                className={`flex-1 flex items-center justify-center gap-1.5 pb-2.5 pt-2 px-1 text-xs font-bold uppercase tracking-wider border-b-2 transition-all duration-150 cursor-pointer rounded-t-lg ${
                   activeTab === id
                     ? "border-primary text-fg"
                     : "border-transparent text-muted hover:text-fg hover:border-border/50"
@@ -298,24 +358,21 @@ function App() {
                 )}
                 {/* KPI Card */}
                 {ensemble && (
-                  <div className="rounded-xl border p-4" style={{
-                    borderColor: 'oklch(0.63 0.20 228 / 0.35)',
-                    background: 'linear-gradient(135deg, oklch(0.15 0.045 228 / 0.5) 0%, oklch(0.09 0.016 245 / 0.6) 100%)',
-                  }}>
+                  <div className="rounded-xl border border-border bg-gradient-to-br from-primary-soft/30 to-bg/85 p-4 shadow-lg shadow-black/25">
                     {/* Header */}
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: 'var(--color-primary)' }}>
+                      <span className="text-xs font-bold uppercase tracking-widest text-primary">
                         Predicción Junio 2026
                       </span>
                       {confidence && (
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
                           confidence.nivel === "ALTA"
-                            ? "border-success/30 text-success"
-                            : "border-warning/30 text-warning"
+                            ? "border-success/20 text-success"
+                            : "border-warning/20 text-warning"
                         }`} style={{
                           background: confidence.nivel === "ALTA"
-                            ? 'oklch(0.67 0.19 155 / 0.12)'
-                            : 'oklch(0.78 0.17 85 / 0.12)',
+                            ? 'oklch(0.76 0.18 165 / 0.1)'
+                            : 'oklch(0.78 0.17 85 / 0.1)',
                         }}>
                           {confidence.porcentaje}% {confidence.nivel}
                         </span>
@@ -323,14 +380,14 @@ function App() {
                     </div>
 
                     {/* Big number */}
-                    <div className="flex items-end gap-2.5 mb-1.5">
-                      <span className="text-[2.5rem] leading-none font-bold tabular-nums tracking-tighter text-fg font-mono">
+                    <div className="flex items-end gap-2.5 mb-2">
+                      <span className="text-5xl leading-none font-bold tabular-nums tracking-tighter text-fg font-mono">
                         {(ensemble.prediccion_junio.cm_ton / 1000).toFixed(1)}
                       </span>
                       <div className="pb-1 space-y-0.5">
-                        <div className="text-[11px] text-muted font-medium">×10³ ton</div>
+                        <div className="text-xs text-muted font-medium">×10³ ton</div>
                         {semaforoLevel && (
-                          <div className="text-[10px] font-black uppercase tracking-wider" style={{ color: semaforoLevel.color }}>
+                          <div className="text-xs font-extrabold uppercase tracking-wider" style={{ color: semaforoLevel.color }}>
                             {semaforoLevel.label}
                           </div>
                         )}
@@ -356,7 +413,7 @@ function App() {
                       const pct = (hi - lo) > 0 ? ((val - lo) / (hi - lo)) * 100 : 50
                       return (
                         <div className="mb-3">
-                          <div className="flex justify-between text-[10px] text-muted mb-1">
+                          <div className="flex justify-between text-xs text-muted mb-1">
                             <span>IC 80%</span>
                             <span className="font-mono tabular-nums">{lo.toFixed(0)} – {hi.toFixed(0)} k</span>
                           </div>
@@ -371,7 +428,7 @@ function App() {
 
                     {/* Prophet row */}
                     {prophet?.proyeccion_junio_2026_aco_mt && (
-                      <div className="pt-2.5 border-t border-border/30 flex justify-between text-xs">
+                      <div className="pt-2.5 border-t border-border/30 flex justify-between text-sm">
                         <span className="text-muted" title="Prophet n≈303, serie histórica GASB/ACO">
                           Prophet ACO jun
                         </span>
@@ -387,10 +444,10 @@ function App() {
                 {confidence && (
                   <div className="rounded-xl border border-border/40 p-3.5">
                     <div className="flex items-center justify-between mb-2.5">
-                      <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted">
                         Confianza
                       </span>
-                      <span className={`text-xs font-bold tabular-nums ${
+                      <span className={`text-sm font-bold tabular-nums ${
                         confidence.nivel === "ALTA" ? "text-success"
                           : confidence.nivel === "MEDIA" ? "text-warning"
                           : "text-error"
@@ -406,7 +463,7 @@ function App() {
                       <div className="space-y-1.5">
                         {Object.entries(confidence.desglose).map(([k, v]: [string, any]) => (
                           <div key={k} className="flex items-center gap-2">
-                            <span className="text-[10px] text-muted truncate flex-1 capitalize">
+                            <span className="text-xs text-muted truncate flex-1 capitalize">
                               {k.replace(/_/g, ' ')}
                             </span>
                             <div className="w-14 h-1 rounded-full overflow-hidden" style={{ background: 'var(--color-border)' }}>
@@ -416,7 +473,7 @@ function App() {
                                 opacity: 0.75,
                               }} />
                             </div>
-                            <span className="text-[10px] font-mono text-muted tabular-nums w-8 text-right">
+                            <span className="text-xs font-mono text-muted tabular-nums w-8 text-right">
                               {v.puntos}/{v.max}
                             </span>
                           </div>
@@ -429,7 +486,7 @@ function App() {
                 {/* Beach risk */}
                 {beachSegments.length > 0 && (
                   <div className="rounded-xl border border-border/40 p-3.5">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted mb-3">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-muted mb-3">
                       Riesgo por playa
                     </h3>
                     <div className="space-y-2.5">
@@ -442,8 +499,8 @@ function App() {
                         return (
                           <div key={s.id}>
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs text-fg truncate flex-1 mr-2">{s.name}</span>
-                              <span className="text-[10px] font-mono font-bold tabular-nums shrink-0"
+                              <span className="text-sm text-fg truncate flex-1 mr-2">{s.name}</span>
+                              <span className="text-xs font-mono font-bold tabular-nums shrink-0"
                                 style={{ color: riskColor }}>
                                 {s.pct_high_medium}%
                               </span>
@@ -471,8 +528,8 @@ function App() {
                           : "text-warning border-warning/20"
                       }`} style={{
                         background: a.type === "error"
-                          ? 'oklch(0.62 0.24 28 / 0.1)'
-                          : 'oklch(0.78 0.17 85 / 0.1)',
+                          ? 'color-mix(in oklch, var(--color-risk-high) 10%, transparent)'
+                          : 'color-mix(in oklch, var(--color-warning) 10%, transparent)',
                       }}>
                         <AlertTriangle className="size-3 mt-0.5 shrink-0" />
                         <span>{a.text}</span>
@@ -483,7 +540,7 @@ function App() {
               </>
             )}
 
-            {/* ════════ TAB: CAPAS ════════ */}
+            {/* ─── TAB: CAPAS ─── */}
             {activeTab === "layers" && (
               <>
                 {/* Layer toggles */}
@@ -509,10 +566,10 @@ function App() {
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className={`text-sm font-semibold transition-colors ${
+                          <div className={`text-base font-semibold transition-colors ${
                             layers[l.id] ? "text-fg" : "text-muted"
                           }`}>{l.label}</div>
-                          <div className="text-[10px] text-muted/60 truncate">{l.desc}</div>
+                          <div className="text-xs text-muted/60 truncate">{l.desc}</div>
                         </div>
 
                         {layers[l.id] && (
@@ -527,17 +584,17 @@ function App() {
                 {layers.kde && (
                   <div className="rounded-xl border border-border/40 p-3.5">
                     <div className="flex items-center justify-between mb-2.5">
-                      <label className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
+                      <label className="text-xs font-bold uppercase tracking-widest text-muted">
                         Horizonte KDE
                       </label>
-                      <span className="text-[10px] font-mono text-muted">{horizon}</span>
+                      <span className="text-xs font-mono text-muted">{horizon}</span>
                     </div>
                     <div className="grid grid-cols-6 gap-1">
                       {HORIZONS.map((h) => (
                         <button
                           key={h.value}
                           onClick={() => setHorizon(h.value)}
-                          className={`text-center py-1.5 rounded-lg text-[10px] font-bold transition-all duration-150 cursor-pointer ${
+                          className={`text-center py-1.5 rounded-lg text-xs font-bold transition-all duration-150 cursor-pointer ${
                             horizon === h.value
                               ? "text-white shadow-sm"
                               : "text-muted hover:text-fg"
@@ -559,13 +616,13 @@ function App() {
                 {layers.sir && (allSirDates?.length ?? 0) > 1 && (
                   <div className="rounded-xl border border-border/40 p-3.5">
                     <div className="flex items-center justify-between mb-2">
-                      <label className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
+                      <label className="text-xs font-bold uppercase tracking-widest text-muted">
                         Fecha SIR
                         <span className="font-normal ml-1 opacity-60">
                           ({allSirDates?.length}d)
                         </span>
                       </label>
-                      <span className="text-[10px] font-mono font-semibold text-fg tabular-nums">{sirDate}</span>
+                      <span className="text-xs font-mono font-semibold text-fg tabular-nums">{sirDate}</span>
                     </div>
                     <input
                       type="range"
@@ -576,7 +633,7 @@ function App() {
                       className="w-full cursor-pointer"
                       style={{ accentColor: 'var(--color-risk-high)' }}
                     />
-                    <div className="flex justify-between text-[9px] mt-1" style={{ color: 'var(--color-muted)', opacity: 0.6 }}>
+                    <div className="flex justify-between text-[11px] mt-1" style={{ color: 'var(--color-muted)', opacity: 0.6 }}>
                       <span>{allSirDates?.[0]}</span>
                       <span>{allSirDates?.[allSirDates.length - 1]}</span>
                     </div>
@@ -584,7 +641,7 @@ function App() {
                 )}
 
                 {/* Info about layer counts */}
-                <div className="rounded-xl border border-border/30 p-3 text-[10px] text-muted/60 space-y-1">
+                <div className="rounded-xl border border-border/30 p-3 text-xs text-muted/60 space-y-1">
                   <div className="flex justify-between"><span>Fechas NOAA SIR</span><span className="font-mono">315</span></div>
                   <div className="flex justify-between"><span>Celdas ML interpoladas</span><span className="font-mono">915</span></div>
                   <div className="flex justify-between"><span>Partículas Lagrangianas</span><span className="font-mono">2 000</span></div>
@@ -693,19 +750,23 @@ function App() {
       {/* ── Legend ───────────────────────────────────────────────────────── */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3.5 rounded-xl border border-border/40 bg-surface/80 backdrop-blur-xl px-4 py-2 shadow-lg shadow-black/30">
         {[
-          { label: "LOW",  c: "var(--color-risk-low)"     },
-          { label: "WARN", c: "var(--color-risk-warning)"  },
-          { label: "MED",  c: "var(--color-risk-medium)"   },
-          { label: "HIGH", c: "var(--color-risk-high)"     },
+          { label: "BAJO",  c: "var(--color-risk-low)",     desc: "Riesgo de arribo mínimo. Costa libre de acumulaciones significativas." },
+          { label: "AVISO", c: "var(--color-risk-warning)", desc: "Presencia de sargazo disperso. Monitoreo rutinario sin afectación severa." },
+          { label: "MEDIO", c: "var(--color-risk-medium)",  desc: "Arribo moderado. Acumulación progresiva en playas vulnerables." },
+          { label: "ALTO",  c: "var(--color-risk-high)",    desc: "Riesgo extremo. Impacto masivo en costa. Requiere despliegue de barreras y recolección marina." },
         ].map((item) => (
-          <span key={item.label} className="flex items-center gap-1.5 text-xs text-muted">
+          <span
+            key={item.label}
+            className="flex items-center gap-1.5 text-xs text-muted hover:text-fg transition-colors cursor-help"
+            title={item.desc}
+          >
             <span className="size-2 rounded-sm" style={{ background: item.c }} />
             {item.label}
           </span>
         ))}
         <span className="text-border/50 text-muted">|</span>
-        <span className="text-[10px] hidden sm:inline" style={{ color: 'var(--color-muted)', opacity: 0.5 }}>
-          SEMAR · SATsum · NOAA SIR · RTOFS · GFS
+        <span className="text-xs hidden sm:inline text-muted/60 font-mono">
+          SEMAR · NOAA SIR · RTOFS · GFS
         </span>
       </div>
 

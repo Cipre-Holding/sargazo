@@ -24,11 +24,11 @@ export function MlRiskLayer({ geojson, visible, opacity = 0.6 }: MlRiskLayerProp
       paint: {
         "fill-color": [
           "match", ["get", "risk"],
-          "high",    "#ff3333",
-          "medium",  "#ff8800",
-          "warning", "#f5d000",
-          "low",     "#00d4aa",
-          "#aaaaaa"
+          "high",    "#ef4444",
+          "medium",  "#f97316",
+          "warning", "#eab308",
+          "low",     "#3b82f6",
+          "#9ca3af"
         ],
         "fill-opacity": [
           "match", ["get", "risk"],

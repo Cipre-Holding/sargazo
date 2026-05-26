@@ -63,10 +63,10 @@ export function TrajectoryLayer({ trajectories, visible }: TrajectoryLayerProps)
     map.addLayer({
       id: dotLayerId, type: "circle", source: dotSourceId,
       paint: {
-        "circle-radius": 5,
-        "circle-color": "#14b8a6",
-        "circle-opacity": 0.85,
-        "circle-stroke-width": 1.5,
+        "circle-radius": 4.5,
+        "circle-color": "#0dd393",
+        "circle-opacity": 0.9,
+        "circle-stroke-width": 1.2,
         "circle-stroke-color": "#ffffff",
       },
     })
@@ -141,24 +141,24 @@ export function TrajectoryLayer({ trajectories, visible }: TrajectoryLayerProps)
         <MapRoute
           key={`trail-${i}`}
           coordinates={coords}
-          color="#5eead4"
-          width={0.8}
-          opacity={0.2}
+          color="#06b6d4"
+          width={1.2}
+          opacity={0.3}
           interactive={false}
         />
       ))}
 
       {/* Controls */}
-      <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 rounded-lg bg-white/90 dark:bg-slate-900/90 px-4 py-2 shadow-lg backdrop-blur border border-slate-200 dark:border-slate-700">
+      <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3.5 rounded-xl border border-border/40 bg-surface/90 px-4 py-2.5 shadow-2xl shadow-black/40 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
         <button
           onClick={() => setPlaying(!playing)}
-          className="flex size-7 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+          className="flex size-8 items-center justify-center rounded-lg bg-surface-raised/80 hover:bg-surface-raised border border-border/30 text-fg hover:text-primary transition-all duration-150 cursor-pointer active:scale-95"
           title={playing ? "Pausar" : "Reproducir"}
         >
           {playing ? (
-            <svg className="size-3" viewBox="0 0 8 8"><rect x="1" y="1" width="2.5" height="6" rx="0.5" fill="currentColor"/><rect x="4.5" y="1" width="2.5" height="6" rx="0.5" fill="currentColor"/></svg>
+            <svg className="size-3.5" viewBox="0 0 8 8"><rect x="1" y="1" width="2.5" height="6" rx="0.5" fill="currentColor"/><rect x="4.5" y="1" width="2.5" height="6" rx="0.5" fill="currentColor"/></svg>
           ) : (
-            <svg className="size-3" viewBox="0 0 8 8"><polygon points="1,0.5 7,4 1,7.5" fill="currentColor"/></svg>
+            <svg className="size-3.5" viewBox="0 0 8 8"><polygon points="1,0.5 7,4 1,7.5" fill="currentColor"/></svg>
           )}
         </button>
         <input
@@ -170,10 +170,11 @@ export function TrajectoryLayer({ trajectories, visible }: TrajectoryLayerProps)
             const idx = parseInt(e.target.value)
             if (idx >= 0 && idx < allSteps.length) setCurrentStep(allSteps[idx])
           }}
-          className="w-28 h-1 accent-teal-500 cursor-pointer"
+          className="w-32 cursor-pointer h-1.5 rounded-lg accent-primary"
+          style={{ accentColor: 'var(--color-primary)' }}
         />
-        <span className="text-[10px] text-slate-500 tabular-nums min-w-16 text-right">
-          {stepIdx + 1}/{allSteps.length}
+        <span className="text-xs text-muted font-mono min-w-20 text-right tabular-nums">
+          Paso {stepIdx + 1}/{allSteps.length}
         </span>
       </div>
     </>

@@ -47,7 +47,14 @@ export function SirLayer({ geojson, visible, opacity = 0.6, selectedDate, onDate
       type: "line",
       source: sourceId,
       paint: {
-        "line-color": ["get", "color"],
+        "line-color": [
+          "match", ["get", "risk"],
+          "high",    "#ef4444",
+          "medium",  "#f97316",
+          "warning", "#eab308",
+          "low",     "#3b82f6",
+          "#9ca3af"
+        ],
         "line-width": [
           "match", ["get", "risk"],
           "high", 3, "medium", 2, "warning", 1.5, "low", 1, 1,

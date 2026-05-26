@@ -30,7 +30,7 @@ function LineChart({ data, width = 280, height = 120 }: {
     <svg width={width} height={height} className="overflow-visible">
       <defs>
         <linearGradient id="lineAreaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="var(--color-primary)" stopOpacity="0.25" />
+          <stop offset="0%"   stopColor="var(--color-primary)" stopOpacity="0.15" />
           <stop offset="100%" stopColor="var(--color-primary)" stopOpacity="0" />
         </linearGradient>
       </defs>
@@ -41,9 +41,9 @@ function LineChart({ data, width = 280, height = 120 }: {
         return (
           <g key={i}>
             <line x1={pad.left} y1={y} x2={width - pad.right} y2={y}
-              stroke="var(--color-border)" strokeWidth="0.75" strokeDasharray="3 3" />
+              stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.4" />
             <text x={pad.left - 5} y={y + 3.5} textAnchor="end"
-              fill="var(--color-muted)" fontSize="8" opacity="0.7">
+              fill="var(--color-muted)" fontSize="8" className="font-mono tabular-nums opacity-85">
               {val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val.toFixed(0)}
             </text>
           </g>
@@ -52,26 +52,26 @@ function LineChart({ data, width = 280, height = 120 }: {
       {/* Area fill */}
       <path d={areaD} fill="url(#lineAreaGrad)" />
       {/* Line */}
-      <path d={pathD} fill="none" stroke="var(--color-primary)" strokeWidth="1.75"
+      <path d={pathD} fill="none" stroke="var(--color-primary)" strokeWidth="1.5"
         strokeLinecap="round" strokeLinejoin="round" />
       {/* Last point highlight */}
       {data.length > 0 && (() => {
         const last = data[data.length - 1]
         return (
-          <>
-            <circle cx={xScale(data.length - 1)} cy={yScale(last.value)} r="3.5"
+          <g className="font-mono">
+            <circle cx={xScale(data.length - 1)} cy={yScale(last.value)} r="3"
               fill="var(--color-primary)" />
             <text x={xScale(data.length - 1)} y={yScale(last.value) - 8}
-              textAnchor="middle" fill="var(--color-fg)" fontSize="9" fontWeight="700">
+              textAnchor="middle" fill="var(--color-fg)" fontSize="9" fontWeight="700" className="tabular-nums">
               {last.value >= 1000 ? `${(last.value / 1000).toFixed(1)}k` : last.value.toFixed(0)}
             </text>
-          </>
+          </g>
         )
       })()}
       {/* X labels */}
       {data.map((d, i) => i % Math.max(1, Math.floor(data.length / 5)) !== 0 ? null : (
         <text key={i} x={xScale(i)} y={height - 4} textAnchor="middle"
-          fill="var(--color-muted)" fontSize="7.5" opacity="0.65">
+          fill="var(--color-muted)" fontSize="7.5" className="font-mono opacity-80">
           {d.label}
         </text>
       ))}
@@ -87,7 +87,7 @@ function BarChart({ data, width = 260, height = 100 }: {
   const barW = Math.min(36, (width - 20) / data.length - 6)
 
   return (
-    <svg width={width} height={height} className="overflow-visible">
+    <svg width={width} height={height} className="overflow-visible font-mono">
       {data.map((d, i) => {
         const x = 10 + i * (barW + 6)
         const barH = Math.max((d.value / max) * (height - 32), 2)
@@ -96,19 +96,19 @@ function BarChart({ data, width = 260, height = 100 }: {
           <g key={i}>
             {/* Background bar */}
             <rect x={x} y={8} width={barW} height={height - 32}
-              rx="3" fill="var(--color-border)" opacity="0.4" />
+              rx="2.5" fill="var(--color-border)" opacity="0.3" />
             {/* Value bar */}
             <rect x={x} y={height - 24 - barH} width={barW} height={barH}
-              rx="3" fill={color} opacity="0.85" />
+              rx="2.5" fill={color} opacity="0.9" />
             {/* Label */}
             <text x={x + barW / 2} y={height - 8} textAnchor="middle"
-              fill="var(--color-muted)" fontSize="7"
+              fill="var(--color-muted)" fontSize="7" className="opacity-80"
               transform={`rotate(-40, ${x + barW / 2}, ${height - 8})`}>
               {d.label.length > 10 ? d.label.slice(0, 9) + "…" : d.label}
             </text>
             {/* Value */}
             <text x={x + barW / 2} y={height - 26 - barH} textAnchor="middle"
-              fill="var(--color-fg)" fontSize="8" fontWeight="700">
+              fill="var(--color-fg)" fontSize="8" fontWeight="700" className="tabular-nums">
               {d.value >= 1000 ? `${(d.value / 1000).toFixed(0)}k` : d.value.toFixed(0)}
             </text>
           </g>
@@ -205,20 +205,17 @@ export function Dashboard({ predictions, beachRisk, confidence, features, onClos
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
-      style={{ background: 'rgba(0,0,0,0.6)' }}
+      className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/70 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-2xl border border-border/50 m-4 shadow-2xl shadow-black/60"
-        style={{ background: 'var(--color-surface)' }}
+        className="w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-2xl border border-border/40 m-4 shadow-2xl shadow-black/60 bg-surface/95 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border/40 sticky top-0 z-10 backdrop-blur-xl"
-          style={{ background: 'oklch(0.09 0.016 245 / 0.95)' }}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border/40 sticky top-0 z-10 backdrop-blur-xl bg-surface/95">
           <div className="flex items-center gap-2.5">
-            <Waves className="size-4" style={{ color: 'var(--color-primary)' }} />
+            <Waves className="size-4 text-primary" />
             <h2 className="text-sm font-bold text-fg tracking-tight">Dashboard · Sargazo Cozumel</h2>
           </div>
           <button
@@ -241,8 +238,8 @@ export function Dashboard({ predictions, beachRisk, confidence, features, onClos
                     : "text-warning border-warning/25"
                 }`} style={{
                   background: a.type === "error"
-                    ? 'oklch(0.62 0.24 28 / 0.1)'
-                    : 'oklch(0.78 0.17 85 / 0.1)',
+                    ? 'color-mix(in oklch, var(--color-risk-high) 10%, transparent)'
+                    : 'color-mix(in oklch, var(--color-warning) 10%, transparent)',
                 }}>
                   <span className="size-1.5 rounded-full bg-current shrink-0" />
                   {a.text}

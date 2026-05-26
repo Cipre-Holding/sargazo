@@ -17,8 +17,8 @@ const TABS: { id: InfoTab; Icon: any; label: string }[] = [
 function SectionTitle({ icon: Icon, title }: { icon: any; title: string }) {
   return (
     <div className="flex items-center gap-2 mb-3 mt-5 first:mt-0">
-      <Icon className="size-3.5 shrink-0" style={{ color: 'var(--color-primary)' }} />
-      <h3 className="text-[11px] font-bold uppercase tracking-[0.14em]" style={{ color: 'var(--color-primary)' }}>
+      <Icon className="size-3.5 shrink-0 text-primary" />
+      <h3 className="text-[10px] font-bold uppercase tracking-widest text-primary">
         {title}
       </h3>
     </div>
@@ -27,7 +27,7 @@ function SectionTitle({ icon: Icon, title }: { icon: any; title: string }) {
 
 function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-xl border border-border/40 p-3.5 mb-2.5 ${className}`}>
+    <div className={`rounded-xl border border-border/30 bg-surface-raised/30 p-3.5 mb-3 shadow-lg shadow-black/10 ${className}`}>
       {children}
     </div>
   )
@@ -35,11 +35,14 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
 
 function Tag({ children, color }: { children: React.ReactNode; color?: string }) {
   return (
-    <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full mr-1.5 mb-1"
-      style={{
-        background: color ? `${color}22` : 'oklch(0.63 0.20 228 / 0.2)',
-        color: color || 'var(--color-primary)',
-      }}>
+    <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full mr-1.5 mb-1 ${
+      !color ? "bg-primary-soft/15 text-primary border border-primary/20" : "border"
+    }`}
+      style={color ? {
+        background: `color-mix(in oklch, ${color} 10%, transparent)`,
+        borderColor: `color-mix(in oklch, ${color} 20%, transparent)`,
+        color: color,
+      } : undefined}>
       {children}
     </span>
   )
@@ -68,20 +71,17 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
-      style={{ background: 'rgba(0,0,0,0.6)' }}
+      className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/70 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-2xl border border-border/50 m-4 shadow-2xl shadow-black/60"
-        style={{ background: 'var(--color-surface)' }}
+        className="w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-2xl border border-border/40 m-4 shadow-2xl shadow-black/60 bg-surface/95 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border/40 sticky top-0 z-10 backdrop-blur-xl"
-          style={{ background: 'oklch(0.09 0.016 245 / 0.95)' }}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border/40 sticky top-0 z-10 backdrop-blur-xl bg-surface/95">
           <div className="flex items-center gap-2.5">
-            <Waves className="size-4" style={{ color: 'var(--color-primary)' }} />
+            <Waves className="size-4 text-primary animate-pulse" />
             <h2 className="text-sm font-bold text-fg tracking-tight">Sargazo Cozumel · Centro de Información</h2>
           </div>
           <button
