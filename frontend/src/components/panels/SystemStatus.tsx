@@ -12,7 +12,7 @@ export function SystemStatus({ downloadStatus, confidenceScore, featureCount }: 
     <div className="rounded-xl border border-border/40 bg-surface/90 shadow-2xl shadow-black/40 backdrop-blur-xl overflow-hidden">
       <div className="px-3.5 py-2.5 border-b border-border/40 flex items-center justify-between">
         <h3 className="text-xs font-semibold text-fg uppercase tracking-widest">Sistema</h3>
-        <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold ${
+        <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${
           isRunning ? "text-warning" : isOk ? "text-success" : "text-muted"
         }`}>
           <span className={`size-1.5 rounded-full ${
@@ -47,7 +47,7 @@ export function SystemStatus({ downloadStatus, confidenceScore, featureCount }: 
           </div>
         )}
         {downloadStatus?.error && (
-          <div className="text-[10px] text-error mt-1 border border-error/25 bg-error/5 p-2 rounded-lg font-mono">
+          <div className="text-xs text-error mt-1 border border-error/25 bg-error/5 p-2 rounded-lg font-mono">
             Error: {downloadStatus.error.slice(0, 100)}
           </div>
         )}

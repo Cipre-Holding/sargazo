@@ -132,7 +132,7 @@ function SectionTitle({ icon: Icon, title }: { icon: React.ComponentType<any>; t
   return (
     <div className="flex items-center gap-2 mb-3">
       <Icon className="size-3.5" style={{ color: 'var(--color-primary)' }} />
-      <h3 className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">{title}</h3>
+      <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-muted">{title}</h3>
     </div>
   )
 }
@@ -274,11 +274,11 @@ export function Dashboard({ predictions, beachRisk, confidence, features, onClos
                 },
               ].map((kpi) => (
                 <div key={kpi.label} className="rounded-xl border border-border/40 p-3.5">
-                  <div className="text-[10px] text-muted mb-1.5 uppercase tracking-widest font-semibold">{kpi.label}</div>
+                  <div className="text-xs text-muted mb-1.5 uppercase tracking-widest font-semibold">{kpi.label}</div>
                   <div className="text-xl font-bold font-mono tabular-nums" style={{ color: kpi.color }}>
                     {kpi.value}
                   </div>
-                  <div className="text-[10px] text-muted mt-0.5">{kpi.unit}</div>
+                  <div className="text-xs text-muted mt-0.5">{kpi.unit}</div>
                 </div>
               ))}
             </div>
@@ -317,7 +317,7 @@ export function Dashboard({ predictions, beachRisk, confidence, features, onClos
                       <div key={i}>
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-xs text-muted truncate flex-1 mr-2">{b.label}</span>
-                          <span className="text-[10px] font-mono font-bold tabular-nums" style={{ color: b.color }}>
+                          <span className="text-xs font-mono font-bold tabular-nums" style={{ color: b.color }}>
                             {b.value}%
                           </span>
                         </div>
@@ -370,7 +370,7 @@ export function Dashboard({ predictions, beachRisk, confidence, features, onClos
                   <div className="pt-2 border-t border-border/30 space-y-1.5">
                     {Object.entries(confidence.desglose).map(([k, v]: [string, any]) => (
                       <div key={k} className="flex items-center gap-2">
-                        <span className="text-[10px] text-muted flex-1 capitalize">{k.replace(/_/g, ' ')}</span>
+                        <span className="text-xs text-muted flex-1 capitalize">{k.replace(/_/g, ' ')}</span>
                         <div className="w-16 h-1 rounded-full overflow-hidden" style={{ background: 'var(--color-border)' }}>
                           <div className="h-full rounded-full"
                             style={{
@@ -379,7 +379,7 @@ export function Dashboard({ predictions, beachRisk, confidence, features, onClos
                               opacity: 0.7,
                             }} />
                         </div>
-                        <span className="text-[10px] font-mono text-muted tabular-nums w-8 text-right">
+                        <span className="text-xs font-mono text-muted tabular-nums w-8 text-right">
                           {v.puntos}/{v.max}
                         </span>
                       </div>

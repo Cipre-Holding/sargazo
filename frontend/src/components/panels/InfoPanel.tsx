@@ -17,8 +17,8 @@ const TABS: { id: InfoTab; Icon: any; label: string }[] = [
 function SectionTitle({ icon: Icon, title }: { icon: any; title: string }) {
   return (
     <div className="flex items-center gap-2 mb-3 mt-5 first:mt-0">
-      <Icon className="size-3.5 shrink-0 text-primary" />
-      <h3 className="text-[10px] font-bold uppercase tracking-widest text-primary">
+      <Icon className="size-4 shrink-0 text-accent" />
+      <h3 className="text-xs font-bold uppercase tracking-widest text-accent">
         {title}
       </h3>
     </div>
@@ -27,7 +27,7 @@ function SectionTitle({ icon: Icon, title }: { icon: any; title: string }) {
 
 function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-xl border border-border/30 bg-surface-raised/30 p-3.5 mb-3 shadow-lg shadow-black/10 ${className}`}>
+    <div className={`rounded-xl border border-border/30 bg-surface-raised/30 p-4 mb-3.5 shadow-lg shadow-black/10 ${className}`}>
       {children}
     </div>
   )
@@ -35,8 +35,8 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
 
 function Tag({ children, color }: { children: React.ReactNode; color?: string }) {
   return (
-    <span className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full mr-1.5 mb-1 ${
-      !color ? "bg-primary-soft/15 text-primary border border-primary/20" : "border"
+    <span className={`inline-block text-xs font-bold px-2.5 py-0.5 rounded-full mr-1.5 mb-1 ${
+      !color ? "bg-accent-soft text-accent border border-accent/20" : "border"
     }`}
       style={color ? {
         background: `color-mix(in oklch, ${color} 10%, transparent)`,
@@ -50,17 +50,17 @@ function Tag({ children, color }: { children: React.ReactNode; color?: string })
 
 function DataRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between items-start py-1.5 border-b border-border/20 last:border-0">
-      <span className="text-[11px] text-muted pr-2">{label}</span>
-      <span className="text-[11px] text-fg/90 font-mono text-right max-w-[55%] shrink-0">{value}</span>
+    <div className="flex justify-between items-center py-2 border-b border-border/20 last:border-0 text-sm">
+      <span className="text-muted pr-2">{label}</span>
+      <span className="text-fg/90 font-mono text-right max-w-[60%] shrink-0">{value}</span>
     </div>
   )
 }
 
 function Bullet({ children }: { children: React.ReactNode }) {
   return (
-    <li className="text-[12px] text-fg/85 leading-relaxed mb-1.5 flex gap-2">
-      <span className="text-primary mt-0.5 shrink-0">•</span>
+    <li className="text-sm text-fg/85 leading-relaxed mb-2 flex gap-2">
+      <span className="text-accent mt-0.5 shrink-0">•</span>
       <span>{children}</span>
     </li>
   )
@@ -87,24 +87,25 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
           <button
             onClick={onClose}
             className="flex size-8 items-center justify-center rounded-xl hover:bg-surface-raised transition-colors cursor-pointer text-muted hover:text-fg"
+            title="Cerrar"
           >
             <X className="size-4" />
           </button>
         </div>
 
         {/* Tab bar */}
-        <div className="flex border-b border-border/40 px-3 pt-2 gap-0.5">
+        <div className="flex border-b border-border/40 px-3 pt-2 gap-1.5">
           {TABS.map(({ id, Icon, label }) => (
             <button
               key={id}
               onClick={() => setTab(id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 pb-2.5 pt-1.5 px-1 text-[11px] font-semibold border-b-2 transition-all duration-150 cursor-pointer rounded-t-lg ${
+              className={`flex-1 flex items-center justify-center gap-2 pb-3 pt-2.5 px-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all duration-150 cursor-pointer rounded-t-lg ${
                 tab === id
                   ? "border-primary text-fg"
                   : "border-transparent text-muted hover:text-fg hover:border-border/50"
               }`}
             >
-              <Icon className="size-3.5" />
+              <Icon className="size-4" />
               <span className="hidden sm:inline">{label}</span>
             </button>
           ))}
@@ -116,7 +117,7 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
           {tab === "features" && (
             <div className="space-y-1">
 
-              <p className="text-[12px] text-muted mb-4 leading-relaxed">
+              <p className="text-sm text-muted mb-4 leading-relaxed">
                 Este sistema integra modelos estadísticos, aprendizaje automático y simulación
                 Lagrangiana para predecir el arribo de sargazo a las costas de Cozumel con
                 1–14 días y hasta 1–2 meses de anticipación.
@@ -124,7 +125,7 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
 
               <SectionTitle icon={Info} title="Monitoreo satelital NOAA SIR" />
               <Card>
-                <p className="text-[12px] text-fg/85 mb-2 leading-relaxed">
+                <p className="text-sm text-fg/85 mb-2 leading-relaxed">
                   El <strong>Sargasso Information Report (SIR)</strong> de NOAA AOML proporciona
                   evaluación diaria del riesgo costero en el Caribe mexicano. Se procesan
                   <strong> 315 días históricos</strong> con interpolación Wendland C2 para estimar
@@ -138,7 +139,7 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
 
               <SectionTitle icon={Info} title="Predicción Ensemble ML (mensual)" />
               <Card>
-                <p className="text-[12px] text-fg/85 mb-2 leading-relaxed">
+                <p className="text-sm text-fg/85 mb-2 leading-relaxed">
                   Combina 3 modelos (Ridge, Bayesian Ridge, Regresión Lineal) ponderados por su
                   R² de LOOCV. Incluye <strong>bias correction por tendencia</strong> (+25% si
                   la serie reciente sube, −15% si baja). La predicción actual para junio 2026 es
@@ -151,7 +152,7 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
 
               <SectionTitle icon={Info} title="Forecast Lagrangiano (14 días)" />
               <Card>
-                <p className="text-[12px] text-fg/85 leading-relaxed">
+                <p className="text-sm text-fg/85 leading-relaxed">
                   Simula <strong>2,000 partículas</strong> con OpenDrift usando corrientes RTOFS
                   y viento GFS. Genera horizontes cada 12h hasta 336h con KDE (kernel gaussiano,
                   bandwidth 0.08° ≈ 9 km). El resultado es direccional: indica zonas probables
@@ -161,7 +162,7 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
 
               <SectionTitle icon={Info} title="Riesgo por Playa" />
               <Card>
-                <p className="text-[12px] text-fg/85 leading-relaxed">
+                <p className="text-sm text-fg/85 leading-relaxed">
                   Perfil de riesgo para <strong>10 segmentos costeros</strong> basado en 315 días
                   de datos NOAA SIR. Incluye Isla Mujeres (71%), Cancún (66%) y Cozumel Norte (65%)
                   como zonas de mayor riesgo HIGH+MED.
@@ -170,7 +171,7 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
 
               <SectionTitle icon={Info} title="Pipeline Automático" />
               <Card>
-                <p className="text-[12px] text-fg/85 leading-relaxed">
+                <p className="text-sm text-fg/85 leading-relaxed">
                   <strong>10 pasos secuenciales</strong> ejecutados semanalmente (lunes 06:00 UTC):
                   descarga NOAA SIR → descarga boletines SEMAR → extracción OCR →
                   combinación Mendeley+SEMAR → features → modelos Fase 0 y 1 →
@@ -186,7 +187,7 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
           {tab === "data" && (
             <div className="space-y-1">
 
-              <p className="text-[12px] text-muted mb-4 leading-relaxed">
+              <p className="text-sm text-muted mb-4 leading-relaxed">
                 El sistema integra <strong>6 fuentes de datos</strong> que cubren desde 2000
                 hasta la fecha actual, combinando observaciones satelitales, boletines oficiales,
                 reanálisis oceánicos y atmosféricos.
@@ -200,13 +201,13 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
                   <Tag color="var(--color-primary)">2024–2026</Tag>
                   <Tag color="var(--color-primary)">~604 registros</Tag>
                 </div>
-                <p className="text-[11px] text-muted mb-2 leading-relaxed">
+                <p className="text-xs text-muted mb-2 leading-relaxed">
                   Boletines diarios de la Secretaría de Marina con biomasa costera medida
                   en toneladas para las regiones Caribe Mexicano (CM), Costa Central (CC),
                   Costa Oriental (CO) y Acumulación Costa Oriental (ACO).
                 </p>
                 <div className="bg-surface-raised/40 rounded-lg p-2.5">
-                  <p className="text-[10px] font-bold text-fg/70 uppercase tracking-wider mb-1.5">Variables clave</p>
+                  <p className="text-xs font-bold text-fg/70 uppercase tracking-wider mb-1.5">Variables clave</p>
                   <DataRow label="biomasa_caribe_mexicano_ton (CM)" value="Biomasa total CM en toneladas" />
                   <DataRow label="aco_mt (ACO)" value="Acumulación Costa Oriental en megatoneladas" />
                   <DataRow label="semaforo" value="Nivel: ESCASO → MUY ALTO (1–6)" />
@@ -220,13 +221,13 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
                   <Tag color="var(--color-accent)">2000–2024</Tag>
                   <Tag color="var(--color-accent)">288 meses</Tag>
                 </div>
-                <p className="text-[11px] text-muted mb-2 leading-relaxed">
+                <p className="text-xs text-muted mb-2 leading-relaxed">
                   Dataset histórico de biomasa de sargazo en el Atlántico Central Occidental
                   (Hu et al.). Proporciona la serie larga de <strong>aligned_ACO</strong>
                   usada por los modelos Prophet para detectar tendencia y estacionalidad.
                 </p>
                 <div className="bg-surface-raised/40 rounded-lg p-2.5">
-                  <p className="text-[10px] font-bold text-fg/70 uppercase tracking-wider mb-1.5">Variables clave</p>
+                  <p className="text-xs font-bold text-fg/70 uppercase tracking-wider mb-1.5">Variables clave</p>
                   <DataRow label="log_biomasa" value="Logaritmo natural de biomasa GASB" />
                   <DataRow label="post_2011" value="Indicador: 0=antes 2011, 1=después" />
                   <DataRow label="z_score" value="Desviación respecto a media histórica" />
@@ -239,13 +240,13 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
                   <Tag color="var(--color-risk-high)">315 días</Tag>
                   <Tag color="var(--color-risk-high)">52,551 celdas</Tag>
                 </div>
-                <p className="text-[11px] text-muted mb-2 leading-relaxed">
+                <p className="text-xs text-muted mb-2 leading-relaxed">
                   Sargasso Information Report — evaluación diaria de riesgo costero
                   para Cancún, Isla Mujeres, Costa Maya y Cozumel. Datos en formato
                   KMZ con geometrías de riesgo categorizadas.
                 </p>
                 <div className="bg-surface-raised/40 rounded-lg p-2.5">
-                  <p className="text-[10px] font-bold text-fg/70 uppercase tracking-wider mb-1.5">Niveles de riesgo</p>
+                  <p className="text-xs font-bold text-fg/70 uppercase tracking-wider mb-1.5">Niveles de riesgo</p>
                   <DataRow label="LOW" value="Riesgo bajo (122 celdas)" />
                   <DataRow label="WARNING" value="Precaución (164 celdas)" />
                   <DataRow label="MEDIUM" value="Riesgo medio (218 celdas)" />
@@ -270,7 +271,7 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
           {tab === "math" && (
             <div className="space-y-1">
 
-              <p className="text-[12px] text-muted mb-4 leading-relaxed">
+              <p className="text-sm text-muted mb-4 leading-relaxed">
                 El sistema emplea un enfoque híbrido que combina estadística clásica,
                 procesos estocásticos, aprendizaje automático y simulación numérica.
               </p>
@@ -397,13 +398,13 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
           {tab === "explain" && (
             <div className="space-y-1">
 
-              <p className="text-[12px] text-muted mb-4 leading-relaxed">
+              <p className="text-sm text-muted mb-4 leading-relaxed">
                 Conceptos que pueden resultar complejos al navegar el sistema.
               </p>
 
               <SectionTitle icon={HelpCircle} title="¿Qué es CM vs ACO?" />
               <Card>
-                <p className="text-[12px] text-fg/85 leading-relaxed">
+                <p className="text-sm text-fg/85 leading-relaxed">
                   <strong>CM</strong> (Caribe Mexicano) es la biomasa de sargazo medida en las
                   costas de Quintana Roo, en <strong>toneladas</strong>. <strong>ACO</strong>
                   (Acumulación Costa Oriental) es la biomasa detectada vía satélite frente a
@@ -415,7 +416,7 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
 
               <SectionTitle icon={HelpCircle} title="¿Qué significa H = 0.8047?" />
               <Card>
-                <p className="text-[12px] text-fg/85 leading-relaxed">
+                <p className="text-sm text-fg/85 leading-relaxed">
                   El <strong>exponente de Hurst (H)</strong> mide la memoria de una serie temporal:
                 </p>
                 <ul className="space-y-1.5 mt-2">
@@ -423,7 +424,7 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
                   <Bullet>H = 0.8047 → <strong>memoria larga</strong>, tendencias persisten</Bullet>
                   <Bullet>Si H &gt; 0.5, la serie tiende a continuar su dirección actual</Bullet>
                 </ul>
-                <p className="text-[12px] text-fg/85 mt-2 leading-relaxed">
+                <p className="text-sm text-fg/85 mt-2 leading-relaxed">
                   En la práctica: cuando el sargazo empieza a aumentar, es probable que
                   <strong>siga aumentando</strong>. El IC 80% se amplía porque la
                   información efectiva es menor (n_eff ≈ 2.37 en vez de n = 14).
@@ -432,7 +433,7 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
 
               <SectionTitle icon={HelpCircle} title="¿Por qué solo 14 pares SEMAR?" />
               <Card>
-                <p className="text-[12px] text-fg/85 leading-relaxed">
+                <p className="text-sm text-fg/85 leading-relaxed">
                   El boletín SEMAR reporta ACO (Acumulación Costa Oriental) desde
                   <strong>abril 2025</strong>, mientras que CM (Caribe Mexicano) se reporta
                   desde marzo 2024. La intersección de ambos con datos válidos produce
@@ -444,7 +445,7 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
 
               <SectionTitle icon={HelpCircle} title="¿Qué significa IC 80%?" />
               <Card>
-                <p className="text-[12px] text-fg/85 leading-relaxed">
+                <p className="text-sm text-fg/85 leading-relaxed">
                   El <strong>Intervalo de Confianza del 80%</strong> indica que, si el modelo
                   fuera correcto y repitiéramos el proceso muchas veces, el valor real estaría
                   dentro de este rango el 80% de las veces. No significa que hay 80% de
@@ -456,7 +457,7 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
 
               <SectionTitle icon={HelpCircle} title="¿Cómo funciona el Ensemble?" />
               <Card>
-                <p className="text-[12px] text-fg/85 leading-relaxed">
+                <p className="text-sm text-fg/85 leading-relaxed">
                   El ensemble combina <strong>múltiples modelos</strong> para reducir el sesgo
                   individual. Actualmente incluye 3 modelos (Ridge, Bayesian Ridge, Regresión
                   Lineal) ponderados por su R² de LOOCV. Se excluyen modelos con bajo desempeño
@@ -469,7 +470,7 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
 
               <SectionTitle icon={HelpCircle} title="¿Qué es un Forecast Lagrangiano?" />
               <Card>
-                <p className="text-[12px] text-fg/85 leading-relaxed">
+                <p className="text-sm text-fg/85 leading-relaxed">
                   El enfoque <strong>Lagrangiano</strong> sigue partículas individuales en
                   movimiento (como boyas virtuales) en lugar de calcular concentraciones en
                   celdas fijas (enfoque Euleriano). Se liberan <strong>2,000 partículas</strong>
