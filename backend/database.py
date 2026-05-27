@@ -26,6 +26,219 @@ def get_db():
         db.close()
 
 
+def seed_database_if_empty(db):
+    import pandas as pd
+    import json
+    import numpy as np
+    from backend.models import (
+        MendeleyObservation, SEMARObservation, SatelliteObservation,
+        ClimatologyObservation, DailySirSummary, BeachRiskProfile
+    )
+    
+    # 1. Mendeley
+    if db.query(MendeleyObservation).first() is None:
+        xlsx_path = ROOT / "Sargassum_biomass_subregions.xlsx"
+        if xlsx_path.exists():
+            print("Seeding Mendeley observations...")
+            df = pd.read_excel(xlsx_path)
+            for _, r in df.iterrows():
+                try:
+                    month_dt = pd.to_datetime(r["Time (mm-yyyy)"], format="%m-%Y")
+                    month_str = month_dt.strftime("%Y-%m")
+                    obs = MendeleyObservation(
+                        month=month_str,
+                        nss_biomass=float(r["NSS biomass"]) if pd.notna(r["NSS biomass"]) else None,
+                        sss_biomass=float(r["SSS biomass"]) if pd.notna(r["SSS biomass"]) else None,
+                        gsr_biomass=float(r["GSR biomass"]) if pd.notna(r["GSR biomass"]) else None,
+                        acr_biomass=float(r["ACR biomass"]) if pd.notna(r["ACR biomass"]) else None,
+                        gasb_biomass=float(r["GASB biomass"]) if pd.notna(r["GASB biomass"]) else None,
+                        nw_gom_biomass=float(r["NW_GoM biomass"]) if pd.notna(r["NW_GoM biomass"]) else None,
+                    )
+                    db.add(obs)
+                except Exception as e:
+                    print(f"Error parsing mendeley row: {e}")
+            db.commit()
+            
+    # 2. SEMAR Observations
+    if db.query(SEMARObservation).first() is None:
+        csv_path = ROOT / "boletines_sargazo_MASTER.csv"
+        if csv_path.exists():
+            print("Seeding SEMAR master observations...")
+            df = pd.read_csv(csv_path)
+            for _, r in df.iterrows():
+                try:
+                    def to_float(val):
+                        if pd.isna(val) or val == "":
+                            return None
+                        try:
+                            return float(val)
+                        except:
+                            return None
+                            
+                    def to_int(val):
+                        if pd.isna(val) or val == "":
+                            return None
+                        try:
+                            return int(float(val))
+                        except:
+                            return None
+                            
+                    obs = SEMARObservation(
+                        fecha=str(r["fecha"]),
+                        num_boletin=str(r["num_boletin"]) if pd.notna(r["num_boletin"]) else None,
+                        semaforo=str(r["semaforo"]) if pd.notna(r["semaforo"]) else None,
+                        biomasa_caribe_mexicano_ton=to_float(r.get("biomasa_caribe_mexicano_ton")),
+                        biomasa_caribe_central_ton=to_float(r.get("biomasa_caribe_central_ton")),
+                        biomasa_caribe_oriental_ton=to_float(r.get("biomasa_caribe_oriental_ton")),
+                        biomasa_atlantico_central_ton=to_float(r.get("biomasa_atlantico_central_ton")),
+                        num_conglomerados=to_int(r.get("num_conglomerados")),
+                        conglomerado_cozumel=str(r.get("conglomerado_cozumel")) if pd.notna(r.get("conglomerado_cozumel")) else None,
+                        
+                        corriente_xcalak_nudos=to_float(r.get("corriente_xcalak_nudos")),
+                        corriente_xcalak_dir=str(r.get("corriente_xcalak_dir")) if pd.notna(r.get("corriente_xcalak_dir")) else None,
+                        corriente_mahahual_nudos=to_float(r.get("corriente_mahahual_nudos")),
+                        corriente_mahahual_dir=str(r.get("corriente_mahahual_dir")) if pd.notna(r.get("corriente_mahahual_dir")) else None,
+                        corriente_tulum_nudos=to_float(r.get("corriente_tulum_nudos")),
+                        corriente_tulum_dir=str(r.get("corriente_tulum_dir")) if pd.notna(r.get("corriente_tulum_dir")) else None,
+                        corriente_playa_carmen_nudos=to_float(r.get("corriente_playa_carmen_nudos")),
+                        corriente_playa_carmen_dir=str(r.get("corriente_playa_carmen_dir")) if pd.notna(r.get("corriente_playa_carmen_dir")) else None,
+                        corriente_puerto_morelos_nudos=to_float(r.get("corriente_puerto_morelos_nudos")),
+                        corriente_puerto_morelos_dir=str(r.get("corriente_puerto_morelos_dir")) if pd.notna(r.get("corriente_puerto_morelos_dir")) else None,
+                        corriente_cancun_nudos=to_float(r.get("corriente_cancun_nudos")),
+                        corriente_cancun_dir=str(r.get("corriente_cancun_dir")) if pd.notna(r.get("corriente_cancun_dir")) else None,
+                        
+                        viento_norte_nudos=str(r.get("viento_norte_nudos")) if pd.notna(r.get("viento_norte_nudos")) else None,
+                        viento_norte_dir=str(r.get("viento_norte_dir")) if pd.notna(r.get("viento_norte_dir")) else None,
+                        viento_sur_nudos=str(r.get("viento_sur_nudos")) if pd.notna(r.get("viento_sur_nudos")) else None,
+                        viento_sur_dir=str(r.get("viento_sur_dir")) if pd.notna(r.get("viento_sur_dir")) else None,
+                        
+                        archivo=str(r.get("archivo")) if pd.notna(r.get("archivo")) else None,
+                        anio=to_int(r.get("año")) or to_int(r.get("anio")),
+                    )
+                    db.add(obs)
+                except Exception as e:
+                    print(f"Error seeding SEMAR master row: {e}")
+            db.commit()
+            
+    # 3. Satellite Observations
+    if db.query(SatelliteObservation).first() is None:
+        sat_caribe = ROOT / "satsum_caribe_mensual.csv"
+        sat_zee = ROOT / "satsum_zee_mex_mensual.csv"
+        if sat_caribe.exists() or sat_zee.exists():
+            print("Seeding Satellite (SATsum) observations...")
+            data = {}
+            if sat_caribe.exists():
+                df = pd.read_csv(sat_caribe)
+                for _, r in df.iterrows():
+                    m_key = f"{int(r['year'])}-{str(int(r['month'])).zfill(2)}"
+                    data.setdefault(m_key, {})["caribe"] = float(r["biomasa_mt"]) if pd.notna(r["biomasa_mt"]) else None
+            if sat_zee.exists():
+                df = pd.read_csv(sat_zee)
+                for _, r in df.iterrows():
+                    m_key = f"{int(r['year'])}-{str(int(r['month'])).zfill(2)}"
+                    data.setdefault(m_key, {})["zee"] = float(r["biomasa_mt"]) if pd.notna(r["biomasa_mt"]) else None
+            
+            for m_key, vals in data.items():
+                obs = SatelliteObservation(
+                    month=m_key,
+                    satsum_caribe_mt=vals.get("caribe"),
+                    satsum_zee_mt=vals.get("zee"),
+                )
+                db.add(obs)
+            db.commit()
+
+    # 4. Climatology Observations
+    if db.query(ClimatologyObservation).first() is None:
+        sst_path = ROOT / "sst_cozumel_mensual.csv"
+        wind_path = ROOT / "viento_cozumel_mensual.csv"
+        if sst_path.exists() or wind_path.exists():
+            print("Seeding Climatology observations...")
+            data = {}
+            if sst_path.exists():
+                df = pd.read_csv(sst_path)
+                df["month_num"] = pd.to_datetime(df["time"]).dt.month
+                clim = df.groupby("month_num")["sst_c"].mean().to_dict()
+                df["sst_anom"] = df["sst_c"] - df["month_num"].map(clim)
+                for _, r in df.iterrows():
+                    m_key = r["month_key"]
+                    data.setdefault(m_key, {})["sst"] = float(r["sst_c"]) if pd.notna(r["sst_c"]) else None
+                    data.setdefault(m_key, {})["sst_anom"] = float(r["sst_anom"]) if pd.notna(r["sst_anom"]) else None
+            
+            if wind_path.exists():
+                df = pd.read_csv(wind_path)
+                for _, r in df.iterrows():
+                    m_key = r["month_key"]
+                    data.setdefault(m_key, {})["uwnd_ms"] = float(r["uwnd_ms"]) if pd.notna(r["uwnd_ms"]) else None
+                    data.setdefault(m_key, {})["vwnd_ms"] = float(r["vwnd_ms"]) if pd.notna(r["vwnd_ms"]) else None
+                    data.setdefault(m_key, {})["onshore_cozumel_ms"] = float(r["onshore_cozumel_ms"]) if pd.notna(r["onshore_cozumel_ms"]) else None
+                    
+            for m_key, vals in data.items():
+                obs = ClimatologyObservation(
+                    month=m_key,
+                    sst=vals.get("sst"),
+                    sst_anom=vals.get("sst_anom"),
+                    uwnd_ms=vals.get("uwnd_ms"),
+                    vwnd_ms=vals.get("vwnd_ms"),
+                    onshore_cozumel_ms=vals.get("onshore_cozumel_ms"),
+                )
+                db.add(obs)
+            db.commit()
+
+    # 5. Daily SIR summaries
+    if db.query(DailySirSummary).first() is None:
+        sir_path = ROOT / "noaa_sir_resumen_diario.csv"
+        if sir_path.exists():
+            print("Seeding Daily SIR summaries...")
+            df = pd.read_csv(sir_path)
+            for _, r in df.iterrows():
+                try:
+                    summary = DailySirSummary(
+                        date=str(int(r["date"])),
+                        total_segments=int(r["total_segments"]),
+                        count_low=int(r["count_low"]),
+                        count_warning=int(r["count_warning"]),
+                        count_medium=int(r["count_medium"]),
+                        count_high=int(r["count_high"]),
+                    )
+                    db.add(summary)
+                except Exception as e:
+                    print(f"Error seeding Daily SIR row: {e}")
+            db.commit()
+
+    # 6. Beach Risk Profile
+    if db.query(BeachRiskProfile).first() is None:
+        beach_path = ROOT / "risk_by_beach.json"
+        if beach_path.exists():
+            print("Seeding Beach Risk Profiles...")
+            try:
+                with open(beach_path) as f:
+                    beach_data = json.load(f)
+                segmentos = beach_data.get("segmentos", [])
+                for seg in segmentos:
+                    pct = float(seg.get("pct_high_medium", 0.0))
+                    if pct >= 60:
+                        r_level = "HIGH"
+                    elif pct >= 30:
+                        r_level = "MEDIUM"
+                    else:
+                        r_level = "LOW"
+                    profile = BeachRiskProfile(
+                        beach_name=seg["name"],
+                        risk_level=r_level,
+                        pct_high_medium=pct,
+                        frequency_score=float(seg.get("riesgo_promedio", 0.0)),
+                    )
+                    db.add(profile)
+                db.commit()
+            except Exception as e:
+                print(f"Error seeding Beach Risk profiles: {e}")
+
+
 def init_db():
     import backend.models  # noqa: F401
     Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        seed_database_if_empty(db)
+    finally:
+        db.close()

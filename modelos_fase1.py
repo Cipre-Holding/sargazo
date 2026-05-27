@@ -831,6 +831,53 @@ def main():
     with open(OUTPUT, "w") as f:
         json.dump(res, f, indent=2, default=str)
     print(f"\n  Resultados: {OUTPUT}")
+    save_predictions_to_db(res, "1")
+
+
+def save_predictions_to_db(res_dict, phase_name):
+    try:
+        from backend.database import SessionLocal
+        from backend.models import ModelPrediction, DownloadLog
+        db = SessionLocal()
+        
+        latest_log = db.query(DownloadLog).order_by(DownloadLog.id.desc()).first()
+        log_id = latest_log.id if latest_log else None
+        
+        for key, val in res_dict.items():
+            if key == "metadata" or key == "backtest":
+                continue
+            if not isinstance(val, dict):
+                continue
+                
+            model_name = val.get("modelo", key)
+            target_month = "2026-06"
+            for k_val in val.keys():
+                if k_val.startswith("prediccion_"):
+                    month_name = k_val.replace("prediccion_", "")
+                    months_map = {
+                        "enero": "01", "febrero": "02", "marzo": "03", "abril": "04",
+                        "mayo": "05", "junio": "06", "julio": "07", "agosto": "08",
+                        "septiembre": "09", "octubre": "10", "noviembre": "11", "diciembre": "12"
+                    }
+                    target_month = f"2026-{months_map.get(month_name, '06')}"
+            
+            db.query(ModelPrediction).filter(
+                ModelPrediction.model_name == model_name,
+                ModelPrediction.date_month == target_month
+            ).delete()
+            
+            pred = ModelPrediction(
+                run_log_id=log_id,
+                model_name=model_name,
+                date_month=target_month,
+                prediction_json=json.dumps(val, default=str),
+            )
+            db.add(pred)
+        db.commit()
+        db.close()
+        print("  ✅ Predicciones de Fase 1 guardadas en base de datos SQLite.")
+    except Exception as db_err:
+        print(f"  ❌ Error guardando predicciones en SQLite: {db_err}")
 
 
 if __name__ == "__main__":

@@ -14,40 +14,6 @@ sys.path.insert(0, str(ROOT))
 router = APIRouter(prefix="/api/manual", tags=["manual"])
 
 
-def append_to_csv(row_data: dict):
-    """Append a manual input row to the SEMAR master CSV."""
-    csv_path = ROOT / "boletines_sargazo_MASTER.csv"
-    import csv
-    from datetime import date
-    fieldnames = [
-        "fecha", "biomasa_caribe_mexicano_ton", "biomasa_atlantico_central_ton",
-        "biomasa_caribe_central_ton", "biomasa_caribe_oriental_ton",
-        "semaforo", "conglomerado_cozumel", "num_conglomerados",
-        "viento_norte_nudos", "viento_sur_nudos",
-        "corriente_playa_carmen_nudos", "corriente_cancun_nudos",
-    ]
-    new_row = {
-        "fecha": row_data.get("fecha", str(date.today())),
-        "biomasa_caribe_mexicano_ton": row_data.get("cm_ton", ""),
-        "biomasa_atlantico_central_ton": row_data.get("aco_mt", ""),
-        "biomasa_caribe_central_ton": row_data.get("cc_ton", ""),
-        "biomasa_caribe_oriental_ton": row_data.get("co_ton", ""),
-        "semaforo": row_data.get("semaforo", ""),
-        "conglomerado_cozumel": row_data.get("conglomerado_cozumel", ""),
-        "num_conglomerados": "",
-        "viento_norte_nudos": row_data.get("viento_norte_nudos", ""),
-        "viento_sur_nudos": row_data.get("viento_sur_nudos", ""),
-        "corriente_playa_carmen_nudos": row_data.get("corriente_playa_carmen_nudos", ""),
-        "corriente_cancun_nudos": row_data.get("corriente_cancun_nudos", ""),
-    }
-    file_exists = csv_path.exists()
-    with open(csv_path, "a", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        if not file_exists:
-            writer.writeheader()
-        writer.writerow(new_row)
-
-
 @router.post("/input", response_model=ManualInputResponse)
 def create_manual_input(data: ManualInputCreate, db: Session = Depends(get_db)):
     record = ManualInput(
@@ -67,7 +33,6 @@ def create_manual_input(data: ManualInputCreate, db: Session = Depends(get_db)):
     db.add(record)
     db.commit()
     db.refresh(record)
-    append_to_csv(data.model_dump())
     return record
 
 
