@@ -13,7 +13,7 @@ source venv/bin/activate
 # Start backend in background
 echo "Starting backend on :8000..."
 cd backend
-python -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload &
+python -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload --reload-dir . &
 BACKEND_PID=$!
 cd ..
 
