@@ -14,3 +14,5 @@ opendrift>=1.14.0
 folium>=0.20.0
 pydantic>=2.13.0
 python-multipart>=0.0.26
+openpyxl>=3.1.2
+

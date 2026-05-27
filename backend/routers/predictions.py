@@ -37,7 +37,7 @@ def get_predictions(db: Session = Depends(get_db)):
     p2 = {}
     
     p0_models = ["0.1_regresion", "0.1_regresion_lineal", "0.2_delta", "0.3_logistica", "0.4_prophet", "0.5_ar1", "0.5_ar1_fallback"]
-    p1_models = ["1.1_ridge", "1.2_bayesian_ridge", "1.3_rolling", "1.4_arimax", "1.5_segmentada", "1.6_prophet_tuned", "1.7_arimax_full", "ensemble"]
+    p1_models = ["1.1_ridge", "1.2_bayesian_ridge", "1.3_rolling", "1.4_arimax", "1.5_segmentada", "1.6_prophet_tuned", "1.7_arimax_full", "ensemble", "backtest"]
     
     for p in preds:
         m_name = p.model_name
@@ -121,3 +121,15 @@ def get_phase2(db: Session = Depends(get_db)):
     if "predicciones_fase2" not in all_preds:
         raise HTTPException(404, "No Phase 2 data")
     return all_preds["predicciones_fase2"]
+
+
+@router.get("/backtest")
+def get_backtest_detailed(db: Session = Depends(get_db)):
+    fp = ROOT / "backtest_resultados.json"
+    if fp.exists():
+        try:
+            with open(fp) as f:
+                return json.load(f)
+        except Exception as e:
+            raise HTTPException(500, f"Error reading backtest file: {e}")
+    raise HTTPException(404, "Detailed backtesting results not found")

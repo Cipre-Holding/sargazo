@@ -4,7 +4,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "sargazo.db"
+
+def get_db_path():
+    if os.getenv("K_SERVICE") or not os.access(str(ROOT), os.W_OK):
+        return Path("/tmp/sargazo.db")
+    return ROOT / "sargazo.db"
+
+DB_PATH = get_db_path()
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DB_PATH}")
 
 engine = create_engine(
@@ -232,6 +238,73 @@ def seed_database_if_empty(db):
                 db.commit()
             except Exception as e:
                 print(f"Error seeding Beach Risk profiles: {e}")
+
+    # 7. Model Features
+    from backend.models import ModelFeature
+    if db.query(ModelFeature).first() is None:
+        feature_files = {
+            "fuente": "features_fuente.csv",
+            "residuos": "residuos_estocasticos.csv",
+            "prediccion_cm": "features_prediccion_cm.csv",
+            "semaforo": "features_semaforo.csv",
+            "growth": "features_growth.csv"
+        }
+        print("Seeding Model features...")
+        for dataset_type, fname in feature_files.items():
+            fpath = ROOT / fname
+            if fpath.exists():
+                try:
+                    df_feat = pd.read_csv(fpath)
+                    for _, r in df_feat.iterrows():
+                        row_dict = r.to_dict()
+                        for k, v in row_dict.items():
+                            if isinstance(v, (pd.Period, pd.Timestamp)):
+                                row_dict[k] = str(v)
+                            elif isinstance(v, float) and np.isnan(v):
+                                row_dict[k] = None
+                        feat = ModelFeature(
+                            month=str(r["month"]),
+                            dataset_type=dataset_type,
+                            feature_json=json.dumps(row_dict),
+                        )
+                        db.add(feat)
+                except Exception as e:
+                    print(f"Error seeding feature file {fname}: {e}")
+        db.commit()
+
+    # 8. Model Predictions
+    from backend.models import ModelPrediction
+    if db.query(ModelPrediction).first() is None:
+        print("Seeding Model predictions...")
+        for fname in ["predicciones_fase0.json", "predicciones_fase1.json", "predicciones_fase2.json"]:
+            fpath = ROOT / fname
+            if fpath.exists():
+                try:
+                    with open(fpath) as f:
+                        preds_data = json.load(f)
+                    for key, val in preds_data.items():
+                        target_month = "2026-06"
+                        if isinstance(val, dict):
+                            for k_val in val.keys():
+                                if k_val.startswith("prediccion_"):
+                                    month_name = k_val.replace("prediccion_", "")
+                                    months_map = {
+                                        "enero": "01", "febrero": "02", "marzo": "03", "abril": "04",
+                                        "mayo": "05", "junio": "06", "julio": "07", "agosto": "08",
+                                        "septiembre": "09", "octubre": "10", "noviembre": "11", "diciembre": "12"
+                                    }
+                                    target_month = f"2026-{months_map.get(month_name, '06')}"
+                                    break
+                        pred = ModelPrediction(
+                            run_log_id=None,
+                            model_name=key,
+                            date_month=target_month,
+                            prediction_json=json.dumps(val, default=str),
+                        )
+                        db.add(pred)
+                except Exception as e:
+                    print(f"Error seeding predictions file {fname}: {e}")
+        db.commit()
 
 
 def init_db():

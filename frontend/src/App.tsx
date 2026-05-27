@@ -111,6 +111,7 @@ function App() {
   const { data: beachRisk }                              = useApi<any>("/forecast/risk-by-beach")
   const { data: features }                               = useApi<any[]>("/observations/features/cm")
   const { data: downloadStatus, refetch: refetchDownload } = useApi<any>("/download/status")
+  const { data: backtestDetailed }                       = useApi<any>("/predictions/backtest")
 
   // Detect Cloud Run cold start — show message after 6s of loading
   useEffect(() => {
@@ -790,6 +791,7 @@ function App() {
           beachRisk={beachRisk}
           confidence={confidence}
           features={features ?? undefined}
+          backtestDetailed={backtestDetailed}
           onClose={() => setDashboardOpen(false)}
         />
       )}
