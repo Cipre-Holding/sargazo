@@ -25,4 +25,4 @@ ENV PORT=8080
 
 EXPOSE 8080
 
-CMD ["gunicorn", "-w", "2", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8080", "--timeout", "600", "backend.app:app"]
+CMD ["gunicorn", "-w", "1", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8080", "--timeout", "600", "backend.app:app"]

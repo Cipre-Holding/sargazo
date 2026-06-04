@@ -82,7 +82,7 @@ function drawLabel(text: string, lon: number, lat: number, cam: Cam, W: number, 
   const x=lx(lon,cam,W), y=ly(lat,cam,H)
   if (x<-80||x>W+80||y<-20||y>H+20) return
   ctx.save()
-  ctx.globalAlpha=alpha; ctx.fillStyle="#bababa"; ctx.font="500 9px 'Inter',sans-serif"
+  ctx.globalAlpha=alpha; ctx.fillStyle="#d4d4d4"; ctx.font="700 11px 'Inter',sans-serif"
   ctx.fillText(text, x, y)
   ctx.restore()
 }
@@ -125,11 +125,35 @@ function buildQRDetailP(): GeoDash[] {
       dLon:       (Math.random()-0.5)*0.00015,   // nearly static
       halfLenDeg: 0.006+Math.random()*0.030,     // 2-10px at 8.5x zoom
       lw:         0.35+Math.random()*0.80,
-      opacity:    0.20+Math.random()*0.60,
+      opacity:    0.28+Math.random()*0.68,
       phase:      Math.random()*Math.PI*2,
       period:     1.5+Math.random()*4.0,
       curv:       (Math.random()-0.5)*0.50,
       tilt:       (Math.random()-0.5)*0.22,
+    })
+  }
+  return pts
+}
+
+function buildBajaP(): GeoDash[] {
+  const pts: GeoDash[] = []
+  let att = 0
+  while (pts.length < 220 && att < 40000) {
+    att++
+    const lon = -117.5+Math.random()*8.5
+    const lat = 22.5+Math.random()*10.0
+    if (!pip(lon,lat,MX_BAJA)) continue
+    const r = Math.random()
+    pts.push({
+      lon, lat,
+      dLon:       (Math.random()-0.5)*0.0004,
+      halfLenDeg: r<0.5 ? 0.04+Math.random()*0.10 : r<0.85 ? 0.14+Math.random()*0.20 : 0.32+Math.random()*0.36,
+      lw:         0.5+Math.random()*1.0,
+      opacity:    0.20+Math.random()*0.65,
+      phase:      Math.random()*Math.PI*2,
+      period:     2+Math.random()*5,
+      curv:       (Math.random()-0.5)*0.55,
+      tilt:       (Math.random()-0.5)*0.28,
     })
   }
   return pts
@@ -166,14 +190,14 @@ function GeoParticleField({ stageRef }: { stageRef: { current: number } }) {
     if (!wrap || !canvas) return
     const ctx = canvas.getContext("2d")!
 
-    let W=0, H=0, mxP: GeoDash[]=[], saP: SarDash[]=[], qrP: GeoDash[]=[], startMs=0, prevStage=-1
+    let W=0, H=0, mxP: GeoDash[]=[], bajaP: GeoDash[]=[], saP: SarDash[]=[], qrP: GeoDash[]=[], startMs=0, prevStage=-1
 
     function init() {
       W = wrap!.offsetWidth
       H = wrap!.offsetHeight
       if (!W || !H) return
       canvas!.width=W; canvas!.height=H
-      mxP=buildMXP(); saP=buildSarP(); qrP=buildQRDetailP()
+      mxP=buildMXP(); bajaP=buildBajaP(); saP=buildSarP(); qrP=buildQRDetailP()
       startMs=performance.now(); prevStage=-1
     }
 
@@ -225,6 +249,22 @@ function GeoParticleField({ stageRef }: { stageRef: { current: number } }) {
         ctx.beginPath(); ctx.moveTo(px-hl,y0); ctx.quadraticCurveTo(px,cy,px+hl,y1); ctx.stroke()
       }
 
+      // Baja California dedicated particles
+      for (const p of bajaP) {
+        p.lon+=p.dLon
+        if (p.lon<-117.5) p.lon+=8.5
+        if (p.lon>-109.0) p.lon-=8.5
+        const px=lx(p.lon,cam,W), py=ly(p.lat,cam,H)
+        const hl=Math.min(p.halfLenDeg*cam.scale,180)
+        if (hl<0.5||px+hl<0||px-hl>W||py<-2||py>H+2) continue
+        const osc=0.55+0.45*Math.sin(2*Math.PI*ts/p.period+p.phase)
+        const y0=py+p.tilt*hl*0.22, y1=py-p.tilt*hl*0.22, cy=py+p.curv*hl*0.18
+        ctx.globalAlpha=p.opacity*osc
+        ctx.strokeStyle="#ffffff"
+        ctx.lineWidth=p.lw
+        ctx.beginPath(); ctx.moveTo(px-hl,y0); ctx.quadraticCurveTo(px,cy,px+hl,y1); ctx.stroke()
+      }
+
       // Sargazo particles (stage 1,2,3)
       if (stage>=1) {
         let sa=1.0
@@ -263,7 +303,7 @@ function GeoParticleField({ stageRef }: { stageRef: { current: number } }) {
         for (const p of qrP) {
           p.lon+=p.dLon
           const px=lx(p.lon,cam,W), py=ly(p.lat,cam,H)
-          const hl=Math.min(p.halfLenDeg*cam.scale,36)
+          const hl=Math.min(p.halfLenDeg*cam.scale,48)
           if (hl<0.8||px+hl<0||px-hl>W||py<-2||py>H+2) continue
           const osc=0.55+0.45*Math.sin(2*Math.PI*ts/p.period+p.phase)
           const y0=py+p.tilt*hl*0.22, y1=py-p.tilt*hl*0.22, cy=py+p.curv*hl*0.18
@@ -279,11 +319,11 @@ function GeoParticleField({ stageRef }: { stageRef: { current: number } }) {
       // Geographic labels — visible only during Caribbean stage
       if (stage===2) {
         const la=eic(Math.min(1,(T-TZI)/2))
-        drawLabel("CANCÚN",     -86.55, 21.38, cam, W, H, ctx, la*0.60)
-        drawLabel("COZUMEL",    -86.50, 20.48, cam, W, H, ctx, la*0.60)
-        drawLabel("TULUM",      -86.95, 20.02, cam, W, H, ctx, la*0.55)
-        drawLabel("CHETUMAL",   -88.00, 18.48, cam, W, H, ctx, la*0.50)
-        drawLabel("MAR CARIBE", -84.90, 19.60, cam, W, H, ctx, la*0.35)
+        drawLabel("CANCÚN",     -86.55, 21.38, cam, W, H, ctx, la*0.85)
+        drawLabel("COZUMEL",    -86.50, 20.48, cam, W, H, ctx, la*0.85)
+        drawLabel("TULUM",      -86.95, 20.02, cam, W, H, ctx, la*0.80)
+        drawLabel("CHETUMAL",   -88.00, 18.48, cam, W, H, ctx, la*0.70)
+        drawLabel("MAR CARIBE", -84.90, 19.60, cam, W, H, ctx, la*0.55)
       }
     }
 
@@ -308,6 +348,10 @@ const STATS = [
   { value:"83",    unit:"/100", label:"Confianza del sistema"  },
   { value:"315",   unit:"días", label:"Historial NOAA SIR"     },
   { value:"14",    unit:"días", label:"Horizonte de forecast"  },
+  { value:"604",   unit:"reg.", label:"Boletines SEMAR 2014–26" },
+  { value:"H=0.80",unit:"Hurst",label:"Memoria larga fOU"      },
+  { value:"2 000", unit:"part.",label:"Partículas OpenDrift"    },
+  { value:"10",    unit:"plyas",label:"Segmentos monitoreados"  },
 ]
 const ACCORDION = [
   { num:"01", label:"TELEDETECCIÓN SATELITAL",
@@ -318,6 +362,10 @@ const ACCORDION = [
     body:"Ensemble ponderado por R² LOOCV de tres modelos ML: Ridge, Bayesian Ridge y Gradient Boosting. Corrección por tendencia secular + IC 80% calibrado. Horizonte: siguiente mes." },
   { num:"04", label:"SEMÁFORO OPERATIVO 5 NIVELES",
     body:"Clasificación automática: Escaso → Muy alto. Actualización semanal (APScheduler, lunes 06:00 UTC). 10 playas monitoreadas en Quintana Roo con perfil de riesgo histórico." },
+  { num:"05", label:"TRANSPORTE LAGRANGIANO",
+    body:"2 000 partículas liberadas desde el Atlántico Central con OpenDrift sobre corrientes RTOFS 1/12° y viento GFS 0.25°. Densidad KDE a 0.1° por segmento costero. 25 horizontes de pronóstico. Ventana operativa: 14 días." },
+  { num:"06", label:"ACTUALIZACIÓN CONTINUA DE DATOS",
+    body:"Pipeline automatizado: descarga semanal de boletines SEMAR, OCR con pdfplumber/Tesseract, normalización y escritura en SQLite. APScheduler cron lunes 06:00 UTC. Latencia < 2 h desde publicación oficial. 4 formatos PDF cubiertos." },
 ]
 const SOURCES = ["SEMAR","NOAA AOML","Mendeley GASB","RTOFS","GFS 0.25°","OISST v2.1","NCEP/NCAR","SATsum"]
 const FONT: React.CSSProperties = { fontFamily:"'Inter',ui-sans-serif,system-ui,sans-serif", fontWeight:300 }
@@ -391,7 +439,7 @@ export function Landing({ onEnter }: LandingProps) {
         {/* headline */}
         <div style={{position:"absolute",left:"max(40px,6vw)",top:"50%",transform:"translateY(-50%)",maxWidth:520,zIndex:10}}>
           <p style={{fontSize:12,letterSpacing:"0.96px",color:"#9d9d9d",textTransform:"uppercase",marginBottom:28}}>
-            Cozumel, Q.Roo · En operación
+            Mar Caribe · Zona de monitoreo activo
           </p>
           <h1 style={{fontSize:"clamp(36px,4.8vw,50px)",fontWeight:300,lineHeight:1.2,letterSpacing:"-1.25px",color:"#ffffff",marginBottom:0}}>
             El sargazo<br />llega.<br />
@@ -532,7 +580,47 @@ export function Landing({ onEnter }: LandingProps) {
         <div style={{height:1,background:"rgba(255,255,255,0.08)"}} />
       </section>
 
-      {/* 7. Sources */}
+      {/* 7. Data coverage table */}
+      <section style={{background:"#000000",padding:"80px max(40px,6vw)",borderTop:"1px solid rgba(255,255,255,0.05)"}}>
+        <div style={{maxWidth:1280,margin:"0 auto"}}>
+          <p style={{fontSize:12,letterSpacing:"0.96px",color:"#858484",textTransform:"uppercase",marginBottom:8}}>Cobertura de datos</p>
+          <h2 style={{fontSize:"clamp(24px,2.8vw,34px)",fontWeight:300,letterSpacing:"-1.5px",color:"#ffffff",marginBottom:48}}>
+            Registro histórico integrado.
+          </h2>
+          <div style={{overflowX:"auto"}}>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:13,fontWeight:300}}>
+              <thead>
+                <tr style={{borderBottom:"1px solid rgba(255,255,255,0.12)"}}>
+                  {["Dataset","Período","Registros","Frecuencia","Resolución"].map(h=>(
+                    <th key={h} style={{textAlign:"left",padding:"0 16px 14px 0",fontSize:11,letterSpacing:"0.88px",color:"#858484",textTransform:"uppercase",fontWeight:300}}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ["Boletines SEMAR",      "2014 – 2026", "604",  "Semanal",  "Caribe Mexicano"],
+                  ["NOAA SIR (satélite)",  "2019 – 2024", "315",  "Diario",   "~4 km costero"  ],
+                  ["SATsum Caribe",        "2011 – 2024", "162",  "Mensual",  "Regional"        ],
+                  ["SATsum ZEE México",    "2011 – 2024", "162",  "Mensual",  "ZEE nacional"    ],
+                  ["SST Cozumel (OISST)",  "2000 – 2026", "316",  "Mensual",  "0.25°"           ],
+                  ["Viento Cozumel (NCEP)","2000 – 2026", "316",  "Mensual",  "2.5°"            ],
+                  ["Mendeley GASB",        "2000 – 2023", "282",  "Mensual",  "Subregional"     ],
+                ].map(([ds,per,rec,freq,res],i)=>(
+                  <tr key={ds} style={{borderBottom:"1px solid rgba(255,255,255,0.06)",background:i%2===0?"transparent":"rgba(255,255,255,0.02)"}}>
+                    <td style={{padding:"14px 16px 14px 0",color:"#ffffff",letterSpacing:"0.325px"}}>{ds}</td>
+                    <td style={{padding:"14px 16px 14px 0",color:"#9d9d9d",fontVariantNumeric:"tabular-nums"}}>{per}</td>
+                    <td style={{padding:"14px 16px 14px 0",color:"#cfb53b",fontVariantNumeric:"tabular-nums",letterSpacing:"0.325px"}}>{rec}</td>
+                    <td style={{padding:"14px 16px 14px 0",color:"#9d9d9d"}}>{freq}</td>
+                    <td style={{padding:"14px 16px 14px 0",color:"#858484"}}>{res}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* 8. Sources */}
       <section style={{background:"#000000",padding:"64px max(40px,6vw)",borderTop:"1px solid rgba(255,255,255,0.05)"}}>
         <div style={{maxWidth:1280,margin:"0 auto"}}>
           <p style={{fontSize:12,letterSpacing:"0.96px",color:"#858484",textTransform:"uppercase",marginBottom:24,textAlign:"center"}}>
@@ -548,7 +636,7 @@ export function Landing({ onEnter }: LandingProps) {
         </div>
       </section>
 
-      {/* 8. CTA final */}
+      {/* 9. CTA final */}
       <section style={{background:"#000000",padding:"80px max(40px,6vw)",borderTop:"1px solid rgba(255,255,255,0.05)"}}>
         <div style={{maxWidth:640,margin:"0 auto",textAlign:"center"}}>
           <h2 style={{fontSize:"clamp(28px,3.5vw,40px)",fontWeight:300,letterSpacing:"-2px",lineHeight:1.2,color:"#ffffff",marginBottom:20}}>
@@ -568,7 +656,7 @@ export function Landing({ onEnter }: LandingProps) {
         </div>
       </section>
 
-      {/* 9. Footer */}
+      {/* 10. Footer */}
       <footer style={{background:"#000000",borderTop:"1px solid rgba(255,255,255,0.07)",padding:"24px max(40px,6vw)"}}>
         <div className="flex flex-col md:flex-row items-center justify-between gap-4" style={{maxWidth:1280,margin:"0 auto"}}>
           <div className="flex items-center gap-3">
