@@ -309,7 +309,7 @@ def seed_database_if_empty(db):
 
 def init_db():
     import backend.models  # noqa: F401
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine, checkfirst=True)
     db = SessionLocal()
     try:
         seed_database_if_empty(db)
