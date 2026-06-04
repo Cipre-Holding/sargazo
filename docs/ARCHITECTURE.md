@@ -237,6 +237,27 @@ App
 └── Legend (risk colors + data sources)
 ```
 
+## Landing Page & Scrollytelling Animations
+
+The landing page (`Landing.tsx`) features high-end data-driven scrollytelling animations inspired by terminal-like particle-field designs.
+
+### 1. Methodology Section (`#metodologia` - Navy Blue)
+* **Background Current Swells**: Features the `<WaveFieldBackground />` component. It renders a HTML5 Canvas containing 5 layered translucent sine waves (at depths 15%, 35%, 55%, 75%, 90% of the viewport) simulating drifting ocean currents, accompanied by 90 organic floating sargassum particles.
+* **Sticky Viewport Containment**: Positioned directly inside the `sticky top-0 h-dvh` viewport container (`zIndex: 10`, `pointerEvents: "none"`), ensuring that the currents follow the user's viewport dynamically as they scroll, without obstructing hover states or clicks on the interactive SVG icons on the right (`zIndex: 11`).
+* **Scrollytelling Accordion**: Standardized on the Deep Navy Blue (`#0d1b3e`) background matching the yellow sargazo accent (`#cfb53b`).
+
+### 2. Questions Section Focus (`#escala` - White Theme)
+* **Objective**: Present the main predictive questions addressed by the system in a vertically-aligned list, drawing emphasis to the active question while blurring and fading surrounding items.
+* **Active State Focus**: The active question (closest to the viewport center line) is guaranteed to render with `filter: none` (0px blur) and `opacity: 1.0`. Even if a user stops scrolling midway, the selected question remains perfectly sharp.
+* **Discrete Index Transition & Performance Optimization**:
+  Instead of updating the inline blur filter on every pixel scroll event (which causes browser layout thrashing and stutters), styles are only calculated and applied when the integer active index changes (`activeIdx`).
+  Smooth visual transitions between states are handled by GPU-accelerated CSS transitions:
+  ```css
+  transition: color 0.15s ease-out, filter 0.25s ease-out, opacity 0.25s ease-out;
+  ```
+  This achieves smooth, responsive blur fade-ins/fade-outs with zero scroll lag.
+* **Responsive (Mobile & Tablet) Degradation**: On screens smaller than 1024px, the scrollytelling blocking behavior is disabled. The list degrades into a natural vertical scrolling element with full sharpness for readability.
+
 ## Deployment
 
 ```

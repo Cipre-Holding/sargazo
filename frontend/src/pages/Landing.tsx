@@ -1028,6 +1028,33 @@ export function Landing({ onEnter }: LandingProps) {
       // 1.5. Animación de la sección "Sargazo a Escala" (Sección Clara #escala)
       const escala = escalaRef.current
       if (escala) {
+        const isDesktop = window.innerWidth >= 1024
+        
+        if (!isDesktop) {
+          // Reset positioning on mobile/tablet to display list naturally
+          if (questionListRef.current) {
+            questionListRef.current.style.transform = 'none'
+          }
+          questionItemRefs.current.forEach((el, idx) => {
+            if (!el) return
+            el.style.filter = 'none'
+            el.style.opacity = idx === activeQuestion ? '1' : '0.6'
+            
+            const highlightEl = el.querySelector('.q-highlight') as HTMLElement
+            const underline = el.querySelector('.q-underline') as HTMLElement
+            if (idx === activeQuestion) {
+              el.style.color = '#18181b'
+              if (highlightEl) highlightEl.style.color = QUESTIONS_LIST[idx].color
+              if (underline) underline.style.width = '100%'
+            } else {
+              el.style.color = 'rgba(24, 24, 27, 0.4)'
+              if (highlightEl) highlightEl.style.color = 'inherit'
+              if (underline) underline.style.width = '0%'
+            }
+          })
+          return
+        }
+
         const scrollStart = getAbsoluteTop(escala)
         const scrollEnd = scrollStart + escala.offsetHeight - viewHeight
         
@@ -1067,21 +1094,14 @@ export function Landing({ onEnter }: LandingProps) {
 
         questionItemRefs.current.forEach((el, idx) => {
           if (!el) return
-          const distance = Math.abs(idx - currentFraction)
-          
-          // Continuous, frame-by-frame calculations for analog scrolling feel
-          // Active question is 100% sharp and clear at center (distance = 0)
-          // We allow a small tolerance window where blur is exactly 0
-          const blurAmount = Math.max(0, Math.min(4.5, (distance - 0.15) * 4.5))
-          const opacity = Math.max(0.28, Math.min(1.0, 1.0 - distance * 0.72))
-          
-          el.style.filter = blurAmount === 0 ? 'none' : `blur(${blurAmount}px)`
-          el.style.opacity = `${opacity}`
-          
+          const isMain = idx === activeIdx
           const highlightEl = el.querySelector('.q-highlight') as HTMLElement
           const underline = el.querySelector('.q-underline') as HTMLElement
           
-          if (idx === activeIdx) {
+          if (isMain) {
+            // Active item is guaranteed 100% sharp and clear without scrolling lag
+            el.style.filter = 'none'
+            el.style.opacity = '1'
             el.style.color = '#18181b'
             if (highlightEl) {
               highlightEl.style.color = QUESTIONS_LIST[idx].color
@@ -1090,6 +1110,11 @@ export function Landing({ onEnter }: LandingProps) {
               underline.style.width = '100%'
             }
           } else {
+            // Inactive items are blurred and faded out based on discrete index distance
+            const distance = Math.abs(idx - activeIdx)
+            const blurAmount = Math.min(4.5, 1.5 + (distance - 1) * 1.5)
+            el.style.filter = `blur(${blurAmount}px)`
+            el.style.opacity = `${Math.max(0.28, 0.65 - (distance - 1) * 0.2)}`
             el.style.color = 'rgba(24, 24, 27, 0.4)'
             if (highlightEl) {
               highlightEl.style.color = 'inherit'
@@ -1563,7 +1588,7 @@ export function Landing({ onEnter }: LandingProps) {
                         display:"flex",
                         flexDirection:"column",
                         justifyContent:"center",
-                        transition:"color 0.15s ease-out",
+                        transition:"color 0.15s ease-out, filter 0.25s ease-out, opacity 0.25s ease-out",
                         padding:"0 4px"
                       }}
                     >
