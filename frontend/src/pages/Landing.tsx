@@ -972,17 +972,26 @@ export function Landing({ onEnter }: LandingProps) {
           el.style.filter = blurAmount === 0 ? 'none' : `blur(${blurAmount}px)`
           el.style.opacity = `${opacity}`
           
+          const highlightEl = el.querySelector('.q-highlight') as HTMLElement
+          const underline = el.querySelector('.q-underline') as HTMLElement
+          
           // Color is transitioned via CSS transition for a smooth active-zinc change
           if (idx === activeIdx) {
             el.style.color = '#18181b'
+            if (highlightEl) {
+              highlightEl.style.color = QUESTIONS_LIST[idx].color
+            }
+            if (underline) {
+              underline.style.width = '100%'
+            }
           } else {
             el.style.color = 'rgba(24, 24, 27, 0.4)'
-          }
-          
-          const underline = el.querySelector('.q-underline') as HTMLElement
-          if (underline) {
-            const w = Math.max(0, 100 - distance * 100)
-            underline.style.width = `${w}%`
+            if (highlightEl) {
+              highlightEl.style.color = 'inherit'
+            }
+            if (underline) {
+              underline.style.width = '0%'
+            }
           }
         })
       }
@@ -1454,9 +1463,9 @@ export function Landing({ onEnter }: LandingProps) {
                     >
                       <span style={{fontSize:"clamp(14px, 1.8vw, 19px)", lineHeight:1.3, fontWeight:300}}>
                         {q.text.split(q.highlight)[0]}
-                        <span style={{display:"inline-block", position:"relative", color:q.color, fontWeight:400}}>
+                        <span className="q-highlight" style={{display:"inline-block", position:"relative", color:"inherit", fontWeight:400, transition:"color 0.25s ease"}}>
                           {q.highlight}
-                          <span className="q-underline" style={{position:"absolute", bottom:-1, left:0, width:"0%", height:1.5, background:q.color, transition:"width 0.4s ease"}} />
+                          <span className="q-underline" style={{position:"absolute", bottom:-1, left:0, width:"0%", height:1.5, background:q.color, transition:"width 0.25s ease"}} />
                         </span>
                         {q.text.split(q.highlight)[1]}
                       </span>
