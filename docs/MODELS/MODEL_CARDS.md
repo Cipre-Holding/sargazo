@@ -137,10 +137,12 @@ Formato estándar para cada modelo: **Propósito** | **Inputs** | **Training Dat
 
 | Campo | Valor |
 |---|---|
-| **Propósito** | Prophet con grid search sobre 40 combinaciones de hiperparámetros |
+| **Propósito** | Prophet con grid search para proyectar tendencia ACO a 6 meses |
+| **Grid** | 5 changepoint_prior × 4 seasonality_prior = 20 combinaciones (solo `additive`) |
 | **Best params** | changepoint_prior_scale=0.01, seasonality_prior_scale=0.1, additive |
 | **CV RMSE** | 1.8005 |
 | **Training data** | 303 meses aligned_ACO |
+| **Nota** | Modo `multiplicative` eliminado — nunca supera a `additive` en esta serie |
 | **Frecuencia** | Semanal |
 
 ### 1.7 ARIMAX Full Series

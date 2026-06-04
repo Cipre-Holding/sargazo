@@ -141,7 +141,8 @@ Usar con `GET /api/forecast/geodata/sir?date=YYYY-MM-DD` para filtrar por fecha 
 
 ### `GET /api/forecast/geodata/ml-risk`
 
-ML risk interpolation (1,149 celdas, ~386 KB). GeoJSON FeatureCollection con Polygons.
+ML risk interpolation (582 celdas, ~0.6 MB). GeoJSON FeatureCollection con Polygons.
+Colores por nivel: LOW=#00d4aa (teal), WARNING=#f5d000 (gold), MEDIUM=#ff8800 (naranja), HIGH=#ff3333 (rojo).
 
 ### `GET /api/forecast/risk-by-beach`
 

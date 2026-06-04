@@ -10,7 +10,7 @@ import { ManualInputDialog } from "@/components/panels/ManualInputDialog"
 import { InfoPanel } from "@/components/panels/InfoPanel"
 import {
   Waves, Download, ChevronLeft, LayoutDashboard, Target,
-  Layers, TrendingUp, Settings, RefreshCw, AlertTriangle, CircleHelp,
+  Layers, TrendingUp, Settings, RefreshCw, AlertTriangle, CircleHelp, ArrowLeft,
 } from "lucide-react"
 import "./App.css"
 
@@ -49,12 +49,12 @@ const LAYERS_CONFIG = [
 ]
 
 const SEMAFORO_LEVELS = [
-  { max: 1000,     label: "ESCASO",   color: "var(--color-success)" },
-  { max: 5000,     label: "MUY BAJO", color: "oklch(0.72 0.17 140)" },
-  { max: 15000,    label: "BAJO",     color: "var(--color-warning)" },
-  { max: 40000,    label: "MODERADO", color: "var(--color-risk-warning)" },
-  { max: 80000,    label: "ALTO",     color: "var(--color-risk-medium)" },
-  { max: Infinity, label: "MUY ALTO", color: "var(--color-risk-high)" },
+  { max: 1000,     label: "ESCASO",   color: "#4ade80" },
+  { max: 5000,     label: "MUY BAJO", color: "#86efac" },
+  { max: 15000,    label: "BAJO",     color: "#fbbf24" },
+  { max: 40000,    label: "MODERADO", color: "#f5d000" },
+  { max: 80000,    label: "ALTO",     color: "#ff8800" },
+  { max: Infinity, label: "MUY ALTO", color: "#ff3333" },
 ]
 
 type SidebarTab = "pred" | "layers" | "system"
@@ -85,7 +85,11 @@ function RecenterBtn() {
 
 // ── App ───────────────────────────────────────────────────────────────────────
 
-function App() {
+interface AppProps {
+  onBack?: () => void
+}
+
+function App({ onBack }: AppProps) {
   const [layers, setLayers] = useState<Record<string, boolean>>({
     mlrisk: true, sir: false, kde: false, trajectories: false,
   })
@@ -160,7 +164,7 @@ function App() {
   const isRunning = downloadStatus?.status === "running"
 
   return (
-    <div className="relative h-screen w-full overflow-hidden" style={{ background: 'var(--color-bg)' }}>
+    <div className="relative h-screen w-full overflow-hidden" style={{ background: '#111111' }}>
 
       {/* ── Map (full background) ────────────────────────────────────────── */}
       <Map ref={mapRef} className="absolute inset-0" center={[-87.0, 20.3]} zoom={8.5} theme="dark">
@@ -239,7 +243,18 @@ function App() {
       </Map>
 
       {/* ── Top bar ──────────────────────────────────────────────────────── */}
-      <header className="absolute top-3 left-3 right-3 z-30 flex items-center gap-2.5 rounded-2xl border border-border/40 bg-surface/80 backdrop-blur-xl px-3 py-2 shadow-xl shadow-black/40">
+      <header className="absolute top-3 left-3 right-3 z-30 flex items-center gap-2.5 rounded-2xl border border-border/40 bg-surface/90 backdrop-blur-xl px-3 py-2 shadow-xl shadow-black/50">
+
+        {/* Back to landing */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-border/40 bg-surface-raised/60 text-muted hover:text-fg hover:bg-surface-raised transition-all duration-150 cursor-pointer"
+            title="Volver al inicio"
+          >
+            <ArrowLeft className="size-4" />
+          </button>
+        )}
 
         {/* Sidebar toggle */}
         <button
@@ -251,13 +266,16 @@ function App() {
         </button>
 
         {/* Brand */}
-        <div className="flex items-center gap-3 min-w-0">
-          <img src="https://cipreholding.com/img/logos/LOGO-CIPRE-W.svg" className="h-4 w-auto opacity-90 brightness-110 shrink-0" alt="CIPRE" />
-          <div className="h-3.5 w-px bg-border/50 shrink-0" />
-          <Waves className="size-4 shrink-0 text-primary" />
-          <span className="font-semibold text-sm tracking-tight text-fg">Sargazo Cozumel</span>
-          <span className="hidden lg:inline text-[11px] text-muted border-l border-border/50 pl-2.5">
-            Monitoreo y predicción operativa
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex size-6 shrink-0 items-center justify-center rounded-md" style={{ background: "#ff4300" }}>
+            <Waves className="size-3.5" style={{ color: "#fff" }} />
+          </div>
+          <span className="font-bold text-sm tracking-tight text-fg">Sargazo Cozumel</span>
+          <span
+            className="hidden lg:inline text-[10px] font-bold pl-2.5"
+            style={{ borderLeft: "1px solid #343434", color: "#666666", letterSpacing: "0.04em" }}
+          >
+            MONITOREO · PREDICCIÓN
           </span>
         </div>
 
@@ -265,13 +283,12 @@ function App() {
 
         {/* Alert badge */}
         {alerts.length > 0 && (
-          <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg border"
-            style={{
-              background: 'var(--color-accent-soft)',
-              borderColor: 'color-mix(in oklch, var(--color-warning) 25%, transparent)',
-            }}>
-            <AlertTriangle className="size-3 text-warning" />
-            <span className="text-[10px] font-semibold text-warning">
+          <div
+            className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg border"
+            style={{ background: '#1c0800', borderColor: 'rgba(255,67,0,0.25)' }}
+          >
+            <AlertTriangle className="size-3" style={{ color: '#fbbf24' }} />
+            <span className="text-[10px] font-bold" style={{ color: '#fbbf24' }}>
               {alerts.length} alerta{alerts.length > 1 ? "s" : ""}
             </span>
           </div>
@@ -279,7 +296,10 @@ function App() {
 
         {/* Status indicator */}
         <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-border/30 bg-surface-raised/40">
-          <span className={`size-1.5 rounded-full ${isRunning ? "bg-warning animate-pulse" : "bg-success"}`} />
+          <span
+            className={`size-1.5 rounded-full ${isRunning ? "animate-pulse" : ""}`}
+            style={{ background: isRunning ? '#fbbf24' : '#4ade80' }}
+          />
           <span className="hidden sm:inline text-[11px] text-muted">
             {isRunning ? "Actualizando" : "Operativo"}
           </span>
@@ -288,17 +308,20 @@ function App() {
         {/* Info button */}
         <button
           onClick={() => setInfoOpen(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold text-primary bg-primary-soft/15 border border-primary/30 hover:bg-primary-soft/25 transition-all duration-150 cursor-pointer"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer border"
+          style={{ color: '#ff4300', background: '#1c0800', borderColor: 'rgba(255,67,0,0.3)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#260d00' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#1c0800' }}
           title="Centro de Información"
         >
           <CircleHelp className="size-3.5" />
-          <span className="hidden sm:inline">¿Dudas? Más info</span>
+          <span className="hidden sm:inline">¿Dudas?</span>
         </button>
 
         {/* Dashboard button */}
         <button
           onClick={() => setDashboardOpen(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs text-muted hover:text-fg hover:bg-surface-raised border border-transparent hover:border-border/40 transition-all duration-150 cursor-pointer"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold text-muted hover:text-fg hover:bg-surface-raised border border-transparent hover:border-border/40 transition-all duration-150 cursor-pointer"
           title="Dashboard"
         >
           <LayoutDashboard className="size-3.5" />
@@ -324,9 +347,10 @@ function App() {
                 onClick={() => setActiveTab(id)}
                 className={`flex-1 flex items-center justify-center gap-1.5 pb-2.5 pt-2 px-1 text-xs font-bold uppercase tracking-wider border-b-2 transition-all duration-150 cursor-pointer rounded-t-lg ${
                   activeTab === id
-                    ? "border-primary text-fg"
+                    ? "text-fg border-transparent"
                     : "border-transparent text-muted hover:text-fg hover:border-border/50"
                 }`}
+                style={activeTab === id ? { borderBottomColor: '#ff4300' } : undefined}
               >
                 <Icon className="size-3.5" />
                 <span>{label}</span>
@@ -360,22 +384,21 @@ function App() {
                 )}
                 {/* KPI Card */}
                 {ensemble && (
-                  <div className="rounded-xl border border-border bg-gradient-to-br from-primary-soft/30 to-bg/85 p-4 shadow-lg shadow-black/25">
+                  <div className="rounded-xl border p-4 shadow-lg shadow-black/30" style={{ borderColor: 'rgba(255,67,0,0.25)', background: 'linear-gradient(135deg, #1c0800 0%, #181818 100%)' }}>
                     {/* Header */}
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-bold uppercase tracking-widest text-primary">
+                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#ff4300', letterSpacing: '0.08em' }}>
                         Predicción Junio 2026
                       </span>
                       {confidence && (
-                        <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
-                          confidence.nivel === "ALTA"
-                            ? "border-success/20 text-success"
-                            : "border-warning/20 text-warning"
-                        }`} style={{
-                          background: confidence.nivel === "ALTA"
-                            ? 'oklch(0.76 0.18 165 / 0.1)'
-                            : 'oklch(0.78 0.17 85 / 0.1)',
-                        }}>
+                        <span
+                          className="text-xs font-bold px-2.5 py-0.5 rounded-full border"
+                          style={{
+                            borderColor: confidence.nivel === "ALTA" ? 'rgba(74,222,128,0.25)' : 'rgba(251,191,36,0.25)',
+                            color: confidence.nivel === "ALTA" ? '#4ade80' : '#fbbf24',
+                            background: confidence.nivel === "ALTA" ? 'rgba(74,222,128,0.08)' : 'rgba(251,191,36,0.08)',
+                          }}
+                        >
                           {confidence.porcentaje}% {confidence.nivel}
                         </span>
                       )}
@@ -419,10 +442,10 @@ function App() {
                             <span>IC 80%</span>
                             <span className="font-mono tabular-nums">{lo.toFixed(0)} – {hi.toFixed(0)} k</span>
                           </div>
-                          <div className="relative h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-border)' }}>
-                            <div className="absolute inset-0 rounded-full opacity-20" style={{ background: 'var(--color-primary)' }} />
-                            <div className="absolute top-0 bottom-0 w-px rounded-full bg-fg/80"
-                              style={{ left: `${Math.min(Math.max(pct, 4), 96)}%` }} />
+                          <div className="relative h-1.5 rounded-full overflow-hidden" style={{ background: '#343434' }}>
+                            <div className="absolute inset-0 rounded-full" style={{ background: '#ff4300', opacity: 0.15 }} />
+                            <div className="absolute top-0 bottom-0 w-px rounded-full"
+                              style={{ left: `${Math.min(Math.max(pct, 4), 96)}%`, background: '#ffffff', opacity: 0.8 }} />
                           </div>
                         </div>
                       )
@@ -434,7 +457,7 @@ function App() {
                         <span className="text-muted" title="Prophet n≈303, serie histórica GASB/ACO">
                           Prophet ACO jun
                         </span>
-                        <span className="font-mono tabular-nums font-bold" style={{ color: 'var(--color-accent)' }}>
+                        <span className="font-mono tabular-nums font-bold" style={{ color: '#cacaca' }}>
                           {prophet.proyeccion_junio_2026_aco_mt.toFixed(2)} Mt
                         </span>
                       </div>
@@ -455,10 +478,10 @@ function App() {
                           : "text-error"
                       }`}>{confidence.porcentaje}%</span>
                     </div>
-                    <div className="h-1.5 rounded-full overflow-hidden mb-3" style={{ background: 'var(--color-border)' }}>
+                    <div className="h-1.5 rounded-full overflow-hidden mb-3" style={{ background: '#343434' }}>
                       <div className="h-full rounded-full transition-all duration-700" style={{
                         width: `${confidence.porcentaje}%`,
-                        background: confidence.nivel === "ALTA" ? 'var(--color-success)' : 'var(--color-warning)',
+                        background: confidence.nivel === "ALTA" ? '#4ade80' : '#fbbf24',
                       }} />
                     </div>
                     {confidence.desglose && (
@@ -468,10 +491,10 @@ function App() {
                             <span className="text-xs text-muted truncate flex-1 capitalize">
                               {k.replace(/_/g, ' ')}
                             </span>
-                            <div className="w-14 h-1 rounded-full overflow-hidden" style={{ background: 'var(--color-border)' }}>
+                            <div className="w-14 h-1 rounded-full overflow-hidden" style={{ background: '#343434' }}>
                               <div className="h-full rounded-full" style={{
                                 width: `${Math.min(100, (v.puntos / v.max) * 100)}%`,
-                                background: 'var(--color-primary)',
+                                background: '#ff4300',
                                 opacity: 0.75,
                               }} />
                             </div>
@@ -514,7 +537,7 @@ function App() {
                                 {s.pct_high_medium}%
                               </span>
                             </div>
-                            <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--color-border)' }}>
+                            <div className="h-1 rounded-full overflow-hidden" style={{ background: '#343434' }}>
                               <div className="h-full rounded-full transition-all duration-500" style={{
                                 width: `${s.pct_high_medium}%`,
                                 background: riskColor,
@@ -531,15 +554,15 @@ function App() {
                 {alerts.length > 0 && (
                   <div className="space-y-1.5">
                     {alerts.map((a, i) => (
-                      <div key={i} className={`flex items-start gap-2 px-3 py-2 rounded-xl text-xs border ${
-                        a.type === "error"
-                          ? "text-risk-high border-risk-high/20"
-                          : "text-warning border-warning/20"
-                      }`} style={{
-                        background: a.type === "error"
-                          ? 'color-mix(in oklch, var(--color-risk-high) 10%, transparent)'
-                          : 'color-mix(in oklch, var(--color-warning) 10%, transparent)',
-                      }}>
+                      <div
+                        key={i}
+                        className="flex items-start gap-2 px-3 py-2 rounded-xl text-xs border"
+                        style={{
+                          color: a.type === "error" ? '#ff3333' : '#fbbf24',
+                          borderColor: a.type === "error" ? 'rgba(255,51,51,0.2)' : 'rgba(251,191,36,0.2)',
+                          background: a.type === "error" ? 'rgba(255,51,51,0.07)' : 'rgba(251,191,36,0.07)',
+                        }}
+                      >
                         <AlertTriangle className="size-3 mt-0.5 shrink-0" />
                         <span>{a.text}</span>
                       </div>
@@ -609,9 +632,7 @@ function App() {
                               : "text-muted hover:text-fg"
                           }`}
                           style={{
-                            background: horizon === h.value
-                              ? 'var(--color-primary)'
-                              : 'var(--color-surface-raised)',
+                            background: horizon === h.value ? '#ff4300' : '#2b2a2a',
                           }}
                         >
                           {h.label}
@@ -640,7 +661,7 @@ function App() {
                       value={Math.max(0, (allSirDates ?? []).indexOf(sirDate))}
                       onChange={(e) => setSirDate((allSirDates ?? [])[parseInt(e.target.value)])}
                       className="w-full cursor-pointer"
-                      style={{ accentColor: 'var(--color-risk-high)' }}
+                      style={{ accentColor: '#ff4300' }}
                     />
                     <div className="flex justify-between text-[11px] mt-1" style={{ color: 'var(--color-muted)', opacity: 0.6 }}>
                       <span>{allSirDates?.[0]}</span>
@@ -704,7 +725,7 @@ function App() {
                     )}
                     {downloadStatus?.error && (
                       <div className="mt-2 px-2.5 py-1.5 rounded-lg text-[10px] border"
-                        style={{ background: 'oklch(0.62 0.22 28 / 0.1)', borderColor: 'oklch(0.62 0.22 28 / 0.25)', color: 'var(--color-error)' }}>
+                        style={{ background: 'rgba(239,68,68,0.08)', borderColor: 'rgba(239,68,68,0.25)', color: '#ef4444' }}>
                         {downloadStatus.error.slice(0, 120)}
                       </div>
                     )}
@@ -717,7 +738,7 @@ function App() {
                     onClick={triggerDownload}
                     disabled={isRunning}
                     className="w-full flex items-center justify-center gap-2 rounded-xl border border-border/40 px-4 py-2.5 text-sm text-muted hover:text-fg transition-all duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                    style={{ background: 'var(--color-surface-raised)' }}
+                    style={{ background: '#2b2a2a' }}
                   >
                     {isRunning
                       ? <><RefreshCw className="size-4 animate-spin" /> Actualizando...</>
@@ -735,13 +756,14 @@ function App() {
                     </h3>
                     <div className="space-y-1.5">
                       {alerts.map((a, i) => (
-                        <div key={i} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs ${
-                          a.type === "error" ? "text-risk-high" : "text-warning"
-                        }`} style={{
-                          background: a.type === "error"
-                            ? 'oklch(0.62 0.24 28 / 0.1)'
-                            : 'oklch(0.78 0.17 85 / 0.1)',
-                        }}>
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs"
+                          style={{
+                            color: a.type === "error" ? '#ff3333' : '#fbbf24',
+                            background: a.type === "error" ? 'rgba(255,51,51,0.07)' : 'rgba(251,191,36,0.07)',
+                          }}
+                        >
                           <span className="size-1.5 rounded-full bg-current shrink-0" />
                           {a.text}
                         </div>
@@ -757,12 +779,15 @@ function App() {
       </aside>
 
       {/* ── Legend ───────────────────────────────────────────────────────── */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3.5 rounded-xl border border-border/40 bg-surface/80 backdrop-blur-xl px-4 py-2 shadow-lg shadow-black/30">
+      <div
+        className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3.5 rounded-xl px-4 py-2"
+        style={{ border: "1px solid #343434", background: "rgba(24,24,24,0.9)", backdropFilter: "blur(12px)", boxShadow: "0 4px 20px rgba(0,0,0,0.4)" }}
+      >
         {[
-          { label: "BAJO",  c: "var(--color-risk-low)",     desc: "Riesgo de arribo mínimo. Costa libre de acumulaciones significativas." },
-          { label: "AVISO", c: "var(--color-risk-warning)", desc: "Presencia de sargazo disperso. Monitoreo rutinario sin afectación severa." },
-          { label: "MEDIO", c: "var(--color-risk-medium)",  desc: "Arribo moderado. Acumulación progresiva en playas vulnerables." },
-          { label: "ALTO",  c: "var(--color-risk-high)",    desc: "Riesgo extremo. Impacto masivo en costa. Requiere despliegue de barreras y recolección marina." },
+          { label: "BAJO",  c: "#00d4aa", desc: "Riesgo de arribo mínimo. Costa libre de acumulaciones significativas." },
+          { label: "AVISO", c: "#f5d000", desc: "Presencia de sargazo disperso. Monitoreo rutinario sin afectación severa." },
+          { label: "MEDIO", c: "#ff8800", desc: "Arribo moderado. Acumulación progresiva en playas vulnerables." },
+          { label: "ALTO",  c: "#ff3333", desc: "Riesgo extremo. Impacto masivo en costa. Requiere despliegue de barreras y recolección marina." },
         ].map((item) => (
           <span
             key={item.label}
@@ -773,8 +798,8 @@ function App() {
             {item.label}
           </span>
         ))}
-        <span className="text-border/50 text-muted">|</span>
-        <span className="text-xs hidden sm:inline text-muted/60 font-mono">
+        <span style={{ color: '#343434' }}>|</span>
+        <span className="text-xs hidden sm:inline font-bold" style={{ color: '#666666', letterSpacing: '0.02em' }}>
           SEMAR · NOAA SIR · RTOFS · GFS
         </span>
       </div>

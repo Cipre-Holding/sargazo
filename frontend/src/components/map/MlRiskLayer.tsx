@@ -48,11 +48,13 @@ export function MlRiskLayer({ geojson, visible, opacity = 0.6 }: MlRiskLayerProp
 
   useEffect(() => {
     if (!isLoaded || !map) return
+    if (!map.getLayer(layerId)) return
     try { map.setLayoutProperty(layerId, "visibility", visible ? "visible" : "none") } catch {}
   }, [isLoaded, map, visible])
 
   useEffect(() => {
     if (!isLoaded || !map) return
+    if (!map.getLayer(layerId)) return
     try {
       map.setPaintProperty(layerId, "fill-opacity", [
         "match", ["get", "risk"],

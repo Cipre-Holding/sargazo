@@ -69,7 +69,8 @@ export function KdeLayer({ kdeData, horizon, visible }: KdeLayerProps) {
 
   useEffect(() => {
     if (!isLoaded || !map) return
-    map.setLayoutProperty(layerId, "visibility", visible ? "visible" : "none")
+    if (!map.getLayer(layerId)) return
+    try { map.setLayoutProperty(layerId, "visibility", visible ? "visible" : "none") } catch {}
   }, [isLoaded, map, visible])
 
   return null

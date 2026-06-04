@@ -1,5 +1,4 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html, body, #root { height: 100%; width: 100%; overflow: hidden; }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
@@ -9,7 +8,7 @@ html, body, #root { height: 100%; width: 100%; overflow: hidden; }
   }
 }
 
-/* Range input — dark maritime style */
+/* Range input — Molten Ember track */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -19,22 +18,20 @@ input[type="range"] {
 input[type="range"]::-webkit-slider-runnable-track {
   height: 6px;
   border-radius: 3px;
-  background: oklch(0.24 0.022 245 / 0.7);
+  background: #343434;
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  border: 2px solid oklch(0.88 0.012 235);
+  border: 2px solid #cacaca;
   margin-top: -5px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.4);
-  background: var(--color-primary);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.5);
+  background: #ff4300;
 }
-input[type="range"]:focus-visible {
-  outline: none;
-}
+input[type="range"]:focus-visible { outline: none; }
 input[type="range"]:focus-visible::-webkit-slider-thumb {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid #ff4300;
   outline-offset: 2px;
 }

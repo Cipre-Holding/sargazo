@@ -105,12 +105,12 @@ permitiendo a autoridades y hoteleros tomar decisiones informadas.
 | Frontend | React 19 / Vite / TypeScript / Tailwind v4 |
 | Mapas | MapLibre GL JS v5 / mapcn |
 | Charts | SVG inline (sin librerías externas) |
-| Base de datos | SQLite (SQLAlchemy ORM) |
+| Base de datos | SQLite (SQLAlchemy ORM, en `/tmp` en Cloud Run) |
 | Pipeline | Python scripts secuenciales + APScheduler |
 | Contenedor | Docker multi-stage (Node build → Python slim) |
 | Infraestructura | Google Cloud Run + Cloud Build + Artifact Registry |
 | Tamaño imagen | ~700 MB (Python + dependencias científicas) |
-| Region | us-central1 |
+| Región | northamerica-south1 (México) |
 
 ---
 
@@ -133,13 +133,15 @@ permitiendo a autoridades y hoteleros tomar decisiones informadas.
 
 | Documento | Contenido |
 |-----------|----------|
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Arquitectura completa del sistema |
-| [`docs/MODELS/MODEL_CARDS.md`](docs/MODELS/MODEL_CARDS.md) | Fichas de todos los modelos |
-| [`docs/API/API_REFERENCE.md`](docs/API/API_REFERENCE.md) | Endpoints REST documentados |
-| [`DATA_CATALOG.md`](DATA_CATALOG.md) | Inventario de archivos de datos |
-| [`compendio_matematico.md`](compendio_matematico.md) | Derivaciones y ecuaciones |
-| [`bitacora_2026-05-12.md`](bitacora_2026-05-12.md) | Bitácora de desarrollo |
-| `frontend/README.md` | Documentación del frontend |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Arquitectura completa, stack, estructura de directorios |
+| [`docs/PIPELINE.md`](docs/PIPELINE.md) | Pipeline de datos paso a paso con timing y restricciones |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | Problemas conocidos y roadmap de mejoras priorizado |
+| [`docs/MODELS/MODEL_CARDS.md`](docs/MODELS/MODEL_CARDS.md) | Fichas de todos los modelos con métricas |
+| [`docs/API/API_REFERENCE.md`](docs/API/API_REFERENCE.md) | Endpoints REST documentados con ejemplos |
+| [`DATA_CATALOG.md`](DATA_CATALOG.md) | Inventario completo de archivos de datos |
+| [`compendio_matematico.md`](compendio_matematico.md) | Derivaciones matemáticas y ecuaciones |
+| [`analisis_estocastico.md`](analisis_estocastico.md) | Análisis Hurst, fOU, ARFIMA |
+| [`bitacora_2026-05-12.md`](bitacora_2026-05-12.md) | Bitácora de desarrollo mayo 2026 |
 
 ---
 
@@ -164,15 +166,17 @@ cd frontend && npm install && cd ..
 
 ## Despliegue
 
-Cada push a `master` dispara Cloud Build:
+Cada push a `main` dispara Cloud Build:
 
 1. `docker build` → imagen multi-stage (~700 MB)
-2. `docker push` → Artifact Registry (`us-central1-docker.pkg.dev/...`)
+2. `docker push` → Artifact Registry (`northamerica-south1-docker.pkg.dev/...`)
 3. `gcloud run deploy` → Cloud Run (4Gi RAM, 2 CPU, timeout 600s)
 
 Variables de entorno en Cloud Run:
-- `DATABASE_URL`: sqlite:////tmp/sargazo.db
+- `DATABASE_URL`: sqlite:////tmp/sargazo.db *(efímero — se reinicia con el contenedor)*
 - `ALLOWED_ORIGINS`: URL del servicio
+
+> **Nota:** El pipeline completo (~70-90 min) no corre dentro de Cloud Run porque requiere archivos grandes (~350 MB de KMZ + NetCDF) y excede el timeout. Se ejecuta localmente y los artefactos se incluyen en la imagen Docker.
 
 ---
 

@@ -246,9 +246,19 @@ Dockerfile (multi-stage)
   CMD: gunicorn -w 2 uvicorn.workers.UvicornWorker backend.app:app
 
 Cloud Run:
+  Project: festive-utility-472519-g5
+  Service: sargazo
+  Region: northamerica-south1 (México)
+  URL: https://sargazo-xvcvxyopra-pv.a.run.app
   Memory: 4Gi
   CPU: 2
   Timeout: 600s
   Concurrency: 1
   Port: 8080
+  Min instances: 0 (cold start ~20-30s en primer acceso)
+
+Limitación de pipeline en Cloud Run:
+  El pipeline completo (~70-90 min, ~350MB de archivos intermedios)
+  NO puede ejecutarse dentro del contenedor. Los artefactos de datos
+  se generan localmente y se incluyen en la imagen Docker al hacer push.
 ```
