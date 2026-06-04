@@ -566,7 +566,7 @@ function ModelSimulationCanvas() {
       ctx.closePath()
       ctx.fillStyle = "rgba(24, 24, 27, 0.07)"
       ctx.fill()
-      ctx.strokeStyle = "#1019ec" // Electric Blue outline
+      ctx.strokeStyle = "#0d1b3e" // Deep Cobalt Navy outline
       ctx.lineWidth = 1.8
       ctx.stroke()
       ctx.restore()
@@ -578,7 +578,7 @@ function ModelSimulationCanvas() {
       ctx.fillText("Pta. Sur", islandCx - 45, islandCy + 90)
       ctx.beginPath()
       ctx.arc(islandCx - 10, islandCy + 75, 2.5, 0, Math.PI * 2)
-      ctx.fillStyle = "#1019ec"
+      ctx.fillStyle = "#0d1b3e"
       ctx.fill()
 
       // Chen Rio
@@ -707,15 +707,15 @@ function WaveFieldBackground() {
     canvas.height = H
 
     // Particles representing organic matter drifting in currents
-    const particles = Array.from({ length: 65 }, () => ({
+    const particles = Array.from({ length: 90 }, () => ({
       x: Math.random() * W,
       y: Math.random() * H,
-      speed: 0.15 + Math.random() * 0.4,
-      amplitude: 15 + Math.random() * 25,
-      frequency: 0.0015 + Math.random() * 0.002,
-      size: 0.5 + Math.random() * 1.0,
-      opacity: 0.04 + Math.random() * 0.14,
-      color: Math.random() < 0.28 ? "#cfb53b" : "rgba(255,255,255,0.7)"
+      speed: 0.15 + Math.random() * 0.45,
+      amplitude: 12 + Math.random() * 20,
+      frequency: 0.002 + Math.random() * 0.003,
+      size: 0.8 + Math.random() * 1.5,
+      opacity: 0.06 + Math.random() * 0.18,
+      color: Math.random() < 0.35 ? "#cfb53b" : "rgba(255, 255, 255, 0.7)"
     }))
 
     let t = 0
@@ -723,20 +723,20 @@ function WaveFieldBackground() {
       ctx.clearRect(0, 0, W, H)
       t += 0.006
 
-      // 1. Draw 4 background current wave paths
-      const depths = [0.20, 0.42, 0.65, 0.85]
+      // 1. Draw 5 background current wave paths representing ocean swells
+      const depths = [0.15, 0.35, 0.55, 0.75, 0.90]
       depths.forEach((depth, idx) => {
         ctx.beginPath()
         const baseH = H * depth
-        const speedFactor = (idx % 2 === 0 ? 1 : -0.7) * 0.35
-        const amp = 25 + idx * 12
-        const freq = 0.0028 - idx * 0.0004
+        const speedFactor = (idx % 2 === 0 ? 1 : -0.8) * 0.4
+        const amp = 20 + idx * 10
+        const freq = 0.003 - idx * 0.0003
 
-        ctx.strokeStyle = idx % 2 === 0 ? "rgba(255, 255, 255, 0.03)" : "rgba(207, 181, 59, 0.02)"
-        ctx.lineWidth = 0.8 + idx * 0.25
+        ctx.strokeStyle = idx % 2 === 0 ? "rgba(255, 255, 255, 0.06)" : "rgba(207, 181, 59, 0.04)"
+        ctx.lineWidth = 0.6 + idx * 0.2
 
-        for (let x = 0; x < W; x += 8) {
-          const y = baseH + Math.sin(x * freq + t * speedFactor) * amp + Math.cos(x * (freq * 0.5) - t * 0.18) * (amp * 0.35)
+        for (let x = 0; x < W; x += 6) {
+          const y = baseH + Math.sin(x * freq + t * speedFactor) * amp + Math.cos(x * (freq * 0.6) - t * 0.15) * (amp * 0.3)
           if (x === 0) ctx.moveTo(x, y)
           else ctx.lineTo(x, y)
         }
@@ -828,11 +828,11 @@ const FONT: React.CSSProperties = { fontFamily:"'Inter',ui-sans-serif,system-ui,
 
 const QUESTIONS_LIST = [
   { text: "¿Cómo influye el viento GFS en el desvío del sargazo hacia Cozumel?", highlight: "viento GFS", color: "#947814" },
-  { text: "¿Qué densidad de biomasa se estima para el canal de Yucatán esta semana?", highlight: "densidad de biomasa", color: "#1019ec" },
+  { text: "¿Qué densidad de biomasa se estima para el canal de Yucatán esta semana?", highlight: "densidad de biomasa", color: "#0d1b3e" },
   { text: "¿Es el modelo estocástico fOU suficiente para predecir la tendencia secular?", highlight: "modelo estocástico fOU", color: "#947814" },
-  { text: "¿Qué playas registrarán un nivel de alerta Muy Alto en las próximas 48 horas?", highlight: "alerta Muy Alto", color: "#1019ec" },
+  { text: "¿Qué playas registrarán un nivel de alerta Muy Alto en las próximas 48 horas?", highlight: "alerta Muy Alto", color: "#0d1b3e" },
   { text: "¿Cómo calibrar la confianza del sistema ante desviaciones en las corrientes?", highlight: "corrientes", color: "#947814" },
-  { text: "¿Cuál es la tasa de arribo promedio por kilómetro lineal de costa?", highlight: "tasa de arribo promedio", color: "#1019ec" }
+  { text: "¿Cuál es la tasa de arribo promedio por kilómetro lineal de costa?", highlight: "tasa de arribo promedio", color: "#0d1b3e" }
 ]
 
 const QUESTION_DETAILS = [
@@ -1069,17 +1069,11 @@ export function Landing({ onEnter }: LandingProps) {
           if (!el) return
           const distance = Math.abs(idx - currentFraction)
           
-          let blurAmount = 0
-          let opacity = 1
-          
-          if (idx === activeIdx) {
-            blurAmount = 0
-            opacity = 1
-          } else {
-            // Apply blur and opacity continuously for non-active items, ensuring they stay blurred
-            blurAmount = Math.max(1.2, Math.min(4.5, distance * 3.0))
-            opacity = Math.max(0.25, Math.min(0.65, 1 - distance * 0.75))
-          }
+          // Continuous, frame-by-frame calculations for analog scrolling feel
+          // Active question is 100% sharp and clear at center (distance = 0)
+          // We allow a small tolerance window where blur is exactly 0
+          const blurAmount = Math.max(0, Math.min(4.5, (distance - 0.15) * 4.5))
+          const opacity = Math.max(0.28, Math.min(1.0, 1.0 - distance * 0.72))
           
           el.style.filter = blurAmount === 0 ? 'none' : `blur(${blurAmount}px)`
           el.style.opacity = `${opacity}`
@@ -1234,10 +1228,10 @@ export function Landing({ onEnter }: LandingProps) {
       </section>
 
       {/* 4. Plasma section — sticky scrollytelling */}
-      <section ref={metodoRef} id="metodologia" style={{position:"relative",background:"#1019ec",height:"350vh"}}>
-        <WaveFieldBackground />
+      <section ref={metodoRef} id="metodologia" style={{position:"relative",background:"#0d1b3e",height:"350vh"}}>
         <div style={{position:"sticky",top:0,height:"100vh",display:"flex",alignItems:"center",overflow:"hidden",zIndex:10}}>
-          <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-12 w-full" style={{maxWidth:1280,margin:"0 auto",padding:"0 max(40px,6vw)"}}>
+          <WaveFieldBackground />
+          <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-12 w-full" style={{maxWidth:1280,margin:"0 auto",padding:"0 max(40px,6vw)",zIndex:11}}>
             
             {/* Left column: Accordion */}
             <div style={{display:"flex",flexDirection:"column",justifyContent:"center"}}>
@@ -1423,10 +1417,10 @@ export function Landing({ onEnter }: LandingProps) {
                   {/* Q1: Viento GFS - Wind vectors */}
                   {activeQuestion === 0 && (
                     <g className="animate-pulse" style={{ transition: "opacity 0.4s ease" }}>
-                      <path d="M 280 280 L 220 240 M 220 240 L 230 240 M 220 240 L 225 248" stroke="#1019ec" strokeWidth="1.5" fill="none" />
-                      <path d="M 320 220 L 260 180 M 260 180 L 270 180 M 260 180 L 265 188" stroke="#1019ec" strokeWidth="1.5" fill="none" />
-                      <path d="M 240 320 L 180 280 M 180 280 L 190 280 M 180 280 L 185 288" stroke="#1019ec" strokeWidth="1.5" fill="none" />
-                      <text x="250" y="325" fontSize="10" fill="#1019ec" fontWeight="bold" fontFamily="monospace">GFS WIND FIELD</text>
+                      <path d="M 280 280 L 220 240 M 220 240 L 230 240 M 220 240 L 225 248" stroke="#0d1b3e" strokeWidth="1.5" fill="none" />
+                      <path d="M 320 220 L 260 180 M 260 180 L 270 180 M 260 180 L 265 188" stroke="#0d1b3e" strokeWidth="1.5" fill="none" />
+                      <path d="M 240 320 L 180 280 M 180 280 L 190 280 M 180 280 L 185 288" stroke="#0d1b3e" strokeWidth="1.5" fill="none" />
+                      <text x="250" y="325" fontSize="10" fill="#0d1b3e" fontWeight="bold" fontFamily="monospace">GFS WIND FIELD</text>
                     </g>
                   )}
 
@@ -1446,7 +1440,7 @@ export function Landing({ onEnter }: LandingProps) {
                   {activeQuestion === 2 && (
                     <g style={{ transition: "opacity 0.4s ease" }}>
                       <path d="M 80 200 Q 110 140, 140 230 T 200 170 T 260 220 T 320 180" stroke="#cfb53b" strokeWidth="1.8" fill="none" />
-                      <path d="M 80 200 Q 110 160, 140 210 T 200 190 T 260 210 T 320 195" stroke="#1019ec" strokeWidth="1" strokeDasharray="2 2" fill="none" opacity="0.6" />
+                      <path d="M 80 200 Q 110 160, 140 210 T 200 190 T 260 210 T 320 195" stroke="#0d1b3e" strokeWidth="1" strokeDasharray="2 2" fill="none" opacity="0.6" />
                       <text x="70" y="100" fontSize="10" fill="#cfb53b" fontWeight="bold" fontFamily="monospace">fOU LONG MEMORY MODEL</text>
                     </g>
                   )}
@@ -1471,13 +1465,13 @@ export function Landing({ onEnter }: LandingProps) {
                   {/* Q5: Corrientes/Confianza */}
                   {activeQuestion === 4 && (
                     <g style={{ transition: "opacity 0.4s ease" }}>
-                      <circle cx="200" cy="200" r="40" stroke="#1019ec" strokeWidth="0.8" fill="none" opacity="0.8" />
-                      <circle cx="200" cy="200" r="70" stroke="#1019ec" strokeWidth="0.8" fill="none" opacity="0.5" className="animate-pulse" />
+                      <circle cx="200" cy="200" r="40" stroke="#0d1b3e" strokeWidth="0.8" fill="none" opacity="0.8" />
+                      <circle cx="200" cy="200" r="70" stroke="#0d1b3e" strokeWidth="0.8" fill="none" opacity="0.5" className="animate-pulse" />
                       
-                      <path d="M 120 300 Q 200 280, 260 210" stroke="#1019ec" strokeWidth="2" fill="none" strokeDasharray="4 4" />
-                      <polygon points="260,210 252,212 258,218" fill="#1019ec" />
+                      <path d="M 120 300 Q 200 280, 260 210" stroke="#0d1b3e" strokeWidth="2" fill="none" strokeDasharray="4 4" />
+                      <polygon points="260,210 252,212 258,218" fill="#0d1b3e" />
                       
-                      <text x="210" y="190" fontSize="10" fill="#1019ec" fontWeight="bold" fontFamily="monospace">RTOFS FIELD</text>
+                      <text x="210" y="190" fontSize="10" fill="#0d1b3e" fontWeight="bold" fontFamily="monospace">RTOFS FIELD</text>
                     </g>
                   )}
 
@@ -1569,7 +1563,7 @@ export function Landing({ onEnter }: LandingProps) {
                         display:"flex",
                         flexDirection:"column",
                         justifyContent:"center",
-                        transition:"color 0.15s ease-out, filter 0.2s ease-out, opacity 0.2s ease-out",
+                        transition:"color 0.15s ease-out",
                         padding:"0 4px"
                       }}
                     >
