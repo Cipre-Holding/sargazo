@@ -348,6 +348,261 @@ function GeoParticleField({ stageRef }: { stageRef: { current: number } }) {
   )
 }
 
+// ── FooterParticleField ──────────────────────────────────────────────────────
+function FooterParticleField() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const rafRef    = useRef(0)
+  const mouseRef  = useRef({ x: -1000, y: -1000 })
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext("2d")!
+    let W = canvas.offsetWidth
+    let H = canvas.offsetHeight
+    canvas.width = W
+    canvas.height = H
+
+    const particles = Array.from({ length: 130 }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: -(0.2 + Math.random() * 0.6),
+      size: 0.6 + Math.random() * 1.5,
+      opacity: 0.1 + Math.random() * 0.5,
+      color: Math.random() < 0.35 ? "#cfb53b" : "#ffffff"
+    }))
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H)
+      const mx = mouseRef.current.x
+      const my = mouseRef.current.y
+
+      for (const p of particles) {
+        p.x += p.vx
+        p.y += p.vy
+
+        if (p.x < 0) p.x = W
+        if (p.x > W) p.x = 0
+        if (p.y < 0) p.y = H
+
+        if (mx > -500 && my > -500) {
+          const dx = p.x - mx
+          const dy = p.y - my
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          const repulsionRadius = 120
+          if (dist < repulsionRadius) {
+            const force = (repulsionRadius - dist) / repulsionRadius
+            const angle = Math.atan2(dy, dx)
+            p.x += Math.cos(angle) * force * 2.0
+            p.y += Math.sin(angle) * force * 2.0
+          }
+        }
+
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+        ctx.fillStyle = p.color
+        ctx.globalAlpha = p.opacity
+        ctx.fill()
+      }
+      rafRef.current = requestAnimationFrame(draw)
+    }
+
+    rafRef.current = requestAnimationFrame(draw)
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!canvas) return
+      const rect = canvas.getBoundingClientRect()
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
+      if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+        mouseRef.current = { x, y }
+      } else {
+        mouseRef.current = { x: -1000, y: -1000 }
+      }
+    }
+
+    const handleMouseLeave = () => {
+      mouseRef.current = { x: -1000, y: -1000 }
+    }
+
+    window.addEventListener("mousemove", handleMouseMove, { passive: true })
+    canvas.addEventListener("mouseleave", handleMouseLeave, { passive: true })
+    
+    const handleResize = () => {
+      if (!canvas) return
+      W = canvas.offsetWidth
+      H = canvas.offsetHeight
+      canvas.width = W
+      canvas.height = H
+    }
+
+    window.addEventListener("resize", handleResize)
+    return () => {
+      cancelAnimationFrame(rafRef.current)
+      window.removeEventListener("mousemove", handleMouseMove)
+      window.removeEventListener("resize", handleResize)
+      if (canvas) {
+        canvas.removeEventListener("mouseleave", handleMouseLeave)
+      }
+    }
+  }, [])
+
+  return (
+    <canvas 
+      ref={canvasRef} 
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        display: "block",
+        pointerEvents: "none"
+      }} 
+    />
+  )
+}
+
+// ── ModelSimulationCanvas ────────────────────────────────────────────────────
+function ModelSimulationCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const rafRef = useRef(0)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext("2d")!
+    let W = canvas.offsetWidth
+    let H = canvas.offsetHeight
+    canvas.width = W
+    canvas.height = H
+
+    let particles = Array.from({ length: 80 }, () => resetParticle({}, W, H))
+
+    function resetParticle(p: any = {}, w: number, h: number) {
+      p.x = w + Math.random() * 50
+      p.y = Math.random() * h
+      p.vx = -(0.5 + Math.random() * 1.2)
+      p.vy = (Math.random() - 0.5) * 0.3
+      p.size = 1.0 + Math.random() * 2.0
+      p.alpha = 0.2 + Math.random() * 0.6
+      p.color = "#cfb53b"
+      return p
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H)
+
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.05)"
+      ctx.lineWidth = 0.8
+      const gridSpacing = 40
+      for (let x = 0; x < W; x += gridSpacing) {
+        ctx.beginPath()
+        ctx.moveTo(x, 0)
+        ctx.lineTo(x, H)
+        ctx.stroke()
+      }
+      for (let y = 0; y < H; y += gridSpacing) {
+        ctx.beginPath()
+        ctx.moveTo(0, y)
+        ctx.lineTo(W, y)
+        ctx.stroke()
+      }
+
+      const islandCx = W * 0.35
+      const islandCy = H * 0.5
+      ctx.save()
+      ctx.translate(islandCx, islandCy)
+      ctx.rotate(-Math.PI / 5)
+
+      ctx.beginPath()
+      ctx.ellipse(0, 0, 30, 80, 0, 0, Math.PI * 2)
+      ctx.fillStyle = "rgba(0, 0, 0, 0.08)"
+      ctx.fill()
+      ctx.strokeStyle = "#1019ec"
+      ctx.lineWidth = 1.5
+      ctx.stroke()
+      ctx.restore()
+
+      ctx.font = "10px sans-serif"
+      ctx.fillStyle = "#18181b"
+      ctx.fillText("COZUMEL", islandCx - 24, islandCy + 5)
+
+      for (const p of particles) {
+        p.x += p.vx
+        p.y += p.vy
+
+        const dx = p.x - islandCx
+        const dy = p.y - islandCy
+        const cos = Math.cos(Math.PI / 5)
+        const sin = Math.sin(Math.PI / 5)
+        const rx = dx * cos - dy * sin
+        const ry = dx * sin + dy * cos
+
+        const inIsland = (rx*rx)/(32*32) + (ry*ry)/(82*82) <= 1
+
+        if (inIsland) {
+          p.vx = 0
+          p.vy = 0
+          p.alpha -= 0.02
+          if (p.alpha <= 0) {
+            resetParticle(p, W, H)
+          }
+        } else if (p.x < 0) {
+          resetParticle(p, W, H)
+        }
+
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+        ctx.fillStyle = p.color
+        ctx.globalAlpha = p.alpha
+        ctx.fill()
+      }
+
+      ctx.globalAlpha = 0.5
+      ctx.font = "9px monospace"
+      ctx.fillStyle = "#4b5563"
+      ctx.fillText("MODEL: OpenDrift Lagrangiano", 20, 30)
+      ctx.fillText("CORRIENTES: RTOFS 1/12°", 20, 45)
+      ctx.fillText("VIENTO: GFS 0.25°", 20, 60)
+      ctx.fillText("STATUS: ACTIVE RUN", 20, 75)
+
+      rafRef.current = requestAnimationFrame(draw)
+    }
+
+    draw()
+
+    const handleResize = () => {
+      if (!canvas) return
+      W = canvas.offsetWidth
+      H = canvas.offsetHeight
+      canvas.width = W
+      canvas.height = H
+    }
+    window.addEventListener("resize", handleResize)
+
+    return () => {
+      cancelAnimationFrame(rafRef.current)
+      window.removeEventListener("resize", handleResize)
+    }
+  }, [])
+
+  return (
+    <canvas 
+      ref={canvasRef} 
+      style={{
+        width: "100%",
+        height: "100%",
+        minHeight: "350px",
+        display: "block",
+        background: "rgba(0,0,0,0.02)",
+        border: "1px solid rgba(0,0,0,0.06)"
+      }} 
+    />
+  )
+}
+
+
 // ── Data ──────────────────────────────────────────────────────────────────────
 const STATS = [
   { value:"52.6k", unit:"ton",  label:"Predicción junio 2026" },
@@ -386,7 +641,7 @@ export function Landing({ onEnter }: LandingProps) {
   const preguntasRef = useRef<HTMLDivElement>(null)
   const accordionRefs = useRef<(HTMLDivElement|null)[]>([])
   const lineRefs = useRef<(HTMLDivElement|null)[]>([])
-  const radarRef = useRef<SVGSVGElement>(null)
+  const radarContainerRef = useRef<HTMLDivElement>(null)
 
   const questionListRef = useRef<HTMLUListElement>(null)
   const questionItemRefs = useRef<(HTMLLIElement|null)[]>([])
@@ -410,7 +665,6 @@ export function Landing({ onEnter }: LandingProps) {
     }
 
     const handleScroll = () => {
-      // Tomamos el valor máximo de scroll de todos los posibles contenedores
       const currentScroll = Math.max(
         window.pageYOffset || 0,
         window.scrollY || 0,
@@ -432,12 +686,28 @@ export function Landing({ onEnter }: LandingProps) {
         }
         progress = Math.max(0, Math.min(1, progress))
         
-        if (radarRef.current) {
-          radarRef.current.style.transform = `scale(${1.0 + progress * 0.08}) rotate(${progress * 120}deg)`
-          radarRef.current.style.opacity = `${0.06 + progress * 0.16}`
-        }
-        
         const activeIdx = Math.min(5, Math.floor(progress * 6))
+        
+        // Rotar, escalar e interpolar opacidad de las 6 ilustraciones de forma individual (cross-fade suave)
+        if (radarContainerRef.current) {
+          const svgs = radarContainerRef.current.children
+          for (let i = 0; i < svgs.length; i++) {
+            const svg = svgs[i] as HTMLElement
+            const center = (i + 0.5) / 6
+            const dist = Math.abs(progress - center)
+            const maxDist = 1 / 6
+            let opacity = 0
+            if (dist < maxDist) {
+              opacity = 1 - dist / maxDist
+            }
+            const targetOpacity = opacity * 0.95 // Máxima opacidad de 0.95 para excelente contraste y visibilidad
+            svg.style.opacity = `${targetOpacity}`
+            
+            const scale = 0.95 + opacity * 0.08 // Escala suave de 0.95 a 1.03
+            const rotate = (i % 2 === 0 ? 1 : -1) * (1 - opacity) * 12 // Rotación leve al entrar/salir
+            svg.style.transform = `scale(${scale}) rotate(${rotate}deg)`
+          }
+        }
         
         accordionRefs.current.forEach((el, idx) => {
           if (!el) return
@@ -465,7 +735,7 @@ export function Landing({ onEnter }: LandingProps) {
         })
       }
       
-      // 2. Animación de Preguntas (Sección Negra)
+      // 2. Animación de Preguntas (Sección Clara)
       const preguntas = preguntasRef.current
       if (preguntas) {
         const scrollStart = getAbsoluteTop(preguntas)
@@ -478,34 +748,33 @@ export function Landing({ onEnter }: LandingProps) {
         progress = Math.max(0, Math.min(1, progress))
         
         const totalItems = 6
-        const activeIdx = Math.min(totalItems - 1, Math.floor(progress * totalItems))
+        const currentFraction = progress * (totalItems - 1)
+        const activeQuestionIdx = Math.round(currentFraction)
         
         if (questionListRef.current) {
-          const offset = -activeIdx * 100
+          const offset = -currentFraction * 100
           questionListRef.current.style.transform = `translateY(${offset}px)`
         }
         
         questionItemRefs.current.forEach((el, idx) => {
           if (!el) return
-          const distance = Math.abs(idx - (progress * totalItems - 0.5))
+          const distance = Math.abs(idx - currentFraction)
           
-          if (idx === activeIdx) {
+          if (idx === activeQuestionIdx) {
             el.style.filter = 'none'
             el.style.opacity = '1'
-            el.style.color = '#ffffff'
-            const underline = el.querySelector('.q-underline') as HTMLElement
-            if (underline) {
-              underline.style.width = '100%'
-            }
+            el.style.color = '#000000'
           } else {
-            const blurAmount = Math.min(4, distance * 1.8)
+            const blurAmount = Math.min(6, distance * 2.0)
             el.style.filter = `blur(${blurAmount}px)`
-            el.style.opacity = `${Math.max(0.12, 1 - distance * 0.35)}`
-            el.style.color = 'rgba(255,255,255,0.3)'
-            const underline = el.querySelector('.q-underline') as HTMLElement
-            if (underline) {
-              underline.style.width = '0%'
-            }
+            el.style.opacity = `${Math.max(0.12, 1 - distance * 0.45)}`
+            el.style.color = 'rgba(0, 0, 0, 0.3)'
+          }
+          
+          const underline = el.querySelector('.q-underline') as HTMLElement
+          if (underline) {
+            const w = Math.max(0, 100 - distance * 100)
+            underline.style.width = `${w}%`
           }
         })
       }
@@ -680,41 +949,132 @@ export function Landing({ onEnter }: LandingProps) {
               <div style={{height:1,background:"rgba(255,255,255,0.18)"}} />
             </div>
 
-            {/* Right column: Interactive Radar SVG */}
-            <div className="hidden lg:flex justify-center items-center">
-              <svg 
-                ref={radarRef}
-                viewBox="0 0 400 400" 
-                className="w-[300px] h-[300px] xl:w-[400px] xl:h-[400px]" 
+            {/* Right column: Interactive SVGs (Switched based on activeIndex) */}
+            <div ref={radarContainerRef} className="hidden lg:flex justify-center items-center relative w-full h-[400px]">
+              
+              {/* SVG 01: Satélite / Teledetección */}
+              <svg viewBox="0 0 400 400" className="absolute w-[300px] h-[300px] xl:w-[400px] xl:h-[400px]"
                 style={{
-                  opacity:0.06, 
-                  transition:"transform 0.1s linear, opacity 0.2s ease",
-                  color:"#ffffff"
-                }}
-              >
-                {/* Radar outer grids */}
-                <circle cx="200" cy="200" r="180" stroke="currentColor" strokeWidth="0.8" fill="none" strokeDasharray="4 8" />
-                <circle cx="200" cy="200" r="130" stroke="#cfb53b" strokeWidth="0.8" fill="none" strokeDasharray="3 5" />
-                <circle cx="200" cy="200" r="80" stroke="currentColor" strokeWidth="0.8" fill="none" />
-                <circle cx="200" cy="200" r="30" stroke="#cfb53b" strokeWidth="0.8" fill="none" />
-                {/* Crosshairs */}
-                <line x1="20" y1="200" x2="380" y2="200" stroke="currentColor" strokeWidth="0.5" opacity="0.3" />
-                <line x1="200" y1="20" x2="200" y2="380" stroke="currentColor" strokeWidth="0.5" opacity="0.3" />
-                {/* Diagonals */}
-                <line x1="72" y1="72" x2="328" y2="328" stroke="currentColor" strokeWidth="0.5" opacity="0.15" strokeDasharray="2 2" />
-                <line x1="72" y1="328" x2="328" y2="72" stroke="currentColor" strokeWidth="0.5" opacity="0.15" strokeDasharray="2 2" />
-                {/* Radial sweep arm */}
-                <line x1="200" y1="200" x2="320" y2="120" stroke="#cfb53b" strokeWidth="1.5" />
-                <polygon points="320,120 310,123 317,130" fill="#cfb53b" />
+                  opacity: 0,
+                  transform: "scale(0.95)",
+                  color: "#ffffff",
+                  pointerEvents: "none"
+                }}>
+                <circle cx="200" cy="200" r="180" stroke="currentColor" strokeWidth="0.8" fill="none" strokeDasharray="3 6" />
+                <circle cx="200" cy="200" r="100" stroke="#cfb53b" strokeWidth="0.8" fill="none" />
+                <circle cx="200" cy="200" r="60" stroke="currentColor" strokeWidth="0.8" fill="none" />
+                <ellipse cx="200" cy="200" rx="60" ry="20" stroke="currentColor" strokeWidth="0.8" fill="none" />
+                <ellipse cx="200" cy="200" rx="20" ry="60" stroke="currentColor" strokeWidth="0.8" fill="none" />
+                <rect x="290" y="90" width="30" height="15" rx="2" stroke="currentColor" strokeWidth="0.8" fill="none" transform="rotate(45 305 97.5)" />
+                <line x1="305" y1="97" x2="200" y2="200" stroke="#cfb53b" strokeWidth="0.8" strokeDasharray="2 3" />
+                <path d="M 280 80 Q 290 60 310 70" stroke="currentColor" strokeWidth="0.8" fill="none" />
               </svg>
+
+              {/* SVG 02: Modelado Estocástico fOU */}
+              <svg viewBox="0 0 400 400" className="absolute w-[300px] h-[300px] xl:w-[400px] xl:h-[400px]"
+                style={{
+                  opacity: 0,
+                  transform: "scale(0.95)",
+                  color: "#ffffff",
+                  pointerEvents: "none"
+                }}>
+                <rect x="50" y="50" width="300" height="300" stroke="currentColor" strokeWidth="0.8" fill="none" strokeDasharray="2 4" opacity="0.3" />
+                <line x1="50" y1="200" x2="350" y2="200" stroke="currentColor" strokeWidth="0.8" opacity="0.5" />
+                <path d="M 50 250 L 70 230 L 90 260 L 110 210 L 130 240 L 150 180 L 170 220 L 190 190 L 210 230 L 230 160 L 250 190 L 270 140 L 290 170 L 310 110 L 330 130 L 350 90" 
+                  stroke="#cfb53b" strokeWidth="1.2" fill="none" />
+                <path d="M 50 190 Q 200 130 350 70" stroke="currentColor" strokeWidth="0.8" strokeDasharray="4 4" fill="none" />
+                <path d="M 50 310 Q 200 270 350 210" stroke="currentColor" strokeWidth="0.8" strokeDasharray="4 4" fill="none" />
+              </svg>
+
+              {/* SVG 03: Predicción Ensemble */}
+              <svg viewBox="0 0 400 400" className="absolute w-[300px] h-[300px] xl:w-[400px] xl:h-[400px]"
+                style={{
+                  opacity: 0,
+                  transform: "scale(0.95) rotate(0deg)",
+                  color: "#ffffff",
+                  pointerEvents: "none"
+                }}>
+                <circle cx="200" cy="80" r="10" stroke="#cfb53b" strokeWidth="1" fill="none" />
+                <circle cx="100" cy="200" r="10" stroke="currentColor" strokeWidth="1" fill="none" />
+                <circle cx="200" cy="200" r="10" stroke="currentColor" strokeWidth="1" fill="none" />
+                <circle cx="300" cy="200" r="10" stroke="currentColor" strokeWidth="1" fill="none" />
+                <circle cx="200" cy="320" r="12" stroke="#cfb53b" strokeWidth="1.5" fill="none" />
+                
+                <line x1="200" y1="90" x2="100" y2="190" stroke="currentColor" strokeWidth="0.8" />
+                <line x1="200" y1="90" x2="200" y2="190" stroke="currentColor" strokeWidth="0.8" />
+                <line x1="200" y1="90" x2="300" y2="190" stroke="currentColor" strokeWidth="0.8" />
+                <line x1="100" y1="210" x2="200" y2="308" stroke="currentColor" strokeWidth="0.8" />
+                <line x1="200" y1="210" x2="200" y2="308" stroke="currentColor" strokeWidth="0.8" />
+                <line x1="300" y1="210" x2="200" y2="308" stroke="currentColor" strokeWidth="0.8" />
+                
+                <text x="200" y="324" textAnchor="middle" fontSize="10" fill="#cfb53b" fontWeight="bold" fontFamily="sans-serif">R²</text>
+              </svg>
+
+              {/* SVG 04: Semáforo Operativo */}
+              <svg viewBox="0 0 400 400" className="absolute w-[300px] h-[300px] xl:w-[400px] xl:h-[400px]"
+                style={{
+                  opacity: 0,
+                  transform: "scale(0.95)",
+                  color: "#ffffff",
+                  pointerEvents: "none"
+                }}>
+                <path d="M 80 250 A 130 130 0 0 1 320 250" stroke="currentColor" strokeWidth="0.8" fill="none" />
+                <path d="M 100 250 A 110 110 0 0 1 300 250" stroke="currentColor" strokeWidth="0.8" fill="none" strokeDasharray="3 6" />
+                <line x1="80" y1="250" x2="60" y2="250" stroke="currentColor" strokeWidth="1" />
+                <line x1="101" y1="172" x2="85" y2="160" stroke="currentColor" strokeWidth="1" />
+                <line x1="200" y1="120" x2="200" y2="100" stroke="#cfb53b" strokeWidth="1" />
+                <line x1="299" y1="172" x2="315" y2="160" stroke="currentColor" strokeWidth="1" />
+                <line x1="320" y1="250" x2="340" y2="250" stroke="currentColor" strokeWidth="1" />
+                <line x1="200" y1="250" x2="200" y2="130" stroke="#cfb53b" strokeWidth="2" />
+                <circle cx="200" cy="250" r="8" fill="currentColor" />
+              </svg>
+
+              {/* SVG 05: Transporte Lagrangiano */}
+              <svg viewBox="0 0 400 400" className="absolute w-[300px] h-[300px] xl:w-[400px] xl:h-[400px]"
+                style={{
+                  opacity: 0,
+                  transform: "scale(0.95)",
+                  color: "#ffffff",
+                  pointerEvents: "none"
+                }}>
+                <path d="M 50 150 C 120 100, 180 200, 250 150 C 320 100, 350 150, 380 150" stroke="currentColor" strokeWidth="0.8" fill="none" />
+                <path d="M 30 200 C 100 150, 160 250, 230 200 C 300 150, 330 200, 370 200" stroke="#cfb53b" strokeWidth="1" fill="none" />
+                <path d="M 40 250 C 110 200, 170 300, 240 250 C 310 200, 340 250, 360 250" stroke="currentColor" strokeWidth="0.8" fill="none" />
+                <path d="M 120 120 L 140 120" stroke="currentColor" strokeWidth="0.8" />
+                <polygon points="140,120 135,117 135,123" fill="currentColor" />
+                <path d="M 230 200 L 250 190" stroke="#cfb53b" strokeWidth="0.8" />
+                <polygon points="250,190 243,188 246,194" fill="#cfb53b" />
+                <circle cx="80" cy="180" r="2" fill="currentColor" />
+                <circle cx="170" cy="140" r="1.5" fill="currentColor" />
+                <circle cx="280" cy="220" r="2" fill="#cfb53b" />
+                <circle cx="310" cy="170" r="1" fill="currentColor" />
+              </svg>
+
+              {/* SVG 06: Actualización de Datos */}
+              <svg viewBox="0 0 400 400" className="absolute w-[300px] h-[300px] xl:w-[400px] xl:h-[400px]"
+                style={{
+                  opacity: 0,
+                  transform: "scale(0.95) rotate(0deg)",
+                  color: "#ffffff",
+                  pointerEvents: "none"
+                }}>
+                <circle cx="200" cy="200" r="80" stroke="currentColor" strokeWidth="0.8" fill="none" strokeDasharray="8 4" />
+                <circle cx="200" cy="200" r="50" stroke="#cfb53b" strokeWidth="0.8" fill="none" />
+                <circle cx="200" cy="200" r="20" stroke="currentColor" strokeWidth="0.8" fill="none" />
+                <path d="M 200 90 A 110 110 0 0 1 310 200" stroke="currentColor" strokeWidth="0.8" fill="none" />
+                <polygon points="310,200 306,192 314,194" fill="currentColor" />
+                <path d="M 200 310 A 110 110 0 0 1 90 200" stroke="#cfb53b" strokeWidth="0.8" fill="none" />
+                <polygon points="90,200 94,208 86,206" fill="#cfb53b" />
+              </svg>
+
             </div>
 
           </div>
         </div>
       </section>
 
-      {/* 4b. Question Stack Section (Lumen-like for Sargazo) */}
-      <section ref={preguntasRef} style={{position:"relative",background:"#000000",height:"300vh",borderTop:"1px solid rgba(255,255,255,0.07)"}}>
+      {/* 4b. Question Stack Section (Lumen-like for Sargazo) — Light theme (#f4f4f5) */}
+      <section ref={preguntasRef} style={{position:"relative",background:"#f4f4f5",height:"300vh"}}>
         <div style={{position:"sticky",top:0,height:"100vh",display:"flex",alignItems:"center",overflow:"hidden"}}>
           
           <div className="grid grid-cols-1 lg:grid-cols-[2fr_8fr_2fr] gap-6 items-center w-full" style={{maxWidth:1280,margin:"0 auto",padding:"0 max(40px,6vw)"}}>
@@ -722,7 +1082,7 @@ export function Landing({ onEnter }: LandingProps) {
             {/* Left: Indicator */}
             <div className="flex items-center gap-3 self-start lg:self-center">
               <div className="w-2 h-2 shrink-0" style={{background:"#cfb53b"}} />
-              <span style={{fontSize:11,letterSpacing:"0.96px",color:"#cfb53b",textTransform:"uppercase"}}>Lumen</span>
+              <span style={{fontSize:11,letterSpacing:"0.96px",color:"#000000",fontWeight:400,textTransform:"uppercase"}}>Lumen</span>
             </div>
 
             {/* Center: Blurred Scroll Stack */}
@@ -740,7 +1100,7 @@ export function Landing({ onEnter }: LandingProps) {
                 left:0,
                 right:0,
                 height:100,
-                background:"linear-gradient(to bottom, #000000, transparent)",
+                background:"linear-gradient(to bottom, #f4f4f5, transparent)",
                 zIndex:10,
                 pointerEvents:"none"
               }} />
@@ -750,7 +1110,7 @@ export function Landing({ onEnter }: LandingProps) {
                 left:0,
                 right:0,
                 height:100,
-                background:"linear-gradient(to top, #000000, transparent)",
+                background:"linear-gradient(to top, #f4f4f5, transparent)",
                 zIndex:10,
                 pointerEvents:"none"
               }} />
@@ -762,7 +1122,7 @@ export function Landing({ onEnter }: LandingProps) {
                 left:0,
                 right:0,
                 height:1,
-                background:"rgba(255,255,255,0.15)",
+                background:"rgba(0,0,0,0.12)",
                 transform:"translateY(-50%)",
                 zIndex:5
               }} />
@@ -822,7 +1182,7 @@ export function Landing({ onEnter }: LandingProps) {
                   ...FONT,
                   fontSize:12,
                   letterSpacing:"0.96px",
-                  color:"#cfb53b",
+                  color:"#000000",
                   background:"transparent",
                   border:"none",
                   cursor:"pointer",
@@ -901,65 +1261,88 @@ export function Landing({ onEnter }: LandingProps) {
         <div style={{height:1,background:"rgba(255,255,255,0.08)"}} />
       </section>
 
-      {/* 7. Data coverage table */}
-      <section style={{background:"#000000",padding:"80px max(40px,6vw)",borderTop:"1px solid rgba(255,255,255,0.05)"}}>
+      {/* 7. Grey Section (Validation, Data Coverage & Sources) */}
+      <section style={{background:"#eaeaea", color:"#18181b", padding:"80px max(40px,6vw)", borderTop:"1px solid rgba(0,0,0,0.06)"}}>
         <div style={{maxWidth:1280,margin:"0 auto"}}>
-          <p style={{fontSize:12,letterSpacing:"0.96px",color:"#858484",textTransform:"uppercase",marginBottom:8}}>Cobertura de datos</p>
-          <h2 style={{fontSize:"clamp(24px,2.8vw,34px)",fontWeight:300,letterSpacing:"-1.5px",color:"#ffffff",marginBottom:48}}>
-            Registro histórico integrado.
-          </h2>
-          <div style={{overflowX:"auto"}}>
-            <table style={{width:"100%",borderCollapse:"collapse",fontSize:13,fontWeight:300}}>
-              <thead>
-                <tr style={{borderBottom:"1px solid rgba(255,255,255,0.12)"}}>
-                  {["Dataset","Período","Registros","Frecuencia","Resolución"].map(h=>(
-                    <th key={h} style={{textAlign:"left",padding:"0 16px 14px 0",fontSize:11,letterSpacing:"0.88px",color:"#858484",textTransform:"uppercase",fontWeight:300}}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  ["Boletines SEMAR",      "2014 – 2026", "604",  "Semanal",  "Caribe Mexicano"],
-                  ["NOAA SIR (satélite)",  "2019 – 2024", "315",  "Diario",   "~4 km costero"  ],
-                  ["SATsum Caribe",        "2011 – 2024", "162",  "Mensual",  "Regional"        ],
-                  ["SATsum ZEE México",    "2011 – 2024", "162",  "Mensual",  "ZEE nacional"    ],
-                  ["SST Cozumel (OISST)",  "2000 – 2026", "316",  "Mensual",  "0.25°"           ],
-                  ["Viento Cozumel (NCEP)","2000 – 2026", "316",  "Mensual",  "2.5°"            ],
-                  ["Mendeley GASB",        "2000 – 2023", "282",  "Mensual",  "Subregional"     ],
-                ].map(([ds,per,rec,freq,res],i)=>(
-                  <tr key={ds} style={{borderBottom:"1px solid rgba(255,255,255,0.06)",background:i%2===0?"transparent":"rgba(255,255,255,0.02)"}}>
-                    <td style={{padding:"14px 16px 14px 0",color:"#ffffff",letterSpacing:"0.325px"}}>{ds}</td>
-                    <td style={{padding:"14px 16px 14px 0",color:"#9d9d9d",fontVariantNumeric:"tabular-nums"}}>{per}</td>
-                    <td style={{padding:"14px 16px 14px 0",color:"#cfb53b",fontVariantNumeric:"tabular-nums",letterSpacing:"0.325px"}}>{rec}</td>
-                    <td style={{padding:"14px 16px 14px 0",color:"#9d9d9d"}}>{freq}</td>
-                    <td style={{padding:"14px 16px 14px 0",color:"#858484"}}>{res}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      {/* 8. Sources */}
-      <section style={{background:"#000000",padding:"64px max(40px,6vw)",borderTop:"1px solid rgba(255,255,255,0.05)"}}>
-        <div style={{maxWidth:1280,margin:"0 auto"}}>
-          <p style={{fontSize:12,letterSpacing:"0.96px",color:"#858484",textTransform:"uppercase",marginBottom:24,textAlign:"center"}}>
-            Fuentes de datos
+          <p style={{fontSize:12,letterSpacing:"0.96px",color:"#71717a",textTransform:"uppercase",marginBottom:8}}>
+            Validación y Cobertura de Datos
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            {SOURCES.map(src=>(
-              <span key={src} style={{fontSize:12,fontWeight:300,letterSpacing:"0.48px",color:"#9d9d9d",border:"1px solid rgba(255,255,255,0.1)",padding:"6px 14px",textTransform:"uppercase"}}>
-                {src}
-              </span>
-            ))}
+          <h2 style={{fontSize:"clamp(24px,2.8vw,34px)",fontWeight:300,letterSpacing:"-1.5px",color:"#09090b",marginBottom:48}}>
+            Simulación física y registro histórico integrado.
+          </h2>
+
+          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 items-start">
+            
+            {/* Left column: Live Lagrangian simulation view */}
+            <div style={{display:"flex",flexDirection:"column",gap:16}}>
+              <div style={{fontSize:13,letterSpacing:"0.52px",textTransform:"uppercase",color:"#52525b",fontWeight:400}}>
+                Simulación en tiempo real (Lagrangiano)
+              </div>
+              <ModelSimulationCanvas />
+              <p style={{fontSize:13,lineHeight:1.4,color:"#52525b"}}>
+                Visualización interactiva del modelo de transporte de partículas de sargazo hacia Cozumel, integrando campos de viento GFS y corrientes RTOFS en mallas de alta resolución.
+              </p>
+            </div>
+
+            {/* Right column: Data coverage table + Sources */}
+            <div style={{display:"flex",flexDirection:"column",gap:32}}>
+              
+              <div>
+                <div style={{overflowX:"auto"}}>
+                  <table style={{width:"100%",borderCollapse:"collapse",fontSize:13,fontWeight:300}}>
+                    <thead>
+                      <tr style={{borderBottom:"1px solid rgba(0,0,0,0.15)"}}>
+                        {["Dataset","Período","Registros","Frecuencia","Resolución"].map(h=>(
+                          <th key={h} style={{textAlign:"left",padding:"0 16px 14px 0",fontSize:11,letterSpacing:"0.88px",color:"#71717a",textTransform:"uppercase",fontWeight:400}}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        ["Boletines SEMAR",      "2014 – 2026", "604",  "Semanal",  "Caribe Mexicano"],
+                        ["NOAA SIR (satélite)",  "2019 – 2024", "315",  "Diario",   "~4 km costero"  ],
+                        ["SATsum Caribe",        "2011 – 2024", "162",  "Mensual",  "Regional"        ],
+                        ["SATsum ZEE México",    "2011 – 2024", "162",  "Mensual",  "ZEE nacional"    ],
+                        ["SST Cozumel (OISST)",  "2000 – 2026", "316",  "Mensual",  "0.25°"           ],
+                        ["Viento Cozumel (NCEP)","2000 – 2026", "316",  "Mensual",  "2.5°"            ],
+                        ["Mendeley GASB",        "2000 – 2023", "282",  "Mensual",  "Subregional"     ],
+                      ].map(([ds,per,rec,freq,res],i)=>(
+                        <tr key={ds} style={{borderBottom:"1px solid rgba(0,0,0,0.06)",background:i%2===0?"transparent":"rgba(0,0,0,0.02)"}}>
+                          <td style={{padding:"14px 16px 14px 0",color:"#09090b",fontWeight:400,letterSpacing:"0.325px"}}>{ds}</td>
+                          <td style={{padding:"14px 16px 14px 0",color:"#52525b",fontVariantNumeric:"tabular-nums"}}>{per}</td>
+                          <td style={{padding:"14px 16px 14px 0",color:"#cfb53b",fontWeight:400,fontVariantNumeric:"tabular-nums",letterSpacing:"0.325px"}}>{rec}</td>
+                          <td style={{padding:"14px 16px 14px 0",color:"#52525b"}}>{freq}</td>
+                          <td style={{padding:"14px 16px 14px 0",color:"#71717a"}}>{res}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div>
+                <p style={{fontSize:12,letterSpacing:"0.96px",color:"#71717a",textTransform:"uppercase",marginBottom:16}}>
+                  Fuentes de datos
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  {SOURCES.map(src=>(
+                    <span key={src} style={{fontSize:12,fontWeight:400,letterSpacing:"0.48px",color:"#27272a",border:"1px solid rgba(0,0,0,0.12)",padding:"6px 14px",textTransform:"uppercase",background:"rgba(0,0,0,0.02)"}}>
+                      {src}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* 9. CTA final */}
-      <section style={{background:"#000000",padding:"80px max(40px,6vw)",borderTop:"1px solid rgba(255,255,255,0.05)"}}>
-        <div style={{maxWidth:640,margin:"0 auto",textAlign:"center"}}>
+      {/* 8. CTA final con animación móvil interactiva */}
+      <section style={{position:"relative", background:"#000000", padding:"120px max(40px,6vw)", borderTop:"1px solid rgba(255,255,255,0.05)", overflow:"hidden"}}>
+        <FooterParticleField />
+        <div style={{position:"relative", zIndex:10, maxWidth:640, margin:"0 auto", textAlign:"center"}}>
           <h2 style={{fontSize:"clamp(28px,3.5vw,40px)",fontWeight:300,letterSpacing:"-2px",lineHeight:1.2,color:"#ffffff",marginBottom:20}}>
             Empieza a monitorear ahora.
           </h2>
