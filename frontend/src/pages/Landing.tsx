@@ -964,14 +964,18 @@ export function Landing({ onEnter }: LandingProps) {
           if (!el) return
           const distance = Math.abs(idx - currentFraction)
           
+          // Continuous, frame-by-frame calculations for analog scrolling feel
+          // Active question is 100% sharp and clear at center (distance = 0)
+          const blurAmount = distance < 0.12 ? 0 : Math.min(4, (distance - 0.12) * 3.2)
+          const opacity = Math.max(0.28, Math.min(1, 1 - distance * 0.65))
+          
+          el.style.filter = blurAmount === 0 ? 'none' : `blur(${blurAmount}px)`
+          el.style.opacity = `${opacity}`
+          
+          // Color is transitioned via CSS transition for a smooth active-zinc change
           if (idx === activeIdx) {
-            el.style.filter = 'none'
-            el.style.opacity = '1'
             el.style.color = '#18181b'
           } else {
-            const blurAmount = Math.min(1.2, distance * 0.5)
-            el.style.filter = `blur(${blurAmount}px)`
-            el.style.opacity = `${Math.max(0.3, 1 - distance * 0.35)}`
             el.style.color = 'rgba(24, 24, 27, 0.4)'
           }
           
@@ -1278,12 +1282,12 @@ export function Landing({ onEnter }: LandingProps) {
       </section>
 
       {/* 4c. Clear Section (Sargazo a Escala) — Light theme (#ffffff) */}
-      <section ref={escalaRef} id="escala" style={{position:"relative", background:"#ffffff", height:"300vh"}}>
-        <div style={{position:"sticky", top:0, height:"100vh", display:"flex", alignItems:"center", overflow:"hidden", background:"#ffffff"}}>
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr_1.2fr] w-full h-[calc(100vh-60px)]" style={{maxWidth:1280, margin:"0 auto", padding:"30px", border:"1px solid rgba(0,0,0,0.12)"}}>
+      <section ref={escalaRef} id="escala" className="relative bg-white h-auto lg:h-[300vh]">
+        <div className="relative lg:sticky lg:top-0 h-auto lg:h-screen flex items-center overflow-hidden bg-white py-12 lg:py-0">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr_1.2fr] w-full h-auto lg:h-[calc(100vh-60px)]" style={{maxWidth:1280, margin:"0 auto", padding:"20px lg:padding:30px", border:"1px solid rgba(0,0,0,0.12)"}}>
             
             {/* Column 1: Interactive Graphic with border indicators */}
-            <div className="relative flex items-center justify-center p-8 border-r border-b lg:border-b-0" style={{borderColor:"rgba(0,0,0,0.12)"}}>
+            <div className="hidden lg:flex relative items-center justify-center p-8 border-r" style={{borderColor:"rgba(0,0,0,0.12)"}}>
               <div style={{maxWidth:350, opacity:0.95, width:"100%"}}>
                 <svg viewBox="0 0 400 400" width="100%" height="100%" style={{color:"#000000", transition:"all 0.4s ease"}}>
                   {/* Grid lines & outer circle */}
@@ -1374,7 +1378,7 @@ export function Landing({ onEnter }: LandingProps) {
             </div>
 
             {/* Column 2: Interactive scroll questions */}
-            <div className="relative flex flex-col justify-center p-8 border-r" style={{borderColor:"rgba(0,0,0,0.12)", overflow:"hidden"}}>
+            <div className="relative flex flex-col justify-center p-6 lg:p-8 border-b lg:border-b-0 lg:border-r" style={{borderColor:"rgba(0,0,0,0.12)", overflow:"hidden"}}>
               <p style={{fontSize:11, letterSpacing:"0.96px", color:"#71717a", textTransform:"uppercase", marginBottom:12, zIndex:15}}>
                 Sargazo a Escala / Monitoreo & Escenarios
               </p>
@@ -1444,7 +1448,7 @@ export function Landing({ onEnter }: LandingProps) {
                         display:"flex",
                         flexDirection:"column",
                         justifyContent:"center",
-                        transition:"filter 0.08s ease-out, opacity 0.15s ease-out, color 0.15s ease-out",
+                        transition:"color 0.15s ease-out",
                         padding:"0 4px"
                       }}
                     >
@@ -1465,56 +1469,56 @@ export function Landing({ onEnter }: LandingProps) {
               <div ref={escalaPill2Ref} className="absolute w-1 bg-black rounded-md -right-0.5 animate-pulse" style={{height:40, top:"0%", transition:"top 0.1s ease-out"}} />
             </div>
 
-            {/* Column 3: Telemetry Dashboard Card (Dark Theme) */}
-            <div className="relative flex flex-col justify-between p-6 bg-[#09090b] text-white border border-zinc-800 transition-all duration-300">
+            {/* Column 3: Yellow accent block - Telemetry Dashboard Card */}
+            <div className="relative flex flex-col justify-between p-6 bg-[#cfb53b] text-black transition-all duration-300 min-h-[340px] lg:min-h-0">
               
               {/* Top Accent Line */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-[#cfb53b]" />
+              <div className="absolute top-0 left-0 right-0 h-1 bg-black" />
 
               {/* Card Header */}
-              <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: 10 }}>
-                <p style={{ fontSize: 10, letterSpacing: "1.2px", fontWeight: 700, margin: 0, textTransform: "uppercase", color: "#cfb53b" }}>
+              <div style={{ borderBottom: "1px solid rgba(0,0,0,0.15)", paddingBottom: 10 }}>
+                <p style={{ fontSize: 10, letterSpacing: "1.2px", fontWeight: 700, margin: 0, textTransform: "uppercase" }}>
                   {QUESTION_DETAILS[activeQuestion].topic}
                 </p>
               </div>
 
               {/* Huge Metric Area */}
               <div style={{ flex: "0 0 auto", display: "flex", flexDirection: "column", justifyContent: "center", margin: "14px 0" }}>
-                <p style={{ fontSize: "clamp(28px, 3.2vw, 40px)", fontWeight: 300, lineHeight: 1.0, letterSpacing: "-1.5px", color: "#ffffff", margin: "0 0 4px 0" }}>
+                <p style={{ fontSize: "clamp(28px, 3.2vw, 40px)", fontWeight: 300, lineHeight: 1.0, letterSpacing: "-1.5px", color: "#000000", margin: "0 0 2px 0" }}>
                   {QUESTION_DETAILS[activeQuestion].metric}
                 </p>
-                <p style={{ fontSize: 9, letterSpacing: "0.5px", textTransform: "uppercase", color: "#a1a1aa", margin: 0 }}>
+                <p style={{ fontSize: 9, letterSpacing: "0.5px", textTransform: "uppercase", opacity: 0.8, margin: 0 }}>
                   {QUESTION_DETAILS[activeQuestion].metricLabel}
                 </p>
               </div>
 
               {/* Description body */}
               <div style={{ flex: "1 1 auto", display: "flex", alignItems: "center", marginBottom: 12 }}>
-                <p style={{ fontSize: 12, lineHeight: 1.4, color: "#d4d4d8", margin: 0 }}>
+                <p style={{ fontSize: 12, lineHeight: 1.4, color: "#1c1917", margin: 0, fontWeight: 400 }}>
                   {QUESTION_DETAILS[activeQuestion].body}
                 </p>
               </div>
 
               {/* Telemetry Stats Table */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 6, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 12, marginBottom: 8 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, borderTop: "1px solid rgba(0,0,0,0.15)", paddingTop: 12, marginBottom: 8 }}>
                 {QUESTION_DETAILS[activeQuestion].stats.map((s, i) => (
-                  <div key={i} className="flex justify-between items-center text-[10px]" style={{ borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.04)" : "none", paddingBottom: 4 }}>
-                    <span style={{ color: "#a1a1aa", textTransform: "uppercase", letterSpacing: "0.4px" }}>{s.label}</span>
-                    <span style={{ color: "#ffffff", fontFamily: "monospace", fontWeight: 500 }}>{s.val}</span>
+                  <div key={i} className="flex justify-between items-center text-[10px]" style={{ borderBottom: i < 3 ? "1px solid rgba(0,0,0,0.08)" : "none", paddingBottom: 4 }}>
+                    <span style={{ opacity: 0.7, textTransform: "uppercase", letterSpacing: "0.4px" }}>{s.label}</span>
+                    <span style={{ fontFamily: "monospace", fontWeight: 700 }}>{s.val}</span>
                   </div>
                 ))}
               </div>
 
               {/* Bottom Footer block */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 9, color: "#71717a", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 10, width: "100%" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 9, opacity: 0.8, borderTop: "1px solid rgba(0,0,0,0.15)", paddingTop: 10, width: "100%" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
                   <span>SCENARIO ID: {QUESTION_DETAILS[activeQuestion].num}</span>
-                  <span className="animate-pulse" style={{ color: "#cfb53b" }}>● ACTIVE RUN</span>
+                  <span className="animate-pulse" style={{ fontWeight: 700 }}>● RUNNING</span>
                 </div>
               </div>
 
               {/* Sliding pill at top border */}
-              <div ref={escalaPill3Ref} className="absolute h-1 bg-[#cfb53b] rounded-md -top-0.5 animate-pulse" style={{ width: 40, right: "0%", transition: "right 0.1s ease-out" }} />
+              <div ref={escalaPill3Ref} className="absolute h-1 bg-black rounded-md -top-0.5 animate-pulse" style={{ width: 40, right: "0%", transition: "right 0.1s ease-out" }} />
             </div>
 
           </div>
