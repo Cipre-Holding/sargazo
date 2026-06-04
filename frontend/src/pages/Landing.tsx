@@ -5,8 +5,8 @@ interface LandingProps { onEnter: () => void }
 
 // ── Geo types ─────────────────────────────────────────────────────────────────
 type Cam = { lon: number; lat: number; scale: number }
-type GeoDash = { lon: number; lat: number; dLon: number; halfLenDeg: number; lw: number; opacity: number; phase: number; period: number }
-type SarDash  = { lon: number; lat: number; dLon: number; halfLenDeg: number; lw: number; phase: number; period: number; startLon: number; stopped: boolean }
+type GeoDash = { lon: number; lat: number; dLon: number; halfLenDeg: number; lw: number; opacity: number; phase: number; period: number; curv: number; tilt: number }
+type SarDash  = { lon: number; lat: number; dLon: number; halfLenDeg: number; lw: number; phase: number; period: number; startLon: number; stopped: boolean; curv: number; tilt: number }
 
 // ── Mexico polygons ───────────────────────────────────────────────────────────
 const MX_MAIN: [number,number][] = [
@@ -65,6 +65,8 @@ function buildMXP(): GeoDash[] {
       opacity:    0.10+Math.random()*0.62,
       phase:      Math.random()*Math.PI*2,
       period:     2+Math.random()*5,
+      curv:       (Math.random()-0.5)*0.55,
+      tilt:       (Math.random()-0.5)*0.30,
     })
   }
   return pts
@@ -81,6 +83,8 @@ function buildSarP(): SarDash[] {
       phase:      Math.random()*Math.PI*2,
       period:     1.5+Math.random()*3.0,
       startLon, stopped: false,
+      curv:       (Math.random()-0.5)*0.45,
+      tilt:       (Math.random()-0.5)*0.25,
     }
   })
 }
@@ -147,10 +151,11 @@ function GeoParticleField({ stageRef }: { stageRef: { current: number } }) {
         const hl=Math.min(p.halfLenDeg*cam.scale,180)
         if (hl<0.5||px+hl<0||px-hl>W||py<-2||py>H+2) continue
         const osc=0.55+0.45*Math.sin(2*Math.PI*ts/p.period+p.phase)
+        const y0=py+p.tilt*hl*0.22, y1=py-p.tilt*hl*0.22, cy=py+p.curv*hl*0.18
         ctx.globalAlpha=p.opacity*osc
         ctx.strokeStyle="#ffffff"
         ctx.lineWidth=p.lw
-        ctx.beginPath(); ctx.moveTo(px-hl,py); ctx.lineTo(px+hl,py); ctx.stroke()
+        ctx.beginPath(); ctx.moveTo(px-hl,y0); ctx.quadraticCurveTo(px,cy,px+hl,y1); ctx.stroke()
       }
 
       // Sargazo particles (stage 1,2,3)
@@ -172,10 +177,11 @@ function GeoParticleField({ stageRef }: { stageRef: { current: number } }) {
           const prog=Math.max(0,Math.min(1,(p.startLon-p.lon)/(p.startLon-COAST)))
           const cr=Math.round(255-20*prog), cg=Math.round(255-4*prog), cb=Math.round(255-239*prog)
           const osc=0.6+0.4*Math.sin(2*Math.PI*ts/p.period+p.phase)
+          const sy0=py+p.tilt*hl*0.22, sy1=py-p.tilt*hl*0.22, scy=py+p.curv*hl*0.18
           ctx.globalAlpha=(p.stopped?0.7*osc:0.4+0.35*osc)*sa
           ctx.strokeStyle=`rgb(${cr},${cg},${cb})`
           ctx.lineWidth=p.lw
-          ctx.beginPath(); ctx.moveTo(px-hl,py); ctx.lineTo(px+hl,py); ctx.stroke()
+          ctx.beginPath(); ctx.moveTo(px-hl,sy0); ctx.quadraticCurveTo(px,scy,px+hl,sy1); ctx.stroke()
         }
       }
     }
