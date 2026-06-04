@@ -721,10 +721,66 @@ const ACCORDION = [
 const SOURCES = ["SEMAR","NOAA AOML","Mendeley GASB","RTOFS","GFS 0.25°","OISST v2.1","NCEP/NCAR","SATsum"]
 const FONT: React.CSSProperties = { fontFamily:"'Inter',ui-sans-serif,system-ui,sans-serif", fontWeight:300 }
 
+const QUESTIONS_LIST = [
+  { text: "¿Cómo influye el viento GFS en el desvío del sargazo hacia Cozumel?", highlight: "viento GFS", color: "#947814" },
+  { text: "¿Qué densidad de biomasa se estima para el canal de Yucatán esta semana?", highlight: "densidad de biomasa", color: "#1019ec" },
+  { text: "¿Es el modelo estocástico fOU suficiente para predecir la tendencia secular?", highlight: "modelo estocástico fOU", color: "#947814" },
+  { text: "¿Qué playas registrarán un nivel de alerta Muy Alto en las próximas 48 horas?", highlight: "alerta Muy Alto", color: "#1019ec" },
+  { text: "¿Cómo calibrar la confianza del sistema ante desviaciones en las corrientes?", highlight: "corrientes", color: "#947814" },
+  { text: "¿Cuál es la tasa de arribo promedio por kilómetro lineal de costa?", highlight: "tasa de arribo promedio", color: "#1019ec" }
+]
+
+const QUESTION_DETAILS = [
+  {
+    num: "01",
+    topic: "VIENTO GFS & DERIVA",
+    body: "El acoplamiento del viento GFS al modelo lagrangiano determina el desvío hacia la costa oriental. Vientos del este-sureste aceleran el arribo a Chen Río.",
+    metric: "3.0%",
+    metricLabel: "Coeficiente de deriva de viento"
+  },
+  {
+    num: "02",
+    topic: "DENSIDAD DE BIOMASA",
+    body: "Se estima una densidad promedio en el canal de Yucatán. Las imágenes Sentinel-3 muestran filamentos densos desplazándose hacia el norte.",
+    metric: "5.2 t/km²",
+    metricLabel: "Densidad estimada esta semana"
+  },
+  {
+    num: "03",
+    topic: "ESTOCASTICIDAD fOU",
+    body: "El modelo fOU captura la memoria de largo plazo y la reversión a la media, corrigiéndose con la tendencia secular de calentamiento del SST.",
+    metric: "H = 0.80",
+    metricLabel: "Coeficiente de Hurst medido"
+  },
+  {
+    num: "04",
+    topic: "ALERTAS 48 HORAS",
+    body: "Chen Río, Punta Morena y Playa Bonita registrarán semáforo Rojo (Muy Alto). Se recomienda activar cuadrillas de limpieza inmediata.",
+    metric: "Muy Alto",
+    metricLabel: "Semáforo en 3 segmentos"
+  },
+  {
+    num: "05",
+    topic: "CONFIANZA DEL SISTEMA",
+    body: "Calculamos el índice de dispersión mediante ensembles. Desviaciones en corrientes RTOFS mayores a 15° reducen la confianza temporalmente.",
+    metric: "83%",
+    metricLabel: "Confianza actual calibrada"
+  },
+  {
+    num: "06",
+    topic: "TASA DE ARRIBO PROMEDIO",
+    body: "La tasa estimada para esta semana por kilómetro lineal al día en las zonas expuestas, acumulando impactos en ensenadas naturales.",
+    metric: "4.8 t/km",
+    metricLabel: "Arribo diario por km de costa"
+  }
+]
+
 // ── Landing ───────────────────────────────────────────────────────────────────
 export function Landing({ onEnter }: LandingProps) {
   const [openRow, setOpenRow]   = useState<string|null>("01")
   const [caribOn, setCaribOn]   = useState(false)
+  const [activeQuestion, setActiveQuestion] = useState(0)
+  const activeQuestionRef = useRef(0)
   const stageRef = useRef(0)
 
   const metodoRef = useRef<HTMLDivElement>(null)
@@ -732,7 +788,6 @@ export function Landing({ onEnter }: LandingProps) {
   const escalaPill1Ref = useRef<HTMLDivElement>(null)
   const escalaPill2Ref = useRef<HTMLDivElement>(null)
   const escalaPill3Ref = useRef<HTMLDivElement>(null)
-  const preguntasRef = useRef<HTMLDivElement>(null)
   const accordionRefs = useRef<(HTMLDivElement|null)[]>([])
   const lineRefs = useRef<(HTMLDivElement|null)[]>([])
   const radarContainerRef = useRef<HTMLDivElement>(null)
@@ -854,42 +909,34 @@ export function Landing({ onEnter }: LandingProps) {
         if (escalaPill3Ref.current) {
           escalaPill3Ref.current.style.right = `${progress * 90}%`
         }
-      }
 
-      // 2. Animación de Preguntas (Sección Oscura)
-      const preguntas = preguntasRef.current
-      if (preguntas) {
-        const scrollStart = getAbsoluteTop(preguntas)
-        const scrollEnd = scrollStart + preguntas.offsetHeight - viewHeight
-        
-        let progress = 0
-        if (currentScroll > scrollStart) {
-          progress = (currentScroll - scrollStart) / (scrollEnd - scrollStart)
-        }
-        progress = Math.max(0, Math.min(1, progress))
-        
         const totalItems = 6
         const currentFraction = progress * (totalItems - 1)
-        const activeQuestionIdx = Math.round(currentFraction)
-        
+        const activeIdx = Math.max(0, Math.min(totalItems - 1, Math.round(currentFraction)))
+
+        if (activeIdx !== activeQuestionRef.current) {
+          activeQuestionRef.current = activeIdx
+          setActiveQuestion(activeIdx)
+        }
+
         if (questionListRef.current) {
-          const offset = -currentFraction * 100
+          const offset = -currentFraction * 80
           questionListRef.current.style.transform = `translateY(${offset}px)`
         }
-        
+
         questionItemRefs.current.forEach((el, idx) => {
           if (!el) return
           const distance = Math.abs(idx - currentFraction)
           
-          if (idx === activeQuestionIdx) {
+          if (idx === activeIdx) {
             el.style.filter = 'none'
             el.style.opacity = '1'
-            el.style.color = '#ffffff'
+            el.style.color = '#18181b'
           } else {
-            const blurAmount = Math.min(6, distance * 2.0)
+            const blurAmount = Math.min(1.2, distance * 0.5)
             el.style.filter = `blur(${blurAmount}px)`
-            el.style.opacity = `${Math.max(0.12, 1 - distance * 0.45)}`
-            el.style.color = 'rgba(255, 255, 255, 0.3)'
+            el.style.opacity = `${Math.max(0.3, 1 - distance * 0.35)}`
+            el.style.color = 'rgba(24, 24, 27, 0.4)'
           }
           
           const underline = el.querySelector('.q-underline') as HTMLElement
@@ -1197,22 +1244,92 @@ export function Landing({ onEnter }: LandingProps) {
       {/* 4c. Clear Section (Sargazo a Escala) — Light theme (#ffffff) */}
       <section ref={escalaRef} id="escala" style={{position:"relative", background:"#ffffff", height:"300vh"}}>
         <div style={{position:"sticky", top:0, height:"100vh", display:"flex", alignItems:"center", overflow:"hidden", background:"#ffffff"}}>
-          <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr_220px] w-full h-[calc(100vh-60px)]" style={{maxWidth:1280, margin:"0 auto", padding:"30px", border:"1px solid rgba(0,0,0,0.12)"}}>
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr_1.2fr] w-full h-[calc(100vh-60px)]" style={{maxWidth:1280, margin:"0 auto", padding:"30px", border:"1px solid rgba(0,0,0,0.12)"}}>
             
-            {/* Column 1: Centered Graphic with border indicators */}
+            {/* Column 1: Interactive Graphic with border indicators */}
             <div className="relative flex items-center justify-center p-8 border-r border-b lg:border-b-0" style={{borderColor:"rgba(0,0,0,0.12)"}}>
-              <div style={{maxWidth:350, opacity:0.95}}>
-                {/* Stylized vector outline of a human/shoreline interface */}
-                <svg viewBox="0 0 400 400" width="100%" height="100%" style={{color:"#000000"}}>
-                  <circle cx="200" cy="200" r="160" stroke="currentColor" strokeWidth="0.8" fill="none" strokeDasharray="3 6" />
-                  <path d="M 100 200 C 150 150, 180 250, 250 200 C 300 150, 320 200, 350 200" stroke="#cfb53b" strokeWidth="1.5" fill="none" />
-                  <ellipse cx="200" cy="200" rx="40" ry="120" stroke="currentColor" strokeWidth="1" fill="none" transform="rotate(-30 200 200)" />
-                  <line x1="200" y1="40" x2="200" y2="360" stroke="currentColor" strokeWidth="0.8" strokeDasharray="4 4" />
-                  <line x1="40" y1="200" x2="360" y2="200" stroke="currentColor" strokeWidth="0.8" strokeDasharray="4 4" />
-                  <circle cx="150" cy="120" r="3" fill="#cfb53b" />
-                  <circle cx="270" cy="140" r="2.5" fill="currentColor" />
-                  <circle cx="240" cy="280" r="3" fill="#cfb53b" />
-                  <circle cx="120" cy="260" r="2" fill="currentColor" />
+              <div style={{maxWidth:350, opacity:0.95, width:"100%"}}>
+                <svg viewBox="0 0 400 400" width="100%" height="100%" style={{color:"#000000", transition:"all 0.4s ease"}}>
+                  {/* Grid lines & outer circle */}
+                  <circle cx="200" cy="200" r="160" stroke="currentColor" strokeWidth="0.6" fill="none" strokeDasharray="3 6" opacity="0.3" />
+                  <line x1="200" y1="40" x2="200" y2="360" stroke="currentColor" strokeWidth="0.6" strokeDasharray="4 4" opacity="0.3" />
+                  <line x1="40" y1="200" x2="360" y2="200" stroke="currentColor" strokeWidth="0.6" strokeDasharray="4 4" opacity="0.3" />
+                  <ellipse cx="200" cy="200" rx="40" ry="120" stroke="currentColor" strokeWidth="1" fill="none" transform="rotate(-30 200 200)" opacity="0.4" />
+                  
+                  {/* Base shoreline path */}
+                  <path d="M 100 200 C 150 150, 180 250, 250 200 C 300 150, 320 200, 350 200" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.5" />
+
+                  {/* Q1: Viento GFS - Wind vectors */}
+                  {activeQuestion === 0 && (
+                    <g className="animate-pulse" style={{ transition: "opacity 0.4s ease" }}>
+                      <path d="M 280 280 L 220 240 M 220 240 L 230 240 M 220 240 L 225 248" stroke="#1019ec" strokeWidth="1.5" fill="none" />
+                      <path d="M 320 220 L 260 180 M 260 180 L 270 180 M 260 180 L 265 188" stroke="#1019ec" strokeWidth="1.5" fill="none" />
+                      <path d="M 240 320 L 180 280 M 180 280 L 190 280 M 180 280 L 185 288" stroke="#1019ec" strokeWidth="1.5" fill="none" />
+                      <text x="250" y="325" fontSize="10" fill="#1019ec" fontWeight="bold" fontFamily="monospace">GFS WIND FIELD</text>
+                    </g>
+                  )}
+
+                  {/* Q2: Biomasa Yucatán - High density blobs */}
+                  {activeQuestion === 1 && (
+                    <g style={{ transition: "opacity 0.4s ease" }}>
+                      <circle cx="150" cy="210" r="14" fill="#cfb53b" opacity="0.3" className="animate-ping" />
+                      <circle cx="150" cy="210" r="8" fill="#cfb53b" />
+                      <circle cx="170" cy="180" r="18" fill="#cfb53b" opacity="0.25" />
+                      <circle cx="170" cy="180" r="10" fill="#cfb53b" />
+                      <circle cx="130" cy="230" r="10" fill="#cfb53b" opacity="0.4" />
+                      <text x="60" y="270" fontSize="10" fill="#cfb53b" fontWeight="bold" fontFamily="monospace">HIGH BIOMASS SEGMENTS</text>
+                    </g>
+                  )}
+
+                  {/* Q3: fOU Stochastic Wave */}
+                  {activeQuestion === 2 && (
+                    <g style={{ transition: "opacity 0.4s ease" }}>
+                      <path d="M 80 200 Q 110 140, 140 230 T 200 170 T 260 220 T 320 180" stroke="#cfb53b" strokeWidth="1.8" fill="none" />
+                      <path d="M 80 200 Q 110 160, 140 210 T 200 190 T 260 210 T 320 195" stroke="#1019ec" strokeWidth="1" strokeDasharray="2 2" fill="none" opacity="0.6" />
+                      <text x="70" y="100" fontSize="10" fill="#cfb53b" fontWeight="bold" fontFamily="monospace">fOU LONG MEMORY MODEL</text>
+                    </g>
+                  )}
+
+                  {/* Q4: Playas Alerta Muy Alto - Warnings */}
+                  {activeQuestion === 3 && (
+                    <g style={{ transition: "opacity 0.4s ease" }}>
+                      <circle cx="215" cy="213" r="7" fill="#ef4444" className="animate-ping" />
+                      <circle cx="215" cy="213" r="4.5" fill="#ef4444" />
+                      <text x="228" y="216" fontSize="9" fill="#ef4444" fontWeight="bold" fontFamily="sans-serif">Chen Río [CRITICAL]</text>
+                      
+                      <circle cx="282" cy="165" r="7" fill="#ef4444" className="animate-ping" />
+                      <circle cx="282" cy="165" r="4.5" fill="#ef4444" />
+                      <text x="260" y="152" fontSize="9" fill="#ef4444" fontWeight="bold" fontFamily="sans-serif">Pta. Morena</text>
+
+                      <circle cx="160" cy="235" r="7" fill="#ef4444" className="animate-ping" />
+                      <circle cx="160" cy="235" r="4.5" fill="#ef4444" />
+                      <text x="100" y="250" fontSize="9" fill="#ef4444" fontWeight="bold" fontFamily="sans-serif">Playa Bonita</text>
+                    </g>
+                  )}
+
+                  {/* Q5: Corrientes/Confianza */}
+                  {activeQuestion === 4 && (
+                    <g style={{ transition: "opacity 0.4s ease" }}>
+                      <circle cx="200" cy="200" r="40" stroke="#1019ec" strokeWidth="0.8" fill="none" opacity="0.8" />
+                      <circle cx="200" cy="200" r="70" stroke="#1019ec" strokeWidth="0.8" fill="none" opacity="0.5" className="animate-pulse" />
+                      
+                      <path d="M 120 300 Q 200 280, 260 210" stroke="#1019ec" strokeWidth="2" fill="none" strokeDasharray="4 4" />
+                      <polygon points="260,210 252,212 258,218" fill="#1019ec" />
+                      
+                      <text x="210" y="190" fontSize="10" fill="#1019ec" fontWeight="bold" fontFamily="monospace">RTOFS FIELD</text>
+                    </g>
+                  )}
+
+                  {/* Q6: Tasa de arribo */}
+                  {activeQuestion === 5 && (
+                    <g style={{ transition: "opacity 0.4s ease" }}>
+                      <path d="M 100 200 C 150 150, 180 250, 250 200 C 300 150, 320 200, 350 200" stroke="#cfb53b" strokeWidth="6" fill="none" opacity="0.4" />
+                      <path d="M 100 200 C 150 150, 180 250, 250 200 C 300 150, 320 200, 350 200" stroke="#cfb53b" strokeWidth="3" fill="none" />
+                      
+                      <rect x="220" y="125" width="85" height="18" fill="white" stroke="#cfb53b" strokeWidth="0.8" />
+                      <text x="225" y="137" fontSize="9" fill="#000000" fontWeight="bold" fontFamily="monospace">4.8 t/km/day</text>
+                    </g>
+                  )}
                 </svg>
               </div>
               
@@ -1220,15 +1337,92 @@ export function Landing({ onEnter }: LandingProps) {
               <div ref={escalaPill1Ref} className="absolute h-1 bg-black rounded-md -bottom-0.5 animate-pulse" style={{width:40, left:"0%", transition:"left 0.1s ease-out"}} />
             </div>
 
-            {/* Column 2: Content with top/bottom annotation and borders */}
-            <div className="relative flex flex-col justify-center p-8 border-r" style={{borderColor:"rgba(0,0,0,0.12)"}}>
-              <div style={{maxWidth:480}}>
-                <p style={{fontSize:12, letterSpacing:"0.96px", color:"#71717a", textTransform:"uppercase", marginBottom:24}}>
-                  Sargazo a Escala
-                </p>
-                <h3 style={{fontFamily:"sans-serif", fontSize:"clamp(22px, 2.5vw, 32px)", fontWeight:300, lineHeight:1.2, letterSpacing:"-1px", color:"#09090b"}}>
-                  Integrando simulación física de fluidos y perfiles costeros para modelar el impacto del arribo de sargazo sobre la actividad humana.
-                </h3>
+            {/* Column 2: Interactive scroll questions */}
+            <div className="relative flex flex-col justify-center p-8 border-r" style={{borderColor:"rgba(0,0,0,0.12)", overflow:"hidden"}}>
+              <p style={{fontSize:11, letterSpacing:"0.96px", color:"#71717a", textTransform:"uppercase", marginBottom:12, zIndex:15}}>
+                Sargazo a Escala / Monitoreo & Escenarios
+              </p>
+              
+              <div style={{
+                position:"relative",
+                height:260,
+                overflow:"hidden",
+                display:"flex",
+                alignItems:"center",
+                width:"100%"
+              }}>
+                {/* Fade masks */}
+                <div style={{
+                  position:"absolute",
+                  top:0,
+                  left:0,
+                  right:0,
+                  height:80,
+                  background:"linear-gradient(to bottom, #ffffff, transparent)",
+                  zIndex:10,
+                  pointerEvents:"none"
+                }} />
+                <div style={{
+                  position:"absolute",
+                  bottom:0,
+                  left:0,
+                  right:0,
+                  height:80,
+                  background:"linear-gradient(to top, #ffffff, transparent)",
+                  zIndex:10,
+                  pointerEvents:"none"
+                }} />
+
+                {/* Central crosshair line */}
+                <div style={{
+                  position:"absolute",
+                  top:"50%",
+                  left:0,
+                  right:0,
+                  height:1,
+                  background:"rgba(0,0,0,0.08)",
+                  transform:"translateY(-50%)",
+                  zIndex:5
+                }} />
+
+                {/* The sliding list */}
+                <ul 
+                  ref={questionListRef}
+                  style={{
+                    listStyle:"none",
+                    padding:0,
+                    margin:0,
+                    width:"100%",
+                    transform:"translateY(0px)",
+                    transition:"transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)",
+                    paddingTop:90,
+                    paddingBottom:90
+                  }}
+                >
+                  {QUESTIONS_LIST.map((q, idx)=>(
+                    <li 
+                      key={idx}
+                      ref={el => { questionItemRefs.current[idx] = el }}
+                      style={{
+                        height:80,
+                        display:"flex",
+                        flexDirection:"column",
+                        justifyContent:"center",
+                        transition:"filter 0.4s ease, opacity 0.4s ease, color 0.4s ease",
+                        padding:"0 4px"
+                      }}
+                    >
+                      <span style={{fontSize:"clamp(14px, 1.8vw, 19px)", lineHeight:1.3, fontWeight:300}}>
+                        {q.text.split(q.highlight)[0]}
+                        <span style={{display:"inline-block", position:"relative", color:q.color, fontWeight:400}}>
+                          {q.highlight}
+                          <span className="q-underline" style={{position:"absolute", bottom:-1, left:0, width:"0%", height:1.5, background:q.color, transition:"width 0.4s ease"}} />
+                        </span>
+                        {q.text.split(q.highlight)[1]}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               {/* Sliding pill at right border */}
@@ -1236,148 +1430,36 @@ export function Landing({ onEnter }: LandingProps) {
             </div>
 
             {/* Column 3: Yellow accent block */}
-            <div className="relative flex flex-col justify-end p-6 bg-[#cfb53b] text-black">
-              <div style={{display:"flex", flexDirection:"column", gap:24, borderTop:"1px solid rgba(0,0,0,0.15)", paddingTop:16}}>
-                <p style={{fontSize:13, fontWeight:400, letterSpacing:"0.5px", margin:0}}>01</p>
-                <p style={{fontSize:14, fontWeight:400, lineHeight:1.4, margin:0}}>
-                  Si se puede modelar, se puede predecir.
+            <div className="relative flex flex-col justify-between p-6 bg-[#cfb53b] text-black transition-all duration-300">
+              <div style={{ borderBottom: "1px solid rgba(0,0,0,0.15)", paddingBottom: 12 }}>
+                <p style={{ fontSize: 10, letterSpacing: "1px", fontWeight: 700, margin: 0, textTransform: "uppercase", opacity: 0.6 }}>
+                  {QUESTION_DETAILS[activeQuestion].topic}
+                </p>
+              </div>
+
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", margin: "16px 0" }}>
+                <p style={{ fontSize: "clamp(30px, 3.2vw, 42px)", fontWeight: 300, lineHeight: 1.0, letterSpacing: "-1.5px", color: "#000000", margin: "0 0 8px 0" }}>
+                  {QUESTION_DETAILS[activeQuestion].metric}
+                </p>
+                <p style={{ fontSize: 10, letterSpacing: "0.5px", textTransform: "uppercase", opacity: 0.7, margin: 0 }}>
+                  {QUESTION_DETAILS[activeQuestion].metricLabel}
+                </p>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, borderTop: "1px solid rgba(0,0,0,0.15)", paddingTop: 12 }}>
+                <p style={{ fontSize: 12, fontWeight: 500, letterSpacing: "0.5px", margin: 0 }}>
+                  {QUESTION_DETAILS[activeQuestion].num}
+                </p>
+                <p style={{ fontSize: 13, fontWeight: 400, lineHeight: 1.4, margin: 0 }}>
+                  {QUESTION_DETAILS[activeQuestion].body}
                 </p>
               </div>
 
               {/* Sliding pill at top border */}
-              <div ref={escalaPill3Ref} className="absolute h-1 bg-black rounded-md -top-0.5 animate-pulse" style={{width:40, right:"0%", transition:"right 0.1s ease-out"}} />
+              <div ref={escalaPill3Ref} className="absolute h-1 bg-black rounded-md -top-0.5 animate-pulse" style={{ width: 40, right: "0%", transition: "right 0.1s ease-out" }} />
             </div>
 
           </div>
-        </div>
-      </section>
-
-      {/* 4b. Question Stack Section (Lumen-like for Sargazo) — Dark theme (#000000) */}
-      <section ref={preguntasRef} style={{position:"relative",background:"#000000",height:"300vh"}}>
-        <div style={{position:"sticky",top:0,height:"100vh",display:"flex",alignItems:"center",overflow:"hidden"}}>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-[2fr_8fr_2fr] gap-6 items-center w-full" style={{maxWidth:1280,margin:"0 auto",padding:"0 max(40px,6vw)"}}>
-            
-            {/* Left: Indicator */}
-            <div className="flex items-center gap-3 self-start lg:self-center">
-              <div className="w-2 h-2 shrink-0" style={{background:"#cfb53b"}} />
-              <span style={{fontSize:11,letterSpacing:"0.96px",color:"#ffffff",fontWeight:400,textTransform:"uppercase"}}>Lumen</span>
-            </div>
-
-            {/* Center: Blurred Scroll Stack */}
-            <div style={{
-              position:"relative",
-              height:300,
-              overflow:"hidden",
-              display:"flex",
-              alignItems:"center"
-            }}>
-              {/* Fade masks */}
-              <div style={{
-                position:"absolute",
-                top:0,
-                left:0,
-                right:0,
-                height:100,
-                background:"linear-gradient(to bottom, #000000, transparent)",
-                zIndex:10,
-                pointerEvents:"none"
-              }} />
-              <div style={{
-                position:"absolute",
-                bottom:0,
-                left:0,
-                right:0,
-                height:100,
-                background:"linear-gradient(to top, #000000, transparent)",
-                zIndex:10,
-                pointerEvents:"none"
-              }} />
-
-              {/* Central crosshair line */}
-              <div style={{
-                position:"absolute",
-                top:"50%",
-                left:0,
-                right:0,
-                height:1,
-                background:"rgba(255,255,255,0.12)",
-                transform:"translateY(-50%)",
-                zIndex:5
-              }} />
-
-              {/* The sliding list */}
-              <ul 
-                ref={questionListRef}
-                style={{
-                  listStyle:"none",
-                  padding:0,
-                  margin:0,
-                  width:"100%",
-                  transform:"translateY(0px)",
-                  transition:"transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)",
-                  paddingTop:100,
-                  paddingBottom:100
-                }}
-              >
-                {([
-                  { text: "¿Cómo influye el viento GFS en el desvío del sargazo hacia Cozumel?", highlight: "viento GFS", color: "#cfb53b" },
-                  { text: "¿Qué densidad de biomasa se estima para el canal de Yucatán esta semana?", highlight: "densidad de biomasa", color: "#1019ec" },
-                  { text: "¿Es el modelo estocástico fOU suficiente para predecir la tendencia secular?", highlight: "modelo estocástico fOU", color: "#cfb53b" },
-                  { text: "¿Qué playas registrarán un nivel de alerta Muy Alto en las próximas 48 horas?", highlight: "alerta Muy Alto", color: "#1019ec" },
-                  { text: "¿Cómo calibrar la confianza del sistema ante desviaciones en las corrientes?", highlight: "corrientes", color: "#cfb53b" },
-                  { text: "¿Cuál es la tasa de arribo promedio por kilómetro lineal de costa?", highlight: "tasa de arribo promedio", color: "#1019ec" }
-                ] as const).map((q, idx)=>(
-                  <li 
-                    key={idx}
-                    ref={el => { questionItemRefs.current[idx] = el }}
-                    style={{
-                      height:100,
-                      display:"flex",
-                      flexDirection:"column",
-                      justifyContent:"center",
-                      transition:"filter 0.4s ease, opacity 0.4s ease, color 0.4s ease",
-                      padding:"0 10px"
-                    }}
-                  >
-                    <span style={{fontSize:"clamp(18px, 2.2vw, 25px)", lineHeight:1.3, fontWeight:300}}>
-                      {q.text.split(q.highlight)[0]}
-                      <span style={{display:"inline-block", position:"relative", color:q.color}}>
-                        {q.highlight}
-                        <span className="q-underline" style={{position:"absolute", bottom:-2, left:0, width:"0%", height:2, background:q.color, transition:"width 0.4s ease"}} />
-                      </span>
-                      {q.text.split(q.highlight)[1]}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Right: Action */}
-            <div className="hidden lg:flex justify-end">
-              <button 
-                onClick={onEnter}
-                style={{
-                  ...FONT,
-                  fontSize:12,
-                  letterSpacing:"0.96px",
-                  color:"#ffffff",
-                  background:"transparent",
-                  border:"none",
-                  cursor:"pointer",
-                  textTransform:"uppercase",
-                  display:"flex",
-                  alignItems:"center",
-                  gap:8,
-                  padding:"10px 0"
-                }}
-              >
-                Ver sistema <ArrowRight size={14} />
-              </button>
-            </div>
-
-          </div>
-
         </div>
       </section>
 
