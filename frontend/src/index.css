@@ -2,36 +2,37 @@
 @plugin "tailwindcss-animate";
 @custom-variant dark (&:is(.dark *));
 
-/* ── Molten Ember on Gunmetal — Design tokens from DESIGN(1).md ── */
+/* ── Aaru — Particle-field observatory at midnight ── */
 :root {
-  /* ── Base palette ─────────────────────────────────────────────── */
-  --color-bg:             #111111;   /* Void Black  — canvas                  */
-  --color-fg:             #ffffff;   /* Pure White  — headlines, emphasis      */
-  --color-muted:          #999999;   /* Ash         — body text, descriptions  */
-  --color-muted-2:        #666666;   /* Steel       — de-emphasized labels     */
-  --color-silver:         #cacaca;   /* Silver      — hairline borders, icons  */
+  /* ── Canvas + surfaces ────────────────────────────────────────── */
+  --color-bg:             #000000;   /* Void Black  — canvas                  */
+  --color-fg:             #ffffff;   /* Frost       — headlines, emphasis      */
+  --color-muted:          #9d9d9d;   /* Smoke       — body text               */
+  --color-muted-2:        #858484;   /* Slate       — de-emphasized labels     */
+  --color-silver:         #bababa;   /* Ash         — hairline borders, icons  */
 
-  /* ── Ember spark — single chromatic color ─────────────────────── */
-  --color-primary:        #ff4300;   /* Ember Orange — CTAs, active states     */
-  --color-primary-hover:  #e03b00;   /* Ember dark   — hover                  */
-  --color-primary-soft:   #1c0800;   /* Ember tint   — subtle card glow bg    */
+  /* ── Reactor Lime — single chromatic primary ─────────────────── */
+  --color-primary:        #ebfb10;   /* Reactor Lime — CTAs, active states    */
+  --color-primary-hover:  #d4e20e;   /* Lime dark    — hover                  */
+  --color-primary-soft:   rgba(235,251,16,0.08); /* Lime tint bg              */
+  --color-primary-on:     #000000;   /* Text color ON lime bg                 */
 
-  /* ── Secondary accent (silver/neutral) ───────────────────────── */
-  --color-accent:         #cacaca;
-  --color-accent-hover:   #e9e6e6;
-  --color-accent-soft:    #1e1e1e;
+  /* ── Plasma Blue — full-bleed section accent ─────────────────── */
+  --color-accent:         #1019ec;   /* Plasma Blue                           */
+  --color-accent-hover:   #0a12d4;
+  --color-accent-soft:    rgba(16,25,236,0.15);
 
-  /* ── Surface stack (elevation through tone) ───────────────────── */
-  --color-surface:        #181818;   /* Obsidian     — elevated card L1        */
-  --color-surface-raised: #2b2a2a;   /* Charcoal     — panel L2               */
-  --color-border:         #343434;   /* Graphite     — borders, dividers       */
+  /* ── Surface stack ───────────────────────────────────────────── */
+  --color-surface:        #18181b;   /* Graphite     — elevated card L1       */
+  --color-surface-raised: #0a0a0a;   /* Carbon       — subtle elevation L2    */
+  --color-border:         rgba(255,255,255,0.12); /* Hairline white            */
 
   /* ── Semantic ─────────────────────────────────────────────────── */
   --color-success:        #4ade80;
   --color-error:          #ef4444;
   --color-warning:        #fbbf24;
 
-  /* ── Sargazo risk levels ──────────────────────────────────────── */
+  /* ── Sargazo risk levels — semantic data colors (preserved) ──── */
   --color-risk-high:      #ff3333;
   --color-risk-medium:    #ff8800;
   --color-risk-warning:   #f5d000;
@@ -42,7 +43,7 @@
   --color-foreground:           var(--color-fg);
   --color-card:                 var(--color-surface-raised);
   --color-card-foreground:      var(--color-fg);
-  --color-primary-foreground:   #ffffff;
+  --color-primary-foreground:   var(--color-primary-on);
   --color-secondary:            var(--color-surface-raised);
   --color-secondary-foreground: var(--color-fg);
   --color-muted-foreground:     var(--color-muted);
@@ -50,13 +51,13 @@
   --color-input:                var(--color-border);
   --color-ring:                 var(--color-primary);
 
-  /* ── Geometry (from design tokens) ───────────────────────────── */
-  --radius-sm:  2px;
-  --radius-md:  7px;
-  --radius-lg:  10px;
-  --radius-xl:  15px;
-  --radius-2xl: 20px;
-  --radius-3xl: 25px;
+  /* ── Geometry — Aaru: 0px buttons/tags, 6px cards ────────────── */
+  --radius-sm:  0px;
+  --radius-md:  6px;
+  --radius-lg:  6px;
+  --radius-xl:  6px;
+  --radius-2xl: 6px;
+  --radius-3xl: 6px;
 
   /* ── Easing ───────────────────────────────────────────────────── */
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -64,9 +65,9 @@
 }
 
 @theme inline {
-  /* Font — system stack at 700, no alternate weights */
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI",
-               system-ui, ui-sans-serif, sans-serif;
+  /* Font — Inter Variable, weight 300 as abcOracle 330 substitute */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, sans-serif;
   --font-mono: "Fira Code", "JetBrains Mono", ui-monospace, "Courier New", monospace;
 
   /* Colors */
@@ -78,6 +79,7 @@
   --color-primary:              var(--color-primary);
   --color-primary-hover:        var(--color-primary-hover);
   --color-primary-soft:         var(--color-primary-soft);
+  --color-primary-on:           var(--color-primary-on);
   --color-accent:               var(--color-accent);
   --color-accent-hover:         var(--color-accent-hover);
   --color-accent-soft:          var(--color-accent-soft);
@@ -117,12 +119,11 @@
   html, body, #root { height: 100%; width: 100%; margin: 0; }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI",
-                 system-ui, ui-sans-serif, sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1.25;
-    letter-spacing: -0.14px;
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    font-weight: 300;
+    line-height: 1.5;
+    letter-spacing: 0.375px;   /* positive tracking per Aaru spec ≤16px */
     color: var(--color-fg);
     background: var(--color-bg);
     -webkit-font-smoothing: antialiased;
@@ -131,7 +132,7 @@
 
   .font-mono, code, pre, .tabular-nums {
     font-family: "Fira Code", "JetBrains Mono", ui-monospace, monospace;
-    font-weight: 700;
+    font-weight: 500;
   }
 
   button:not(:disabled), [role="button"]:not(:disabled),
@@ -146,7 +147,7 @@
 
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 
   .maplibregl-popup-content { background: transparent !important; box-shadow: none !important; padding: 0 !important; }
   .maplibregl-popup-tip { display: none !important; }

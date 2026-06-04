@@ -164,7 +164,7 @@ function App({ onBack }: AppProps) {
   const isRunning = downloadStatus?.status === "running"
 
   return (
-    <div className="relative h-screen w-full overflow-hidden" style={{ background: '#111111' }}>
+    <div className="relative h-screen w-full overflow-hidden" style={{ background: '#000000' }}>
 
       {/* ── Map (full background) ────────────────────────────────────────── */}
       <Map ref={mapRef} className="absolute inset-0" center={[-87.0, 20.3]} zoom={8.5} theme="dark">
@@ -267,13 +267,13 @@ function App({ onBack }: AppProps) {
 
         {/* Brand */}
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="flex size-6 shrink-0 items-center justify-center rounded-md" style={{ background: "#ff4300" }}>
-            <Waves className="size-3.5" style={{ color: "#fff" }} />
+          <div className="flex size-6 shrink-0 items-center justify-center" style={{ background: "#ebfb10" }}>
+            <Waves className="size-3.5" style={{ color: "#000000" }} />
           </div>
-          <span className="font-bold text-sm tracking-tight text-fg">Sargazo Cozumel</span>
+          <span className="text-sm tracking-tight text-fg" style={{ fontWeight: 300, letterSpacing: "0.52px" }}>Sargazo Cozumel</span>
           <span
-            className="hidden lg:inline text-[10px] font-bold pl-2.5"
-            style={{ borderLeft: "1px solid #343434", color: "#666666", letterSpacing: "0.04em" }}
+            className="hidden lg:inline text-[10px] pl-2.5"
+            style={{ borderLeft: "1px solid rgba(255,255,255,0.1)", color: "#9d9d9d", letterSpacing: "0.04em" }}
           >
             MONITOREO · PREDICCIÓN
           </span>
@@ -285,7 +285,7 @@ function App({ onBack }: AppProps) {
         {alerts.length > 0 && (
           <div
             className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg border"
-            style={{ background: '#1c0800', borderColor: 'rgba(255,67,0,0.25)' }}
+            style={{ background: 'rgba(235,251,16,0.08)', borderColor: 'rgba(235,251,16,0.2)' }}
           >
             <AlertTriangle className="size-3" style={{ color: '#fbbf24' }} />
             <span className="text-[10px] font-bold" style={{ color: '#fbbf24' }}>
@@ -309,9 +309,9 @@ function App({ onBack }: AppProps) {
         <button
           onClick={() => setInfoOpen(true)}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer border"
-          style={{ color: '#ff4300', background: '#1c0800', borderColor: 'rgba(255,67,0,0.3)' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#260d00' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#1c0800' }}
+          style={{ color: '#ebfb10', background: 'rgba(235,251,16,0.08)', borderColor: 'rgba(235,251,16,0.3)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(235,251,16,0.14)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(235,251,16,0.08)' }}
           title="Centro de Información"
         >
           <CircleHelp className="size-3.5" />
@@ -350,7 +350,7 @@ function App({ onBack }: AppProps) {
                     ? "text-fg border-transparent"
                     : "border-transparent text-muted hover:text-fg hover:border-border/50"
                 }`}
-                style={activeTab === id ? { borderBottomColor: '#ff4300' } : undefined}
+                style={activeTab === id ? { borderBottomColor: '#ebfb10' } : undefined}
               >
                 <Icon className="size-3.5" />
                 <span>{label}</span>
@@ -384,10 +384,10 @@ function App({ onBack }: AppProps) {
                 )}
                 {/* KPI Card */}
                 {ensemble && (
-                  <div className="rounded-xl border p-4 shadow-lg shadow-black/30" style={{ borderColor: 'rgba(255,67,0,0.25)', background: 'linear-gradient(135deg, #1c0800 0%, #181818 100%)' }}>
+                  <div className="rounded-md border p-4" style={{ borderColor: 'rgba(235,251,16,0.18)', background: '#18181b' }}>
                     {/* Header */}
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#ff4300', letterSpacing: '0.08em' }}>
+                      <span className="text-xs uppercase tracking-widest" style={{ color: '#ebfb10', letterSpacing: '0.08em', fontWeight: 300 }}>
                         Predicción Junio 2026
                       </span>
                       {confidence && (
@@ -442,8 +442,8 @@ function App({ onBack }: AppProps) {
                             <span>IC 80%</span>
                             <span className="font-mono tabular-nums">{lo.toFixed(0)} – {hi.toFixed(0)} k</span>
                           </div>
-                          <div className="relative h-1.5 rounded-full overflow-hidden" style={{ background: '#343434' }}>
-                            <div className="absolute inset-0 rounded-full" style={{ background: '#ff4300', opacity: 0.15 }} />
+                          <div className="relative h-1.5 overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                            <div className="absolute inset-0" style={{ background: '#ebfb10', opacity: 0.12 }} />
                             <div className="absolute top-0 bottom-0 w-px rounded-full"
                               style={{ left: `${Math.min(Math.max(pct, 4), 96)}%`, background: '#ffffff', opacity: 0.8 }} />
                           </div>
@@ -457,7 +457,7 @@ function App({ onBack }: AppProps) {
                         <span className="text-muted" title="Prophet n≈303, serie histórica GASB/ACO">
                           Prophet ACO jun
                         </span>
-                        <span className="font-mono tabular-nums font-bold" style={{ color: '#cacaca' }}>
+                        <span className="font-mono tabular-nums" style={{ color: '#bababa', fontWeight: 500 }}>
                           {prophet.proyeccion_junio_2026_aco_mt.toFixed(2)} Mt
                         </span>
                       </div>
@@ -478,8 +478,8 @@ function App({ onBack }: AppProps) {
                           : "text-error"
                       }`}>{confidence.porcentaje}%</span>
                     </div>
-                    <div className="h-1.5 rounded-full overflow-hidden mb-3" style={{ background: '#343434' }}>
-                      <div className="h-full rounded-full transition-all duration-700" style={{
+                    <div className="h-1.5 overflow-hidden mb-3" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                      <div className="h-full transition-all duration-700" style={{
                         width: `${confidence.porcentaje}%`,
                         background: confidence.nivel === "ALTA" ? '#4ade80' : '#fbbf24',
                       }} />
@@ -491,11 +491,11 @@ function App({ onBack }: AppProps) {
                             <span className="text-xs text-muted truncate flex-1 capitalize">
                               {k.replace(/_/g, ' ')}
                             </span>
-                            <div className="w-14 h-1 rounded-full overflow-hidden" style={{ background: '#343434' }}>
-                              <div className="h-full rounded-full" style={{
+                            <div className="w-14 h-1 overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                              <div className="h-full" style={{
                                 width: `${Math.min(100, (v.puntos / v.max) * 100)}%`,
-                                background: '#ff4300',
-                                opacity: 0.75,
+                                background: '#ebfb10',
+                                opacity: 0.7,
                               }} />
                             </div>
                             <span className="text-xs font-mono text-muted tabular-nums w-8 text-right">
@@ -537,8 +537,8 @@ function App({ onBack }: AppProps) {
                                 {s.pct_high_medium}%
                               </span>
                             </div>
-                            <div className="h-1 rounded-full overflow-hidden" style={{ background: '#343434' }}>
-                              <div className="h-full rounded-full transition-all duration-500" style={{
+                            <div className="h-1 overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                              <div className="h-full transition-all duration-500" style={{
                                 width: `${s.pct_high_medium}%`,
                                 background: riskColor,
                               }} />
@@ -632,7 +632,8 @@ function App({ onBack }: AppProps) {
                               : "text-muted hover:text-fg"
                           }`}
                           style={{
-                            background: horizon === h.value ? '#ff4300' : '#2b2a2a',
+                            background: horizon === h.value ? '#ebfb10' : '#18181b',
+                            color: horizon === h.value ? '#000000' : undefined,
                           }}
                         >
                           {h.label}
@@ -661,7 +662,7 @@ function App({ onBack }: AppProps) {
                       value={Math.max(0, (allSirDates ?? []).indexOf(sirDate))}
                       onChange={(e) => setSirDate((allSirDates ?? [])[parseInt(e.target.value)])}
                       className="w-full cursor-pointer"
-                      style={{ accentColor: '#ff4300' }}
+                      style={{ accentColor: '#ebfb10' }}
                     />
                     <div className="flex justify-between text-[11px] mt-1" style={{ color: 'var(--color-muted)', opacity: 0.6 }}>
                       <span>{allSirDates?.[0]}</span>
@@ -738,7 +739,7 @@ function App({ onBack }: AppProps) {
                     onClick={triggerDownload}
                     disabled={isRunning}
                     className="w-full flex items-center justify-center gap-2 rounded-xl border border-border/40 px-4 py-2.5 text-sm text-muted hover:text-fg transition-all duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                    style={{ background: '#2b2a2a' }}
+                    style={{ background: '#18181b' }}
                   >
                     {isRunning
                       ? <><RefreshCw className="size-4 animate-spin" /> Actualizando...</>
@@ -781,7 +782,7 @@ function App({ onBack }: AppProps) {
       {/* ── Legend ───────────────────────────────────────────────────────── */}
       <div
         className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3.5 rounded-xl px-4 py-2"
-        style={{ border: "1px solid #343434", background: "rgba(24,24,24,0.9)", backdropFilter: "blur(12px)", boxShadow: "0 4px 20px rgba(0,0,0,0.4)" }}
+        style={{ border: "1px solid rgba(255,255,255,0.12)", background: "rgba(0,0,0,0.92)", backdropFilter: "blur(12px)" }}
       >
         {[
           { label: "BAJO",  c: "#00d4aa", desc: "Riesgo de arribo mínimo. Costa libre de acumulaciones significativas." },
@@ -798,8 +799,8 @@ function App({ onBack }: AppProps) {
             {item.label}
           </span>
         ))}
-        <span style={{ color: '#343434' }}>|</span>
-        <span className="text-xs hidden sm:inline font-bold" style={{ color: '#666666', letterSpacing: '0.02em' }}>
+        <span style={{ color: 'rgba(255,255,255,0.15)' }}>|</span>
+        <span className="text-xs hidden sm:inline" style={{ color: '#858484', letterSpacing: '0.02em', fontWeight: 300 }}>
           SEMAR · NOAA SIR · RTOFS · GFS
         </span>
       </div>

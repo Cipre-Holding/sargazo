@@ -8,7 +8,7 @@
   }
 }
 
-/* Range input — Molten Ember track */
+/* Range input — Aaru Reactor Lime track */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -17,21 +17,21 @@ input[type="range"] {
 }
 input[type="range"]::-webkit-slider-runnable-track {
   height: 6px;
-  border-radius: 3px;
-  background: #343434;
+  border-radius: 0px;
+  background: rgba(255,255,255,0.1);
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  border-radius: 50%;
-  border: 2px solid #cacaca;
+  border-radius: 0px;
+  border: 2px solid #bababa;
   margin-top: -5px;
   box-shadow: 0 1px 6px rgba(0,0,0,0.5);
-  background: #ff4300;
+  background: #ebfb10;
 }
 input[type="range"]:focus-visible { outline: none; }
 input[type="range"]:focus-visible::-webkit-slider-thumb {
-  outline: 2px solid #ff4300;
+  outline: 2px solid #ebfb10;
   outline-offset: 2px;
 }
