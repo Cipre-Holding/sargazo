@@ -9,7 +9,7 @@ export default function Root() {
   useEffect(() => {
     document.documentElement.style.overflow = view === "landing" ? "auto" : "hidden"
     document.body.style.overflow            = view === "landing" ? "auto" : "hidden"
-    document.getElementById("root")!.style.overflow = view === "landing" ? "auto" : "hidden"
+    document.getElementById("root")!.style.overflow = view === "landing" ? "visible" : "hidden"
     document.getElementById("root")!.style.height   = view === "landing" ? "auto" : "100%"
   }, [view])
 

@@ -5,7 +5,7 @@ interface LandingProps { onEnter: () => void }
 
 // ── Geo types ─────────────────────────────────────────────────────────────────
 type Cam = { lon: number; lat: number; scale: number }
-type GeoDash = { lon: number; lat: number; dLon: number; halfLenDeg: number; lw: number; opacity: number; phase: number; period: number; curv: number; tilt: number }
+type GeoDash = { lon: number; lat: number; startLon: number; dLon: number; halfLenDeg: number; lw: number; opacity: number; phase: number; period: number; curv: number; tilt: number }
 type SarDash  = { lon: number; lat: number; dLon: number; halfLenDeg: number; lw: number; phase: number; period: number; startLon: number; stopped: boolean; curv: number; tilt: number }
 
 // ── Mexico polygons ───────────────────────────────────────────────────────────
@@ -98,6 +98,7 @@ function buildMXP(): GeoDash[] {
     const r = Math.random()
     pts.push({
       lon, lat,
+      startLon:   lon,
       dLon:       (Math.random()-0.5)*0.0005,
       halfLenDeg: r<0.5 ? 0.04+Math.random()*0.10 : r<0.85 ? 0.14+Math.random()*0.22 : 0.38+Math.random()*0.44,
       lw:         0.5+Math.random()*1.1,
@@ -122,6 +123,7 @@ function buildQRDetailP(): GeoDash[] {
     if (!pip(lon,lat,MX_MAIN)) continue
     pts.push({
       lon, lat,
+      startLon:   lon,
       dLon:       (Math.random()-0.5)*0.00015,   // nearly static
       halfLenDeg: 0.006+Math.random()*0.030,     // 2-10px at 8.5x zoom
       lw:         0.35+Math.random()*0.80,
@@ -146,6 +148,7 @@ function buildBajaP(): GeoDash[] {
     const r = Math.random()
     pts.push({
       lon, lat,
+      startLon:   lon,
       dLon:       (Math.random()-0.5)*0.0004,
       halfLenDeg: r<0.5 ? 0.04+Math.random()*0.10 : r<0.85 ? 0.14+Math.random()*0.20 : 0.32+Math.random()*0.36,
       lw:         0.5+Math.random()*1.0,
@@ -222,6 +225,9 @@ function GeoParticleField({ stageRef }: { stageRef: { current: number } }) {
 
       if (stage===0 && prevStage>0) {
         for (const p of saP) { p.lon=p.startLon; p.stopped=false }
+        for (const p of mxP) { p.lon=p.startLon }
+        for (const p of bajaP) { p.lon=p.startLon }
+        for (const p of qrP) { p.lon=p.startLon }
       }
       prevStage=stage
       stageRef.current=stage
@@ -376,9 +382,147 @@ export function Landing({ onEnter }: LandingProps) {
   const [caribOn, setCaribOn]   = useState(false)
   const stageRef = useRef(0)
 
+  const metodoRef = useRef<HTMLDivElement>(null)
+  const preguntasRef = useRef<HTMLDivElement>(null)
+  const accordionRefs = useRef<(HTMLDivElement|null)[]>([])
+  const lineRefs = useRef<(HTMLDivElement|null)[]>([])
+  const radarRef = useRef<SVGSVGElement>(null)
+
+  const questionListRef = useRef<HTMLUListElement>(null)
+  const questionItemRefs = useRef<(HTMLLIElement|null)[]>([])
+
   useEffect(() => {
     const id = setInterval(() => setCaribOn(stageRef.current===2), 150)
     return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    const rootEl = document.getElementById("root")
+    
+    const getAbsoluteTop = (el: HTMLElement): number => {
+      let top = 0
+      let currentEl: HTMLElement | null = el
+      while (currentEl) {
+        top += currentEl.offsetTop
+        currentEl = currentEl.offsetParent as HTMLElement | null
+      }
+      return top
+    }
+
+    const handleScroll = () => {
+      // Tomamos el valor máximo de scroll de todos los posibles contenedores
+      const currentScroll = Math.max(
+        window.pageYOffset || 0,
+        window.scrollY || 0,
+        document.documentElement.scrollTop || 0,
+        document.body.scrollTop || 0,
+        rootEl ? rootEl.scrollTop : 0
+      )
+      const viewHeight = window.innerHeight
+
+      // 1. Animación de Metodología (Sección Azul)
+      const metodo = metodoRef.current
+      if (metodo) {
+        const scrollStart = getAbsoluteTop(metodo)
+        const scrollEnd = scrollStart + metodo.offsetHeight - viewHeight
+        
+        let progress = 0
+        if (currentScroll > scrollStart) {
+          progress = (currentScroll - scrollStart) / (scrollEnd - scrollStart)
+        }
+        progress = Math.max(0, Math.min(1, progress))
+        
+        if (radarRef.current) {
+          radarRef.current.style.transform = `scale(${1.0 + progress * 0.08}) rotate(${progress * 120}deg)`
+          radarRef.current.style.opacity = `${0.06 + progress * 0.16}`
+        }
+        
+        const activeIdx = Math.min(5, Math.floor(progress * 6))
+        
+        accordionRefs.current.forEach((el, idx) => {
+          if (!el) return
+          const line = lineRefs.current[idx]
+          
+          if (idx === activeIdx) {
+            el.style.maxHeight = '200px'
+            el.style.opacity = '1'
+            el.style.marginTop = '16px'
+            el.style.paddingBottom = '32px'
+            if (line) {
+              line.style.transform = 'scaleX(1)'
+              line.style.background = '#ffffff'
+            }
+          } else {
+            el.style.maxHeight = '0'
+            el.style.opacity = '0'
+            el.style.marginTop = '0'
+            el.style.paddingBottom = '0'
+            if (line) {
+              line.style.transform = 'scaleX(0)'
+              line.style.background = 'rgba(255,255,255,0.18)'
+            }
+          }
+        })
+      }
+      
+      // 2. Animación de Preguntas (Sección Negra)
+      const preguntas = preguntasRef.current
+      if (preguntas) {
+        const scrollStart = getAbsoluteTop(preguntas)
+        const scrollEnd = scrollStart + preguntas.offsetHeight - viewHeight
+        
+        let progress = 0
+        if (currentScroll > scrollStart) {
+          progress = (currentScroll - scrollStart) / (scrollEnd - scrollStart)
+        }
+        progress = Math.max(0, Math.min(1, progress))
+        
+        const totalItems = 6
+        const activeIdx = Math.min(totalItems - 1, Math.floor(progress * totalItems))
+        
+        if (questionListRef.current) {
+          const offset = -activeIdx * 100
+          questionListRef.current.style.transform = `translateY(${offset}px)`
+        }
+        
+        questionItemRefs.current.forEach((el, idx) => {
+          if (!el) return
+          const distance = Math.abs(idx - (progress * totalItems - 0.5))
+          
+          if (idx === activeIdx) {
+            el.style.filter = 'none'
+            el.style.opacity = '1'
+            el.style.color = '#ffffff'
+            const underline = el.querySelector('.q-underline') as HTMLElement
+            if (underline) {
+              underline.style.width = '100%'
+            }
+          } else {
+            const blurAmount = Math.min(4, distance * 1.8)
+            el.style.filter = `blur(${blurAmount}px)`
+            el.style.opacity = `${Math.max(0.12, 1 - distance * 0.35)}`
+            el.style.color = 'rgba(255,255,255,0.3)'
+            const underline = el.querySelector('.q-underline') as HTMLElement
+            if (underline) {
+              underline.style.width = '0%'
+            }
+          }
+        })
+      }
+    }
+    
+    // Escuchar el evento scroll con fase de captura en window y en el target
+    const target = rootEl || window
+    target.addEventListener('scroll', handleScroll, { passive: true, capture: true })
+    window.addEventListener('scroll', handleScroll, { passive: true, capture: true })
+    
+    // Ejecutar inmediatamente para configurar estados iniciales
+    handleScroll()
+    
+    return () => {
+      target.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('scroll', handleScroll)
+    }
   }, [])
 
   const ANNOUNCE_H=40, NAV_H=56
@@ -492,32 +636,209 @@ export function Landing({ onEnter }: LandingProps) {
         </div>
       </section>
 
-      {/* 4. Plasma section — full viewport */}
-      <section id="metodologia" style={{background:"#1019ec",minHeight:"100vh"}}>
-        <div style={{maxWidth:1280,margin:"0 auto",padding:"80px max(40px,6vw)",minHeight:"100vh",display:"flex",flexDirection:"column",justifyContent:"center"}}>
-          <p style={{fontSize:12,letterSpacing:"0.96px",color:"rgba(255,255,255,0.5)",textTransform:"uppercase",marginBottom:56}}>
-            Capacidades del sistema
-          </p>
-          {ACCORDION.map(row=>(
-            <div key={row.num}>
-              <div style={{height:1,background:"rgba(255,255,255,0.18)"}} />
-              <button onClick={()=>setOpenRow(openRow===row.num?null:row.num)}
-                className="w-full text-left flex items-start gap-8"
-                style={{...FONT,background:"transparent",border:"none",cursor:"pointer",padding:"24px 0",color:"#ffffff"}}>
-                <span style={{fontSize:13,letterSpacing:"0.52px",color:"rgba(255,255,255,0.5)",minWidth:28}}>{row.num}</span>
-                <span style={{fontSize:13,letterSpacing:"0.52px",textTransform:"uppercase",flex:1}}>{row.label}</span>
-                <span style={{fontSize:18,color:"rgba(255,255,255,0.4)",transition:"transform 0.2s",transform:openRow===row.num?"rotate(45deg)":"none",display:"inline-block"}}>+</span>
-              </button>
-              {openRow===row.num && (
-                <div style={{paddingLeft:52,paddingBottom:32}}>
-                  <p style={{fontSize:15,fontWeight:400,lineHeight:1.5,letterSpacing:"0.375px",color:"rgba(255,255,255,0.88)",maxWidth:560}}>
-                    {row.body}
-                  </p>
+      {/* 4. Plasma section — sticky scrollytelling */}
+      <section ref={metodoRef} id="metodologia" style={{position:"relative",background:"#1019ec",height:"350vh"}}>
+        <div style={{position:"sticky",top:0,height:"100vh",display:"flex",alignItems:"center",overflow:"hidden"}}>
+          <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-12 w-full" style={{maxWidth:1280,margin:"0 auto",padding:"0 max(40px,6vw)"}}>
+            
+            {/* Left column: Accordion */}
+            <div style={{display:"flex",flexDirection:"column",justifyContent:"center"}}>
+              <p style={{fontSize:12,letterSpacing:"0.96px",color:"rgba(255,255,255,0.5)",textTransform:"uppercase",marginBottom:36}}>
+                Capacidades del sistema
+              </p>
+              {ACCORDION.map((row, idx)=>(
+                <div key={row.num}>
+                  <div 
+                    ref={el => { lineRefs.current[idx] = el }}
+                    style={{height:1,background:"rgba(255,255,255,0.18)",transformOrigin:"left",transform:"scaleX(0)",transition:"transform 0.4s ease, background 0.4s ease"}} 
+                  />
+                  <button onClick={()=>setOpenRow(openRow===row.num?null:row.num)}
+                    className="w-full text-left flex items-start gap-8"
+                    style={{...FONT,background:"transparent",border:"none",cursor:"pointer",padding:"20px 0",color:"#ffffff"}}>
+                    <span style={{fontSize:13,letterSpacing:"0.52px",color:"rgba(255,255,255,0.5)",minWidth:28}}>{row.num}</span>
+                    <span style={{fontSize:13,letterSpacing:"0.52px",textTransform:"uppercase",flex:1}}>{row.label}</span>
+                    <span style={{fontSize:18,color:"rgba(255,255,255,0.4)",transition:"transform 0.2s",transform:openRow===row.num?"rotate(45deg)":"none",display:"inline-block"}}>+</span>
+                  </button>
+                  <div 
+                    ref={el => { accordionRefs.current[idx] = el }}
+                    style={{
+                      paddingLeft:52,
+                      maxHeight:"0px",
+                      opacity:0,
+                      overflow:"hidden",
+                      transition:"max-height 0.4s ease, opacity 0.4s ease, margin-top 0.4s ease, padding-bottom 0.4s ease",
+                      marginTop:"0px",
+                      paddingBottom:"0px"
+                    }}
+                  >
+                    <p style={{fontSize:15,fontWeight:400,lineHeight:1.5,letterSpacing:"0.375px",color:"rgba(255,255,255,0.88)",maxWidth:560}}>
+                      {row.body}
+                    </p>
+                  </div>
                 </div>
-              )}
+              ))}
+              <div style={{height:1,background:"rgba(255,255,255,0.18)"}} />
             </div>
-          ))}
-          <div style={{height:1,background:"rgba(255,255,255,0.18)"}} />
+
+            {/* Right column: Interactive Radar SVG */}
+            <div className="hidden lg:flex justify-center items-center">
+              <svg 
+                ref={radarRef}
+                viewBox="0 0 400 400" 
+                className="w-[300px] h-[300px] xl:w-[400px] xl:h-[400px]" 
+                style={{
+                  opacity:0.06, 
+                  transition:"transform 0.1s linear, opacity 0.2s ease",
+                  color:"#ffffff"
+                }}
+              >
+                {/* Radar outer grids */}
+                <circle cx="200" cy="200" r="180" stroke="currentColor" strokeWidth="0.8" fill="none" strokeDasharray="4 8" />
+                <circle cx="200" cy="200" r="130" stroke="#cfb53b" strokeWidth="0.8" fill="none" strokeDasharray="3 5" />
+                <circle cx="200" cy="200" r="80" stroke="currentColor" strokeWidth="0.8" fill="none" />
+                <circle cx="200" cy="200" r="30" stroke="#cfb53b" strokeWidth="0.8" fill="none" />
+                {/* Crosshairs */}
+                <line x1="20" y1="200" x2="380" y2="200" stroke="currentColor" strokeWidth="0.5" opacity="0.3" />
+                <line x1="200" y1="20" x2="200" y2="380" stroke="currentColor" strokeWidth="0.5" opacity="0.3" />
+                {/* Diagonals */}
+                <line x1="72" y1="72" x2="328" y2="328" stroke="currentColor" strokeWidth="0.5" opacity="0.15" strokeDasharray="2 2" />
+                <line x1="72" y1="328" x2="328" y2="72" stroke="currentColor" strokeWidth="0.5" opacity="0.15" strokeDasharray="2 2" />
+                {/* Radial sweep arm */}
+                <line x1="200" y1="200" x2="320" y2="120" stroke="#cfb53b" strokeWidth="1.5" />
+                <polygon points="320,120 310,123 317,130" fill="#cfb53b" />
+              </svg>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 4b. Question Stack Section (Lumen-like for Sargazo) */}
+      <section ref={preguntasRef} style={{position:"relative",background:"#000000",height:"300vh",borderTop:"1px solid rgba(255,255,255,0.07)"}}>
+        <div style={{position:"sticky",top:0,height:"100vh",display:"flex",alignItems:"center",overflow:"hidden"}}>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-[2fr_8fr_2fr] gap-6 items-center w-full" style={{maxWidth:1280,margin:"0 auto",padding:"0 max(40px,6vw)"}}>
+            
+            {/* Left: Indicator */}
+            <div className="flex items-center gap-3 self-start lg:self-center">
+              <div className="w-2 h-2 shrink-0" style={{background:"#cfb53b"}} />
+              <span style={{fontSize:11,letterSpacing:"0.96px",color:"#cfb53b",textTransform:"uppercase"}}>Lumen</span>
+            </div>
+
+            {/* Center: Blurred Scroll Stack */}
+            <div style={{
+              position:"relative",
+              height:300,
+              overflow:"hidden",
+              display:"flex",
+              alignItems:"center"
+            }}>
+              {/* Fade masks */}
+              <div style={{
+                position:"absolute",
+                top:0,
+                left:0,
+                right:0,
+                height:100,
+                background:"linear-gradient(to bottom, #000000, transparent)",
+                zIndex:10,
+                pointerEvents:"none"
+              }} />
+              <div style={{
+                position:"absolute",
+                bottom:0,
+                left:0,
+                right:0,
+                height:100,
+                background:"linear-gradient(to top, #000000, transparent)",
+                zIndex:10,
+                pointerEvents:"none"
+              }} />
+
+              {/* Central crosshair line */}
+              <div style={{
+                position:"absolute",
+                top:"50%",
+                left:0,
+                right:0,
+                height:1,
+                background:"rgba(255,255,255,0.15)",
+                transform:"translateY(-50%)",
+                zIndex:5
+              }} />
+
+              {/* The sliding list */}
+              <ul 
+                ref={questionListRef}
+                style={{
+                  listStyle:"none",
+                  padding:0,
+                  margin:0,
+                  width:"100%",
+                  transform:"translateY(0px)",
+                  transition:"transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)",
+                  paddingTop:100,
+                  paddingBottom:100
+                }}
+              >
+                {([
+                  { text: "¿Cómo influye el viento GFS en el desvío del sargazo hacia Cozumel?", highlight: "viento GFS", color: "#cfb53b" },
+                  { text: "¿Qué densidad de biomasa se estima para el canal de Yucatán esta semana?", highlight: "densidad de biomasa", color: "#1019ec" },
+                  { text: "¿Es el modelo estocástico fOU suficiente para predecir la tendencia secular?", highlight: "modelo estocástico fOU", color: "#cfb53b" },
+                  { text: "¿Qué playas registrarán un nivel de alerta Muy Alto en las próximas 48 horas?", highlight: "alerta Muy Alto", color: "#1019ec" },
+                  { text: "¿Cómo calibrar la confianza del sistema ante desviaciones en las corrientes?", highlight: "corrientes", color: "#cfb53b" },
+                  { text: "¿Cuál es la tasa de arribo promedio por kilómetro lineal de costa?", highlight: "tasa de arribo promedio", color: "#1019ec" }
+                ] as const).map((q, idx)=>(
+                  <li 
+                    key={idx}
+                    ref={el => { questionItemRefs.current[idx] = el }}
+                    style={{
+                      height:100,
+                      display:"flex",
+                      flexDirection:"column",
+                      justifyContent:"center",
+                      transition:"filter 0.4s ease, opacity 0.4s ease, color 0.4s ease",
+                      padding:"0 10px"
+                    }}
+                  >
+                    <span style={{fontSize:"clamp(18px, 2.2vw, 25px)", lineHeight:1.3, fontWeight:300}}>
+                      {q.text.split(q.highlight)[0]}
+                      <span style={{display:"inline-block", position:"relative", color:q.color}}>
+                        {q.highlight}
+                        <span className="q-underline" style={{position:"absolute", bottom:-2, left:0, width:"0%", height:2, background:q.color, transition:"width 0.4s ease"}} />
+                      </span>
+                      {q.text.split(q.highlight)[1]}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Right: Action */}
+            <div className="hidden lg:flex justify-end">
+              <button 
+                onClick={onEnter}
+                style={{
+                  ...FONT,
+                  fontSize:12,
+                  letterSpacing:"0.96px",
+                  color:"#cfb53b",
+                  background:"transparent",
+                  border:"none",
+                  cursor:"pointer",
+                  textTransform:"uppercase",
+                  display:"flex",
+                  alignItems:"center",
+                  gap:8,
+                  padding:"10px 0"
+                }}
+              >
+                Ver sistema <ArrowRight size={14} />
+              </button>
+            </div>
+
+          </div>
+
         </div>
       </section>
 
