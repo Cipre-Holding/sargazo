@@ -267,7 +267,7 @@ function App({ onBack }: AppProps) {
 
         {/* Brand */}
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="flex size-6 shrink-0 items-center justify-center" style={{ background: "#ebfb10" }}>
+          <div className="flex size-6 shrink-0 items-center justify-center" style={{ background: "#cfb53b" }}>
             <Waves className="size-3.5" style={{ color: "#000000" }} />
           </div>
           <span className="text-sm tracking-tight text-fg" style={{ fontWeight: 300, letterSpacing: "0.52px" }}>Sargazo Cozumel</span>
@@ -285,7 +285,7 @@ function App({ onBack }: AppProps) {
         {alerts.length > 0 && (
           <div
             className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg border"
-            style={{ background: 'rgba(235,251,16,0.08)', borderColor: 'rgba(235,251,16,0.2)' }}
+            style={{ background: 'rgba(207,181,59,0.08)', borderColor: 'rgba(207,181,59,0.2)' }}
           >
             <AlertTriangle className="size-3" style={{ color: '#fbbf24' }} />
             <span className="text-[10px] font-bold" style={{ color: '#fbbf24' }}>
@@ -309,9 +309,9 @@ function App({ onBack }: AppProps) {
         <button
           onClick={() => setInfoOpen(true)}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer border"
-          style={{ color: '#ebfb10', background: 'rgba(235,251,16,0.08)', borderColor: 'rgba(235,251,16,0.3)' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(235,251,16,0.14)' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(235,251,16,0.08)' }}
+          style={{ color: '#cfb53b', background: 'rgba(207,181,59,0.08)', borderColor: 'rgba(207,181,59,0.3)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(207,181,59,0.14)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(207,181,59,0.08)' }}
           title="Centro de Información"
         >
           <CircleHelp className="size-3.5" />
@@ -350,7 +350,7 @@ function App({ onBack }: AppProps) {
                     ? "text-fg border-transparent"
                     : "border-transparent text-muted hover:text-fg hover:border-border/50"
                 }`}
-                style={activeTab === id ? { borderBottomColor: '#ebfb10' } : undefined}
+                style={activeTab === id ? { borderBottomColor: '#cfb53b' } : undefined}
               >
                 <Icon className="size-3.5" />
                 <span>{label}</span>
@@ -384,10 +384,10 @@ function App({ onBack }: AppProps) {
                 )}
                 {/* KPI Card */}
                 {ensemble && (
-                  <div className="rounded-md border p-4" style={{ borderColor: 'rgba(235,251,16,0.18)', background: '#18181b' }}>
+                  <div className="rounded-md border p-4" style={{ borderColor: 'rgba(207,181,59,0.18)', background: '#18181b' }}>
                     {/* Header */}
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs uppercase tracking-widest" style={{ color: '#ebfb10', letterSpacing: '0.08em', fontWeight: 300 }}>
+                      <span className="text-xs uppercase tracking-widest" style={{ color: '#cfb53b', letterSpacing: '0.08em', fontWeight: 300 }}>
                         Predicción Junio 2026
                       </span>
                       {confidence && (
@@ -443,7 +443,7 @@ function App({ onBack }: AppProps) {
                             <span className="font-mono tabular-nums">{lo.toFixed(0)} – {hi.toFixed(0)} k</span>
                           </div>
                           <div className="relative h-1.5 overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                            <div className="absolute inset-0" style={{ background: '#ebfb10', opacity: 0.12 }} />
+                            <div className="absolute inset-0" style={{ background: '#cfb53b', opacity: 0.12 }} />
                             <div className="absolute top-0 bottom-0 w-px rounded-full"
                               style={{ left: `${Math.min(Math.max(pct, 4), 96)}%`, background: '#ffffff', opacity: 0.8 }} />
                           </div>
@@ -494,7 +494,7 @@ function App({ onBack }: AppProps) {
                             <div className="w-14 h-1 overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
                               <div className="h-full" style={{
                                 width: `${Math.min(100, (v.puntos / v.max) * 100)}%`,
-                                background: '#ebfb10',
+                                background: '#cfb53b',
                                 opacity: 0.7,
                               }} />
                             </div>
@@ -632,7 +632,7 @@ function App({ onBack }: AppProps) {
                               : "text-muted hover:text-fg"
                           }`}
                           style={{
-                            background: horizon === h.value ? '#ebfb10' : '#18181b',
+                            background: horizon === h.value ? '#cfb53b' : '#18181b',
                             color: horizon === h.value ? '#000000' : undefined,
                           }}
                         >
@@ -662,7 +662,7 @@ function App({ onBack }: AppProps) {
                       value={Math.max(0, (allSirDates ?? []).indexOf(sirDate))}
                       onChange={(e) => setSirDate((allSirDates ?? [])[parseInt(e.target.value)])}
                       className="w-full cursor-pointer"
-                      style={{ accentColor: '#ebfb10' }}
+                      style={{ accentColor: '#cfb53b' }}
                     />
                     <div className="flex justify-between text-[11px] mt-1" style={{ color: 'var(--color-muted)', opacity: 0.6 }}>
                       <span>{allSirDates?.[0]}</span>

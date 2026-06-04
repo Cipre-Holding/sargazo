@@ -28,10 +28,10 @@ input[type="range"]::-webkit-slider-thumb {
   border: 2px solid #bababa;
   margin-top: -5px;
   box-shadow: 0 1px 6px rgba(0,0,0,0.5);
-  background: #ebfb10;
+  background: #cfb53b;
 }
 input[type="range"]:focus-visible { outline: none; }
 input[type="range"]:focus-visible::-webkit-slider-thumb {
-  outline: 2px solid #ebfb10;
+  outline: 2px solid #cfb53b;
   outline-offset: 2px;
 }

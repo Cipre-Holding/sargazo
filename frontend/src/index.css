@@ -12,9 +12,9 @@
   --color-silver:         #bababa;   /* Ash         — hairline borders, icons  */
 
   /* ── Reactor Lime — single chromatic primary ─────────────────── */
-  --color-primary:        #ebfb10;   /* Reactor Lime — CTAs, active states    */
-  --color-primary-hover:  #d4e20e;   /* Lime dark    — hover                  */
-  --color-primary-soft:   rgba(235,251,16,0.08); /* Lime tint bg              */
+  --color-primary:        #cfb53b;   /* Reactor Lime — CTAs, active states    */
+  --color-primary-hover:  #baa335;   /* Lime dark    — hover                  */
+  --color-primary-soft:   rgba(207,181,59,0.08); /* Lime tint bg              */
   --color-primary-on:     #000000;   /* Text color ON lime bg                 */
 
   /* ── Plasma Blue — full-bleed section accent ─────────────────── */

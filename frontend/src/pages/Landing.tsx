@@ -48,10 +48,30 @@ function lx(lon: number, cam: Cam, W: number): number { return (lon-cam.lon)*cam
 function ly(lat: number, cam: Cam, H: number): number { return -(lat-cam.lat)*cam.scale+H/2 }
 function smx(W: number, H: number): number { return Math.min((W*0.78)/31.3,(H*0.78)/18.2) }
 
+function drawPoly(poly: [number,number][], cam: Cam, W: number, H: number, ctx: CanvasRenderingContext2D, alpha: number) {
+  if (alpha<=0) return
+  ctx.save()
+  ctx.globalAlpha=alpha; ctx.strokeStyle="#ffffff"; ctx.lineWidth=0.7
+  ctx.setLineDash([4,9])
+  ctx.beginPath()
+  poly.forEach(([lon,lat],i)=>{ const x=lx(lon,cam,W),y=ly(lat,cam,H); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y) })
+  ctx.closePath(); ctx.stroke(); ctx.setLineDash([])
+  ctx.restore()
+}
+
+function drawLabel(text: string, lon: number, lat: number, cam: Cam, W: number, H: number, ctx: CanvasRenderingContext2D, alpha: number) {
+  const x=lx(lon,cam,W), y=ly(lat,cam,H)
+  if (x<-80||x>W+80||y<-20||y>H+20) return
+  ctx.save()
+  ctx.globalAlpha=alpha; ctx.fillStyle="#bababa"; ctx.font="500 9px 'Inter',sans-serif"
+  ctx.fillText(text, x, y)
+  ctx.restore()
+}
+
 function buildMXP(): GeoDash[] {
   const pts: GeoDash[] = []
   let att = 0
-  while (pts.length < 700 && att < 80000) {
+  while (pts.length < 1400 && att < 160000) {
     att++
     const lon = -118+Math.random()*31.3
     const lat = 14.5+Math.random()*18.2
@@ -61,8 +81,8 @@ function buildMXP(): GeoDash[] {
       lon, lat,
       dLon:       (Math.random()-0.5)*0.0005,
       halfLenDeg: r<0.5 ? 0.04+Math.random()*0.10 : r<0.85 ? 0.14+Math.random()*0.22 : 0.38+Math.random()*0.44,
-      lw:         0.4+Math.random()*0.9,
-      opacity:    0.10+Math.random()*0.62,
+      lw:         0.5+Math.random()*1.1,
+      opacity:    0.18+Math.random()*0.68,
       phase:      Math.random()*Math.PI*2,
       period:     2+Math.random()*5,
       curv:       (Math.random()-0.5)*0.55,
@@ -73,13 +93,13 @@ function buildMXP(): GeoDash[] {
 }
 
 function buildSarP(): SarDash[] {
-  return Array.from({length:130},()=>{
+  return Array.from({length:220},()=>{
     const startLon = -84.5+Math.random()*5.5
     return {
       lon: startLon, lat: 17.5+Math.random()*4.0,
       dLon:       -(0.007+Math.random()*0.013),
-      halfLenDeg: 0.04+Math.random()*0.14,
-      lw:         0.3+Math.random()*0.8,
+      halfLenDeg: 0.05+Math.random()*0.18,
+      lw:         0.6+Math.random()*1.4,
       phase:      Math.random()*Math.PI*2,
       period:     1.5+Math.random()*3.0,
       startLon, stopped: false,
@@ -142,6 +162,10 @@ function GeoParticleField({ stageRef }: { stageRef: { current: number } }) {
       ctx.globalAlpha=1
       ctx.clearRect(0,0,W,H)
 
+      // Polygon border contour (dashed, behind particles)
+      drawPoly(MX_MAIN, cam, W, H, ctx, 0.09)
+      drawPoly(MX_BAJA, cam, W, H, ctx, 0.09)
+
       // Mexico particles
       for (const p of mxP) {
         p.lon+=p.dLon
@@ -173,9 +197,10 @@ function GeoParticleField({ stageRef }: { stageRef: { current: number } }) {
           const px=lx(p.lon,cam,W), py=ly(p.lat,cam,H)
           const hl=Math.min(p.halfLenDeg*cam.scale,100)
           if (hl<0.5||px+hl<0||px-hl>W||py<-2||py>H+2) continue
-          // white → #ebfb10 as particle approaches coast
-          const prog=Math.max(0,Math.min(1,(p.startLon-p.lon)/(p.startLon-COAST)))
-          const cr=Math.round(255-20*prog), cg=Math.round(255-4*prog), cb=Math.round(255-239*prog)
+          // white → #cfb53b as particle approaches coast
+          const rawProg=(p.startLon-p.lon)/(p.startLon-COAST)
+          const prog=Math.max(0,Math.min(1,(rawProg-0.25)/0.75))
+          const cr=Math.round(255-48*prog), cg=Math.round(255-74*prog), cb=Math.round(255-196*prog)
           const osc=0.6+0.4*Math.sin(2*Math.PI*ts/p.period+p.phase)
           const sy0=py+p.tilt*hl*0.22, sy1=py-p.tilt*hl*0.22, scy=py+p.curv*hl*0.18
           ctx.globalAlpha=(p.stopped?0.7*osc:0.4+0.35*osc)*sa
@@ -183,6 +208,16 @@ function GeoParticleField({ stageRef }: { stageRef: { current: number } }) {
           ctx.lineWidth=p.lw
           ctx.beginPath(); ctx.moveTo(px-hl,sy0); ctx.quadraticCurveTo(px,scy,px+hl,sy1); ctx.stroke()
         }
+      }
+
+      // Geographic labels — visible only during Caribbean stage
+      if (stage===2) {
+        const la=eic(Math.min(1,(T-TZI)/2))
+        drawLabel("CANCÚN",     -86.55, 21.38, cam, W, H, ctx, la*0.60)
+        drawLabel("COZUMEL",    -86.50, 20.48, cam, W, H, ctx, la*0.60)
+        drawLabel("TULUM",      -86.95, 20.02, cam, W, H, ctx, la*0.55)
+        drawLabel("CHETUMAL",   -88.00, 18.48, cam, W, H, ctx, la*0.50)
+        drawLabel("MAR CARIBE", -84.90, 19.60, cam, W, H, ctx, la*0.35)
       }
     }
 
@@ -240,7 +275,7 @@ export function Landing({ onEnter }: LandingProps) {
 
       {/* 1. Announcement bar */}
       <div className="flex items-center justify-center gap-2 text-center"
-        style={{background:"#ebfb10",height:ANNOUNCE_H,color:"#000000",fontSize:12,letterSpacing:"0.96px"}}>
+        style={{background:"#cfb53b",height:ANNOUNCE_H,color:"#000000",fontSize:12,letterSpacing:"0.96px"}}>
         <span style={{textTransform:"uppercase"}}>Datos actualizados · Semana 22 · 2026</span>
         <button onClick={onEnter}
           style={{...FONT,fontSize:12,letterSpacing:"0.96px",color:"#000000",background:"transparent",border:"none",cursor:"pointer",textDecoration:"underline",textTransform:"uppercase"}}>
@@ -269,9 +304,9 @@ export function Landing({ onEnter }: LandingProps) {
             Entrar
           </button>
           <button onClick={onEnter}
-            style={{...FONT,fontSize:12,letterSpacing:"0.48px",color:"#000000",textTransform:"uppercase",border:"none",borderRadius:0,padding:"8px 22px",background:"#ebfb10",cursor:"pointer",transition:"background 0.15s,transform 0.1s"}}
-            onMouseEnter={e=>{e.currentTarget.style.background="#d4e20e"}}
-            onMouseLeave={e=>{e.currentTarget.style.background="#ebfb10"}}
+            style={{...FONT,fontSize:12,letterSpacing:"0.48px",color:"#000000",textTransform:"uppercase",border:"none",borderRadius:0,padding:"8px 22px",background:"#cfb53b",cursor:"pointer",transition:"background 0.15s,transform 0.1s"}}
+            onMouseEnter={e=>{e.currentTarget.style.background="#baa335"}}
+            onMouseLeave={e=>{e.currentTarget.style.background="#cfb53b"}}
             onMouseDown={e=>{e.currentTarget.style.transform="scale(0.97)"}}
             onMouseUp={e=>{e.currentTarget.style.transform="scale(1)"}}>
             Sistema →
@@ -294,7 +329,7 @@ export function Landing({ onEnter }: LandingProps) {
           </p>
           <h1 style={{fontSize:"clamp(36px,4.8vw,50px)",fontWeight:300,lineHeight:1.2,letterSpacing:"-1.25px",color:"#ffffff",marginBottom:0}}>
             El sargazo<br />llega.<br />
-            <span style={{color:"#ebfb10"}}>Nosotros lo vemos.</span>
+            <span style={{color:"#cfb53b"}}>Nosotros lo vemos.</span>
           </h1>
         </div>
 
@@ -314,9 +349,9 @@ export function Landing({ onEnter }: LandingProps) {
         {/* CTA */}
         <div style={{position:"absolute",left:"max(40px,6vw)",bottom:48,zIndex:10,display:"flex",alignItems:"center",gap:32}}>
           <button onClick={onEnter} className="inline-flex items-center gap-2"
-            style={{...FONT,background:"#ebfb10",color:"#000000",fontSize:14,letterSpacing:"0.56px",textTransform:"uppercase",border:"none",borderRadius:0,padding:"13px 28px",cursor:"pointer",transition:"background 0.15s,transform 0.1s"}}
-            onMouseEnter={e=>{e.currentTarget.style.background="#d4e20e"}}
-            onMouseLeave={e=>{e.currentTarget.style.background="#ebfb10"}}
+            style={{...FONT,background:"#cfb53b",color:"#000000",fontSize:14,letterSpacing:"0.56px",textTransform:"uppercase",border:"none",borderRadius:0,padding:"13px 28px",cursor:"pointer",transition:"background 0.15s,transform 0.1s"}}
+            onMouseEnter={e=>{e.currentTarget.style.background="#baa335"}}
+            onMouseLeave={e=>{e.currentTarget.style.background="#cfb53b"}}
             onMouseDown={e=>{e.currentTarget.style.transform="scale(0.97)"}}
             onMouseUp={e=>{e.currentTarget.style.transform="scale(1)"}}>
             Entrar al sistema <ArrowRight size={14} />
@@ -335,8 +370,8 @@ export function Landing({ onEnter }: LandingProps) {
           zIndex:20,pointerEvents:"none",
           opacity:caribOn?1:0,transition:"opacity 0.8s ease",
         }}>
-          <div style={{display:"flex",alignItems:"center",gap:8,border:"1px solid #ebfb10",padding:"5px 16px",background:"rgba(0,0,0,0.85)"}}>
-            <span style={{color:"#ebfb10",fontSize:11,letterSpacing:"0.88px",textTransform:"uppercase"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,border:"1px solid #cfb53b",padding:"5px 16px",background:"rgba(0,0,0,0.85)"}}>
+            <span style={{color:"#cfb53b",fontSize:11,letterSpacing:"0.88px",textTransform:"uppercase"}}>
               ⚠ Sargazo · ACO→CM activo
             </span>
           </div>
@@ -380,7 +415,7 @@ export function Landing({ onEnter }: LandingProps) {
               style={{borderRight:i<STATS.length-1?"1px solid rgba(255,255,255,0.07)":"none"}}>
               <div className="flex items-end gap-1.5" style={{marginBottom:8}}>
                 <span style={{fontSize:40,fontWeight:300,lineHeight:1,letterSpacing:"-1.25px",color:"#ffffff"}}>{s.value}</span>
-                <span style={{fontSize:14,fontWeight:300,color:"#ebfb10",paddingBottom:4,letterSpacing:"0.56px"}}>{s.unit}</span>
+                <span style={{fontSize:14,fontWeight:300,color:"#cfb53b",paddingBottom:4,letterSpacing:"0.56px"}}>{s.unit}</span>
               </div>
               <span style={{fontSize:12,letterSpacing:"0.96px",color:"#858484",textTransform:"uppercase"}}>{s.label}</span>
             </div>
@@ -415,7 +450,7 @@ export function Landing({ onEnter }: LandingProps) {
               style={{borderTop:"1px solid rgba(255,255,255,0.08)",borderLeft:i%2===1?"1px solid rgba(255,255,255,0.08)":"none",padding:30,transition:"background 0.2s"}}
               onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background="#18181b"}}
               onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background="transparent"}}>
-              <Icon size={15} style={{color:"#ebfb10",marginBottom:20}} />
+              <Icon size={15} style={{color:"#cfb53b",marginBottom:20}} />
               <h3 style={{fontSize:16,fontWeight:300,letterSpacing:"-0.5px",color:"#ffffff",marginBottom:10,lineHeight:1.25}}>{title}</h3>
               <p style={{fontSize:14,fontWeight:400,lineHeight:1.5,letterSpacing:"0.35px",color:"#9d9d9d",marginBottom:20}}>{desc}</p>
               <div className="flex flex-wrap gap-2">
@@ -457,9 +492,9 @@ export function Landing({ onEnter }: LandingProps) {
             Sistema activo con los últimos datos de SEMAR y NOAA.
           </p>
           <button onClick={onEnter} className="inline-flex items-center gap-2"
-            style={{...FONT,background:"#ebfb10",color:"#000000",fontSize:14,letterSpacing:"0.56px",textTransform:"uppercase",border:"none",borderRadius:0,padding:"14px 32px",cursor:"pointer",transition:"background 0.15s,transform 0.1s"}}
-            onMouseEnter={e=>{e.currentTarget.style.background="#d4e20e"}}
-            onMouseLeave={e=>{e.currentTarget.style.background="#ebfb10"}}
+            style={{...FONT,background:"#cfb53b",color:"#000000",fontSize:14,letterSpacing:"0.56px",textTransform:"uppercase",border:"none",borderRadius:0,padding:"14px 32px",cursor:"pointer",transition:"background 0.15s,transform 0.1s"}}
+            onMouseEnter={e=>{e.currentTarget.style.background="#baa335"}}
+            onMouseLeave={e=>{e.currentTarget.style.background="#cfb53b"}}
             onMouseDown={e=>{e.currentTarget.style.transform="scale(0.97)"}}
             onMouseUp={e=>{e.currentTarget.style.transform="scale(1)"}}>
             Entrar al sistema <ArrowRight size={14} />
