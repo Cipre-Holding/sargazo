@@ -467,6 +467,7 @@ function FooterParticleField() {
 function ModelSimulationCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rafRef = useRef(0)
+  const frameCountRef = useRef(0)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -477,25 +478,38 @@ function ModelSimulationCanvas() {
     canvas.width = W
     canvas.height = H
 
-    let particles = Array.from({ length: 80 }, () => resetParticle({}, W, H))
+    let particles = Array.from({ length: 120 }, () => resetParticle({}, W, H))
+    let landedCount = 0
 
     function resetParticle(p: any = {}, w: number, h: number) {
-      p.x = w + Math.random() * 50
+      p.x = w + Math.random() * 80
       p.y = Math.random() * h
-      p.vx = -(0.5 + Math.random() * 1.2)
-      p.vy = (Math.random() - 0.5) * 0.3
+      p.vx = -(0.8 + Math.random() * 1.5)
+      p.vy = (Math.random() - 0.5) * 0.25
       p.size = 1.0 + Math.random() * 2.0
-      p.alpha = 0.2 + Math.random() * 0.6
+      p.alpha = 0.3 + Math.random() * 0.6
       p.color = "#cfb53b"
+      p.landed = false
       return p
     }
 
+    // Cozumel relative island shape points
+    const islandPoints = [
+      {x: -12, y: -76}, {x: 2, y: -78}, {x: 16, y: -65}, {x: 22, y: -40}, 
+      {x: 28, y: -10}, {x: 25, y: 20}, {x: 18, y: 55}, {x: 5, y: 76}, 
+      {x: -10, y: 80}, {x: -22, y: 68}, {x: -26, y: 40}, {x: -20, y: 0},
+      {x: -15, y: -45}
+    ]
+
     function draw() {
       ctx.clearRect(0, 0, W, H)
+      frameCountRef.current += 1
+      const timeFactor = frameCountRef.current
 
-      ctx.strokeStyle = "rgba(0, 0, 0, 0.05)"
+      // Grid and Coordinate ticks
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.03)"
       ctx.lineWidth = 0.8
-      const gridSpacing = 40
+      const gridSpacing = 48
       for (let x = 0; x < W; x += gridSpacing) {
         ctx.beginPath()
         ctx.moveTo(x, 0)
@@ -511,44 +525,97 @@ function ModelSimulationCanvas() {
 
       const islandCx = W * 0.35
       const islandCy = H * 0.5
-      ctx.save()
-      ctx.translate(islandCx, islandCy)
-      ctx.rotate(-Math.PI / 5)
 
+      // Calculate Cozumel absolute polygon coordinates
+      const cos = Math.cos(-Math.PI / 5)
+      const sin = Math.sin(-Math.PI / 5)
+      const polyCoords: [number, number][] = islandPoints.map(p => {
+        const rx = p.x * cos - p.y * sin
+        const ry = p.x * sin + p.y * cos
+        return [islandCx + rx, islandCy + ry]
+      })
+
+      // Draw RTOFS Current Vectors (Grid of animated arrows)
+      ctx.strokeStyle = "rgba(16, 25, 236, 0.08)"
+      ctx.fillStyle = "rgba(16, 25, 236, 0.08)"
+      ctx.lineWidth = 1.0
+      for (let x = 20; x < W; x += 64) {
+        for (let y = 30; y < H; y += 64) {
+          const angle = Math.PI + Math.sin(timeFactor * 0.02 + x * 0.01) * 0.15
+          ctx.save()
+          ctx.translate(x, y)
+          ctx.rotate(angle)
+          ctx.beginPath()
+          ctx.moveTo(-6, 0)
+          ctx.lineTo(6, 0)
+          ctx.lineTo(3, -2)
+          ctx.moveTo(6, 0)
+          ctx.lineTo(3, 2)
+          ctx.stroke()
+          ctx.restore()
+        }
+      }
+
+      // Draw Cozumel island outline
+      ctx.save()
       ctx.beginPath()
-      ctx.ellipse(0, 0, 30, 80, 0, 0, Math.PI * 2)
-      ctx.fillStyle = "rgba(0, 0, 0, 0.08)"
+      ctx.moveTo(polyCoords[0][0], polyCoords[0][1])
+      for (let i = 1; i < polyCoords.length; i++) {
+        ctx.lineTo(polyCoords[i][0], polyCoords[i][1])
+      }
+      ctx.closePath()
+      ctx.fillStyle = "rgba(24, 24, 27, 0.07)"
       ctx.fill()
-      ctx.strokeStyle = "#1019ec"
-      ctx.lineWidth = 1.5
+      ctx.strokeStyle = "#1019ec" // Plasma Blue outline
+      ctx.lineWidth = 1.8
       ctx.stroke()
       ctx.restore()
 
-      ctx.font = "10px sans-serif"
+      // Beach labels
+      ctx.font = "9px sans-serif"
+      ctx.fillStyle = "#71717a"
+      // Punta Sur
+      ctx.fillText("Pta. Sur", islandCx - 45, islandCy + 90)
+      ctx.beginPath()
+      ctx.arc(islandCx - 10, islandCy + 75, 2.5, 0, Math.PI * 2)
+      ctx.fillStyle = "#1019ec"
+      ctx.fill()
+
+      // Chen Rio
+      ctx.fillStyle = "#71717a"
+      ctx.fillText("Chen Río", islandCx + 25, islandCy + 25)
+      ctx.beginPath()
+      ctx.arc(islandCx + 20, islandCy + 15, 2.5, 0, Math.PI * 2)
+      ctx.fillStyle = "#cfb53b" // Warning beach dot
+      ctx.fill()
+
+      // Cozumel label
+      ctx.font = "bold 10px sans-serif"
       ctx.fillStyle = "#18181b"
       ctx.fillText("COZUMEL", islandCx - 24, islandCy + 5)
 
+      // Update and draw particles
       for (const p of particles) {
-        p.x += p.vx
-        p.y += p.vy
+        if (!p.landed) {
+          p.x += p.vx
+          p.y += p.vy
 
-        const dx = p.x - islandCx
-        const dy = p.y - islandCy
-        const cos = Math.cos(Math.PI / 5)
-        const sin = Math.sin(Math.PI / 5)
-        const rx = dx * cos - dy * sin
-        const ry = dx * sin + dy * cos
-
-        const inIsland = (rx*rx)/(32*32) + (ry*ry)/(82*82) <= 1
-
-        if (inIsland) {
-          p.vx = 0
-          p.vy = 0
-          p.alpha -= 0.02
+          // Check collision using ray-casting point-in-polygon helper
+          const inIsland = pip(p.x, p.y, polyCoords)
+          if (inIsland) {
+            p.landed = true
+            p.vx = 0
+            p.vy = 0
+            landedCount += 1
+          }
+        } else {
+          p.alpha -= 0.015
           if (p.alpha <= 0) {
             resetParticle(p, W, H)
           }
-        } else if (p.x < 0) {
+        }
+
+        if (p.x < 0) {
           resetParticle(p, W, H)
         }
 
@@ -559,13 +626,36 @@ function ModelSimulationCanvas() {
         ctx.fill()
       }
 
-      ctx.globalAlpha = 0.5
+      // Map Coordinate Frame
+      ctx.globalAlpha = 0.6
+      ctx.font = "8px monospace"
+      ctx.fillStyle = "#71717a"
+      ctx.fillText("20°28'N", islandCx, 15)
+      ctx.fillText("86°54'W", W - 50, islandCy)
+
+      // Telemetry HUD overlay in the top right
+      const hudX = W - 180
+      ctx.fillStyle = "rgba(0, 0, 0, 0.03)"
+      ctx.fillRect(hudX - 10, 15, 180, 80)
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.08)"
+      ctx.strokeRect(hudX - 10, 15, 180, 80)
+
       ctx.font = "9px monospace"
-      ctx.fillStyle = "#4b5563"
-      ctx.fillText("MODEL: OpenDrift Lagrangiano", 20, 30)
-      ctx.fillText("CORRIENTES: RTOFS 1/12°", 20, 45)
-      ctx.fillText("VIENTO: GFS 0.25°", 20, 60)
-      ctx.fillText("STATUS: ACTIVE RUN", 20, 75)
+      ctx.fillStyle = "#27272a"
+      ctx.globalAlpha = 0.8
+      
+      const simHours = Math.floor((timeFactor * 0.5) % 336)
+      ctx.fillText(`SIM TIME: +${simHours}h (Forecast)`, hudX, 30)
+      ctx.fillText(`PARTICLES TRACKED: 2,000`, hudX, 42)
+      
+      const beachedPercent = Math.min(99, Math.floor((landedCount % 120) * 0.8))
+      ctx.fillText(`BEACHED FRACTION: ${beachedPercent}%`, hudX, 54)
+      
+      const currentSpeed = (0.28 + Math.sin(timeFactor * 0.01) * 0.05).toFixed(2)
+      ctx.fillText(`DRIFT FLOW (RTOFS): ${currentSpeed} m/s`, hudX, 66)
+      
+      const windSpeed = (10.2 + Math.cos(timeFactor * 0.005) * 2.1).toFixed(1)
+      ctx.fillText(`WIND FIELD (GFS): ${windSpeed} kts`, hudX, 78)
 
       rafRef.current = requestAnimationFrame(draw)
     }
@@ -638,6 +728,10 @@ export function Landing({ onEnter }: LandingProps) {
   const stageRef = useRef(0)
 
   const metodoRef = useRef<HTMLDivElement>(null)
+  const escalaRef = useRef<HTMLDivElement>(null)
+  const escalaPill1Ref = useRef<HTMLDivElement>(null)
+  const escalaPill2Ref = useRef<HTMLDivElement>(null)
+  const escalaPill3Ref = useRef<HTMLDivElement>(null)
   const preguntasRef = useRef<HTMLDivElement>(null)
   const accordionRefs = useRef<(HTMLDivElement|null)[]>([])
   const lineRefs = useRef<(HTMLDivElement|null)[]>([])
@@ -735,7 +829,34 @@ export function Landing({ onEnter }: LandingProps) {
         })
       }
       
-      // 2. Animación de Preguntas (Sección Clara)
+      // 1.5. Animación de la sección "Sargazo a Escala" (Sección Clara #escala)
+      const escala = escalaRef.current
+      if (escala) {
+        const scrollStart = getAbsoluteTop(escala)
+        const scrollEnd = scrollStart + escala.offsetHeight - viewHeight
+        
+        let progress = 0
+        if (currentScroll > scrollStart) {
+          progress = (currentScroll - scrollStart) / (scrollEnd - scrollStart)
+        }
+        progress = Math.max(0, Math.min(1, progress))
+
+        // Update sliding pills along the borders
+        // Pill 1 (bottom border of col 1) moves left: 0% -> 90%
+        if (escalaPill1Ref.current) {
+          escalaPill1Ref.current.style.left = `${progress * 90}%`
+        }
+        // Pill 2 (right border of col 2) moves top: 0% -> 90%
+        if (escalaPill2Ref.current) {
+          escalaPill2Ref.current.style.top = `${progress * 90}%`
+        }
+        // Pill 3 (top border of col 3) moves right: 0% -> 90%
+        if (escalaPill3Ref.current) {
+          escalaPill3Ref.current.style.right = `${progress * 90}%`
+        }
+      }
+
+      // 2. Animación de Preguntas (Sección Oscura)
       const preguntas = preguntasRef.current
       if (preguntas) {
         const scrollStart = getAbsoluteTop(preguntas)
@@ -763,12 +884,12 @@ export function Landing({ onEnter }: LandingProps) {
           if (idx === activeQuestionIdx) {
             el.style.filter = 'none'
             el.style.opacity = '1'
-            el.style.color = '#000000'
+            el.style.color = '#ffffff'
           } else {
             const blurAmount = Math.min(6, distance * 2.0)
             el.style.filter = `blur(${blurAmount}px)`
             el.style.opacity = `${Math.max(0.12, 1 - distance * 0.45)}`
-            el.style.color = 'rgba(0, 0, 0, 0.3)'
+            el.style.color = 'rgba(255, 255, 255, 0.3)'
           }
           
           const underline = el.querySelector('.q-underline') as HTMLElement
@@ -1073,8 +1194,66 @@ export function Landing({ onEnter }: LandingProps) {
         </div>
       </section>
 
-      {/* 4b. Question Stack Section (Lumen-like for Sargazo) — Light theme (#f4f4f5) */}
-      <section ref={preguntasRef} style={{position:"relative",background:"#f4f4f5",height:"300vh"}}>
+      {/* 4c. Clear Section (Sargazo a Escala) — Light theme (#ffffff) */}
+      <section ref={escalaRef} id="escala" style={{position:"relative", background:"#ffffff", height:"300vh"}}>
+        <div style={{position:"sticky", top:0, height:"100vh", display:"flex", alignItems:"center", overflow:"hidden", background:"#ffffff"}}>
+          <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr_220px] w-full h-[calc(100vh-60px)]" style={{maxWidth:1280, margin:"0 auto", padding:"30px", border:"1px solid rgba(0,0,0,0.12)"}}>
+            
+            {/* Column 1: Centered Graphic with border indicators */}
+            <div className="relative flex items-center justify-center p-8 border-r border-b lg:border-b-0" style={{borderColor:"rgba(0,0,0,0.12)"}}>
+              <div style={{maxWidth:350, opacity:0.95}}>
+                {/* Stylized vector outline of a human/shoreline interface */}
+                <svg viewBox="0 0 400 400" width="100%" height="100%" style={{color:"#000000"}}>
+                  <circle cx="200" cy="200" r="160" stroke="currentColor" strokeWidth="0.8" fill="none" strokeDasharray="3 6" />
+                  <path d="M 100 200 C 150 150, 180 250, 250 200 C 300 150, 320 200, 350 200" stroke="#cfb53b" strokeWidth="1.5" fill="none" />
+                  <ellipse cx="200" cy="200" rx="40" ry="120" stroke="currentColor" strokeWidth="1" fill="none" transform="rotate(-30 200 200)" />
+                  <line x1="200" y1="40" x2="200" y2="360" stroke="currentColor" strokeWidth="0.8" strokeDasharray="4 4" />
+                  <line x1="40" y1="200" x2="360" y2="200" stroke="currentColor" strokeWidth="0.8" strokeDasharray="4 4" />
+                  <circle cx="150" cy="120" r="3" fill="#cfb53b" />
+                  <circle cx="270" cy="140" r="2.5" fill="currentColor" />
+                  <circle cx="240" cy="280" r="3" fill="#cfb53b" />
+                  <circle cx="120" cy="260" r="2" fill="currentColor" />
+                </svg>
+              </div>
+              
+              {/* Sliding pill at bottom border */}
+              <div ref={escalaPill1Ref} className="absolute h-1 bg-black rounded-md -bottom-0.5 animate-pulse" style={{width:40, left:"0%", transition:"left 0.1s ease-out"}} />
+            </div>
+
+            {/* Column 2: Content with top/bottom annotation and borders */}
+            <div className="relative flex flex-col justify-center p-8 border-r" style={{borderColor:"rgba(0,0,0,0.12)"}}>
+              <div style={{maxWidth:480}}>
+                <p style={{fontSize:12, letterSpacing:"0.96px", color:"#71717a", textTransform:"uppercase", marginBottom:24}}>
+                  Sargazo a Escala
+                </p>
+                <h3 style={{fontFamily:"sans-serif", fontSize:"clamp(22px, 2.5vw, 32px)", fontWeight:300, lineHeight:1.2, letterSpacing:"-1px", color:"#09090b"}}>
+                  Integrando simulación física de fluidos y perfiles costeros para modelar el impacto del arribo de sargazo sobre la actividad humana.
+                </h3>
+              </div>
+
+              {/* Sliding pill at right border */}
+              <div ref={escalaPill2Ref} className="absolute w-1 bg-black rounded-md -right-0.5 animate-pulse" style={{height:40, top:"0%", transition:"top 0.1s ease-out"}} />
+            </div>
+
+            {/* Column 3: Yellow accent block */}
+            <div className="relative flex flex-col justify-end p-6 bg-[#cfb53b] text-black">
+              <div style={{display:"flex", flexDirection:"column", gap:24, borderTop:"1px solid rgba(0,0,0,0.15)", paddingTop:16}}>
+                <p style={{fontSize:13, fontWeight:400, letterSpacing:"0.5px", margin:0}}>01</p>
+                <p style={{fontSize:14, fontWeight:400, lineHeight:1.4, margin:0}}>
+                  Si se puede modelar, se puede predecir.
+                </p>
+              </div>
+
+              {/* Sliding pill at top border */}
+              <div ref={escalaPill3Ref} className="absolute h-1 bg-black rounded-md -top-0.5 animate-pulse" style={{width:40, right:"0%", transition:"right 0.1s ease-out"}} />
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 4b. Question Stack Section (Lumen-like for Sargazo) — Dark theme (#000000) */}
+      <section ref={preguntasRef} style={{position:"relative",background:"#000000",height:"300vh"}}>
         <div style={{position:"sticky",top:0,height:"100vh",display:"flex",alignItems:"center",overflow:"hidden"}}>
           
           <div className="grid grid-cols-1 lg:grid-cols-[2fr_8fr_2fr] gap-6 items-center w-full" style={{maxWidth:1280,margin:"0 auto",padding:"0 max(40px,6vw)"}}>
@@ -1082,7 +1261,7 @@ export function Landing({ onEnter }: LandingProps) {
             {/* Left: Indicator */}
             <div className="flex items-center gap-3 self-start lg:self-center">
               <div className="w-2 h-2 shrink-0" style={{background:"#cfb53b"}} />
-              <span style={{fontSize:11,letterSpacing:"0.96px",color:"#000000",fontWeight:400,textTransform:"uppercase"}}>Lumen</span>
+              <span style={{fontSize:11,letterSpacing:"0.96px",color:"#ffffff",fontWeight:400,textTransform:"uppercase"}}>Lumen</span>
             </div>
 
             {/* Center: Blurred Scroll Stack */}
@@ -1100,7 +1279,7 @@ export function Landing({ onEnter }: LandingProps) {
                 left:0,
                 right:0,
                 height:100,
-                background:"linear-gradient(to bottom, #f4f4f5, transparent)",
+                background:"linear-gradient(to bottom, #000000, transparent)",
                 zIndex:10,
                 pointerEvents:"none"
               }} />
@@ -1110,7 +1289,7 @@ export function Landing({ onEnter }: LandingProps) {
                 left:0,
                 right:0,
                 height:100,
-                background:"linear-gradient(to top, #f4f4f5, transparent)",
+                background:"linear-gradient(to top, #000000, transparent)",
                 zIndex:10,
                 pointerEvents:"none"
               }} />
@@ -1122,7 +1301,7 @@ export function Landing({ onEnter }: LandingProps) {
                 left:0,
                 right:0,
                 height:1,
-                background:"rgba(0,0,0,0.12)",
+                background:"rgba(255,255,255,0.12)",
                 transform:"translateY(-50%)",
                 zIndex:5
               }} />
@@ -1182,7 +1361,7 @@ export function Landing({ onEnter }: LandingProps) {
                   ...FONT,
                   fontSize:12,
                   letterSpacing:"0.96px",
-                  color:"#000000",
+                  color:"#ffffff",
                   background:"transparent",
                   border:"none",
                   cursor:"pointer",
