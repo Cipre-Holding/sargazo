@@ -25,6 +25,14 @@ const MX_MAIN: [number,number][] = [
   [-106.5,23.2],[-108.5,24.2],[-109.5,27.0],[-110.0,28.5],
   [-111.8,30.0],[-113.5,31.0],
 ]
+// Yucatan + QRoo coast polyline — open path, drawn brighter during zoom
+const QR_COAST: [number,number][] = [
+  [-90.5,21.3],[-89.7,21.4],[-88.3,21.6],
+  [-87.1,21.6],[-86.8,21.3],
+  [-87.0,20.5],[-87.5,20.0],[-87.7,19.5],[-87.9,19.0],
+  [-88.3,18.5],[-88.5,18.0],[-89.1,17.8],[-89.1,17.3],
+]
+
 const MX_BAJA: [number,number][] = [
   [-117.1,32.5],[-114.7,31.8],[-113.5,29.5],[-112.0,27.5],
   [-111.5,27.0],[-110.5,25.5],[-109.8,23.5],[-109.4,22.9],
@@ -56,6 +64,17 @@ function drawPoly(poly: [number,number][], cam: Cam, W: number, H: number, ctx: 
   ctx.beginPath()
   poly.forEach(([lon,lat],i)=>{ const x=lx(lon,cam,W),y=ly(lat,cam,H); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y) })
   ctx.closePath(); ctx.stroke(); ctx.setLineDash([])
+  ctx.restore()
+}
+
+function drawLine(pts: [number,number][], cam: Cam, W: number, H: number, ctx: CanvasRenderingContext2D, alpha: number, lw: number) {
+  if (alpha<=0) return
+  ctx.save()
+  ctx.globalAlpha=alpha; ctx.strokeStyle="#ffffff"; ctx.lineWidth=lw
+  ctx.setLineDash([3,7])
+  ctx.beginPath()
+  pts.forEach(([lon,lat],i)=>{ const x=lx(lon,cam,W),y=ly(lat,cam,H); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y) })
+  ctx.stroke(); ctx.setLineDash([])
   ctx.restore()
 }
 
@@ -92,6 +111,30 @@ function buildMXP(): GeoDash[] {
   return pts
 }
 
+// Fine-detail particles for QRoo — sub-pixel in wide view, emerge at Caribbean zoom
+function buildQRDetailP(): GeoDash[] {
+  const pts: GeoDash[] = []
+  let att = 0
+  while (pts.length < 480 && att < 70000) {
+    att++
+    const lon = -89.6+Math.random()*3.3   // QRoo bbox lon
+    const lat = 17.2+Math.random()*4.8    // QRoo bbox lat
+    if (!pip(lon,lat,MX_MAIN)) continue
+    pts.push({
+      lon, lat,
+      dLon:       (Math.random()-0.5)*0.00015,   // nearly static
+      halfLenDeg: 0.006+Math.random()*0.030,     // 2-10px at 8.5x zoom
+      lw:         0.35+Math.random()*0.80,
+      opacity:    0.20+Math.random()*0.60,
+      phase:      Math.random()*Math.PI*2,
+      period:     1.5+Math.random()*4.0,
+      curv:       (Math.random()-0.5)*0.50,
+      tilt:       (Math.random()-0.5)*0.22,
+    })
+  }
+  return pts
+}
+
 function buildSarP(): SarDash[] {
   return Array.from({length:220},()=>{
     const startLon = -84.5+Math.random()*5.5
@@ -123,14 +166,14 @@ function GeoParticleField({ stageRef }: { stageRef: { current: number } }) {
     if (!wrap || !canvas) return
     const ctx = canvas.getContext("2d")!
 
-    let W=0, H=0, mxP: GeoDash[]=[], saP: SarDash[]=[], startMs=0, prevStage=-1
+    let W=0, H=0, mxP: GeoDash[]=[], saP: SarDash[]=[], qrP: GeoDash[]=[], startMs=0, prevStage=-1
 
     function init() {
       W = wrap!.offsetWidth
       H = wrap!.offsetHeight
       if (!W || !H) return
       canvas!.width=W; canvas!.height=H
-      mxP=buildMXP(); saP=buildSarP()
+      mxP=buildMXP(); saP=buildSarP(); qrP=buildQRDetailP()
       startMs=performance.now(); prevStage=-1
     }
 
@@ -208,6 +251,29 @@ function GeoParticleField({ stageRef }: { stageRef: { current: number } }) {
           ctx.lineWidth=p.lw
           ctx.beginPath(); ctx.moveTo(px-hl,sy0); ctx.quadraticCurveTo(px,scy,px+hl,sy1); ctx.stroke()
         }
+      }
+
+      // QRoo detail particles + coast line — emerge as camera zooms in
+      if (stage>=1) {
+        let qa=1.0
+        if (stage===1) qa=eic((T-TW)/(TZI-TW))
+        if (stage===3) qa=1-eic((T-TCB)/(TZO-TCB))
+
+        // Fine-grained land particles (invisible at wide scale, visible at zoom)
+        for (const p of qrP) {
+          p.lon+=p.dLon
+          const px=lx(p.lon,cam,W), py=ly(p.lat,cam,H)
+          const hl=Math.min(p.halfLenDeg*cam.scale,36)
+          if (hl<0.8||px+hl<0||px-hl>W||py<-2||py>H+2) continue
+          const osc=0.55+0.45*Math.sin(2*Math.PI*ts/p.period+p.phase)
+          const y0=py+p.tilt*hl*0.22, y1=py-p.tilt*hl*0.22, cy=py+p.curv*hl*0.18
+          ctx.globalAlpha=p.opacity*osc*qa
+          ctx.strokeStyle="#ffffff"; ctx.lineWidth=p.lw
+          ctx.beginPath(); ctx.moveTo(px-hl,y0); ctx.quadraticCurveTo(px,cy,px+hl,y1); ctx.stroke()
+        }
+
+        // QRoo coast polyline brighter during zoom
+        drawLine(QR_COAST, cam, W, H, ctx, qa*0.18, 0.9)
       }
 
       // Geographic labels — visible only during Caribbean stage
