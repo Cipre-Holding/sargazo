@@ -736,42 +736,78 @@ const QUESTION_DETAILS = [
     topic: "VIENTO GFS & DERIVA",
     body: "El acoplamiento del viento GFS al modelo lagrangiano determina el desvío hacia la costa oriental. Vientos del este-sureste aceleran el arribo a Chen Río.",
     metric: "3.0%",
-    metricLabel: "Coeficiente de deriva de viento"
+    metricLabel: "Coeficiente de deriva de viento",
+    stats: [
+      { label: "Dirección dominante", val: "ESE (115°)" },
+      { label: "Velocidad media", val: "12.4 kts" },
+      { label: "Influencia en desvío", val: "Alta (88%)" },
+      { label: "Modelo de arrastre", val: "OpenDrift Stokes" }
+    ]
   },
   {
     num: "02",
     topic: "DENSIDAD DE BIOMASA",
     body: "Se estima una densidad promedio en el canal de Yucatán. Las imágenes Sentinel-3 muestran filamentos densos desplazándose hacia el norte.",
     metric: "5.2 t/km²",
-    metricLabel: "Densidad estimada esta semana"
+    metricLabel: "Densidad estimada esta semana",
+    stats: [
+      { label: "Índice satelital", val: "AFAI > 0.002" },
+      { label: "Cobertura espacial", val: "Sentinel-3 MSI" },
+      { label: "Sensor óptico", val: "OLCI (Copernicus)" },
+      { label: "Tendencia semanal", val: "Incremental (+12%)" }
+    ]
   },
   {
     num: "03",
     topic: "ESTOCASTICIDAD fOU",
     body: "El modelo fOU captura la memoria de largo plazo y la reversión a la media, corrigiéndose con la tendencia secular de calentamiento del SST.",
     metric: "H = 0.80",
-    metricLabel: "Coeficiente de Hurst medido"
+    metricLabel: "Coeficiente de Hurst medido",
+    stats: [
+      { label: "Reversión a media", val: "τ = 13.3 meses" },
+      { label: "Volatilidad (σ)", val: "0.42 mensual" },
+      { label: "Correlación estacional", val: "r = 0.95 (SEMAR)" },
+      { label: "Intervalo de confianza", val: "80% LOOCV" }
+    ]
   },
   {
     num: "04",
     topic: "ALERTAS 48 HORAS",
     body: "Chen Río, Punta Morena y Playa Bonita registrarán semáforo Rojo (Muy Alto). Se recomienda activar cuadrillas de limpieza inmediata.",
     metric: "Muy Alto",
-    metricLabel: "Semáforo en 3 segmentos"
+    metricLabel: "Semáforo en 3 segmentos",
+    stats: [
+      { label: "Playas en Rojo", val: "Chen Río, Pta Morena" },
+      { label: "Playas en Naranja", val: "Playa Bonita" },
+      { label: "Nivel de alerta", val: "Nivel 5 (Crítico)" },
+      { label: "Acción recomendada", val: "Limpieza inmediata" }
+    ]
   },
   {
     num: "05",
     topic: "CONFIANZA DEL SISTEMA",
     body: "Calculamos el índice de dispersión mediante ensembles. Desviaciones en corrientes RTOFS mayores a 15° reducen la confianza temporalmente.",
     metric: "83%",
-    metricLabel: "Confianza actual calibrada"
+    metricLabel: "Confianza actual calibrada",
+    stats: [
+      { label: "Dispersión ensembles", val: "Baja (σ = 4.2)" },
+      { label: "Desviación corrientes", val: "< 8° (RTOFS)" },
+      { label: "Latencia del dato", val: "4.5 horas" },
+      { label: "Consistencia", val: "Óptimo (Verificado)" }
+    ]
   },
   {
     num: "06",
     topic: "TASA DE ARRIBO PROMEDIO",
     body: "La tasa estimada para esta semana por kilómetro lineal al día en las zonas expuestas, acumulando impactos en ensenadas naturales.",
     metric: "4.8 t/km",
-    metricLabel: "Arribo diario por km de costa"
+    metricLabel: "Arribo diario por km de costa",
+    stats: [
+      { label: "Acumulación estimada", val: "48.0 t/segmento" },
+      { label: "Impacto costero", val: "Moderado-Alto" },
+      { label: "Eficiencia remoción", val: "Recomendado > 70%" },
+      { label: "Costo de operación", val: "Optimizado (Nivel 2)" }
+    ]
   }
 ]
 
@@ -1408,7 +1444,7 @@ export function Landing({ onEnter }: LandingProps) {
                         display:"flex",
                         flexDirection:"column",
                         justifyContent:"center",
-                        transition:"filter 0.4s ease, opacity 0.4s ease, color 0.4s ease",
+                        transition:"filter 0.08s ease-out, opacity 0.15s ease-out, color 0.15s ease-out",
                         padding:"0 4px"
                       }}
                     >
@@ -1429,34 +1465,56 @@ export function Landing({ onEnter }: LandingProps) {
               <div ref={escalaPill2Ref} className="absolute w-1 bg-black rounded-md -right-0.5 animate-pulse" style={{height:40, top:"0%", transition:"top 0.1s ease-out"}} />
             </div>
 
-            {/* Column 3: Yellow accent block */}
-            <div className="relative flex flex-col justify-between p-6 bg-[#cfb53b] text-black transition-all duration-300">
-              <div style={{ borderBottom: "1px solid rgba(0,0,0,0.15)", paddingBottom: 12 }}>
-                <p style={{ fontSize: 10, letterSpacing: "1px", fontWeight: 700, margin: 0, textTransform: "uppercase", opacity: 0.6 }}>
+            {/* Column 3: Telemetry Dashboard Card (Dark Theme) */}
+            <div className="relative flex flex-col justify-between p-6 bg-[#09090b] text-white border border-zinc-800 transition-all duration-300">
+              
+              {/* Top Accent Line */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-[#cfb53b]" />
+
+              {/* Card Header */}
+              <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: 10 }}>
+                <p style={{ fontSize: 10, letterSpacing: "1.2px", fontWeight: 700, margin: 0, textTransform: "uppercase", color: "#cfb53b" }}>
                   {QUESTION_DETAILS[activeQuestion].topic}
                 </p>
               </div>
 
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", margin: "16px 0" }}>
-                <p style={{ fontSize: "clamp(30px, 3.2vw, 42px)", fontWeight: 300, lineHeight: 1.0, letterSpacing: "-1.5px", color: "#000000", margin: "0 0 8px 0" }}>
+              {/* Huge Metric Area */}
+              <div style={{ flex: "0 0 auto", display: "flex", flexDirection: "column", justifyContent: "center", margin: "14px 0" }}>
+                <p style={{ fontSize: "clamp(28px, 3.2vw, 40px)", fontWeight: 300, lineHeight: 1.0, letterSpacing: "-1.5px", color: "#ffffff", margin: "0 0 4px 0" }}>
                   {QUESTION_DETAILS[activeQuestion].metric}
                 </p>
-                <p style={{ fontSize: 10, letterSpacing: "0.5px", textTransform: "uppercase", opacity: 0.7, margin: 0 }}>
+                <p style={{ fontSize: 9, letterSpacing: "0.5px", textTransform: "uppercase", color: "#a1a1aa", margin: 0 }}>
                   {QUESTION_DETAILS[activeQuestion].metricLabel}
                 </p>
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 12, borderTop: "1px solid rgba(0,0,0,0.15)", paddingTop: 12 }}>
-                <p style={{ fontSize: 12, fontWeight: 500, letterSpacing: "0.5px", margin: 0 }}>
-                  {QUESTION_DETAILS[activeQuestion].num}
-                </p>
-                <p style={{ fontSize: 13, fontWeight: 400, lineHeight: 1.4, margin: 0 }}>
+              {/* Description body */}
+              <div style={{ flex: "1 1 auto", display: "flex", alignItems: "center", marginBottom: 12 }}>
+                <p style={{ fontSize: 12, lineHeight: 1.4, color: "#d4d4d8", margin: 0 }}>
                   {QUESTION_DETAILS[activeQuestion].body}
                 </p>
               </div>
 
+              {/* Telemetry Stats Table */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 12, marginBottom: 8 }}>
+                {QUESTION_DETAILS[activeQuestion].stats.map((s, i) => (
+                  <div key={i} className="flex justify-between items-center text-[10px]" style={{ borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.04)" : "none", paddingBottom: 4 }}>
+                    <span style={{ color: "#a1a1aa", textTransform: "uppercase", letterSpacing: "0.4px" }}>{s.label}</span>
+                    <span style={{ color: "#ffffff", fontFamily: "monospace", fontWeight: 500 }}>{s.val}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Bottom Footer block */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 9, color: "#71717a", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 10, width: "100%" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                  <span>SCENARIO ID: {QUESTION_DETAILS[activeQuestion].num}</span>
+                  <span className="animate-pulse" style={{ color: "#cfb53b" }}>● ACTIVE RUN</span>
+                </div>
+              </div>
+
               {/* Sliding pill at top border */}
-              <div ref={escalaPill3Ref} className="absolute h-1 bg-black rounded-md -top-0.5 animate-pulse" style={{ width: 40, right: "0%", transition: "right 0.1s ease-out" }} />
+              <div ref={escalaPill3Ref} className="absolute h-1 bg-[#cfb53b] rounded-md -top-0.5 animate-pulse" style={{ width: 40, right: "0%", transition: "right 0.1s ease-out" }} />
             </div>
 
           </div>
