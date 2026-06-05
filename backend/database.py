@@ -307,14 +307,24 @@ def seed_database_if_empty(db):
         db.commit()
 
 
-def init_db():
-    import backend.models  # noqa: F401
-    try:
-        Base.metadata.create_all(bind=engine, checkfirst=True)
-    except Exception:
-        pass  # tables already exist (race on startup)
+def _seed_in_background():
+    import traceback
     db = SessionLocal()
     try:
         seed_database_if_empty(db)
+    except Exception:
+        print("[seed] ERROR during background seeding:")
+        traceback.print_exc()
     finally:
         db.close()
+
+
+def init_db():
+    import threading
+    import backend.models  # noqa: F401
+    try:
+        Base.metadata.create_all(bind=engine, checkfirst=True)
+    except Exception as e:
+        print(f"[init_db] create_all non-fatal: {e}")
+    t = threading.Thread(target=_seed_in_background, daemon=True)
+    t.start()
