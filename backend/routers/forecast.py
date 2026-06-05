@@ -112,9 +112,12 @@ def get_sir_dates():
 
 @router.get("/geodata/sir")
 def get_sir(date: Optional[str] = Query(default=None, description="Filter by date YYYYMMDD")):
-    """Return SIR GeoJSON. Without ?date= serves 7-date reduced file. With ?date= filters full dataset."""
+    """Return SIR GeoJSON. Without ?date= serves compact 7-day composite (deduped). With ?date= builds rolling composite from index."""
     if date is None:
-        fp = ROOT / "noaa_sir_riesgo_costero_qroo_reduced.geojson"
+        # Prefer compact 7-day composite (fills satellite gaps, ~6k features, ~5 MB)
+        fp = ROOT / "noaa_sir_composite_7d.geojson"
+        if not fp.exists():
+            fp = ROOT / "noaa_sir_riesgo_costero_qroo_reduced.geojson"
         if not fp.exists():
             raise HTTPException(404, "No SIR GeoJSON")
         with open(fp) as f:

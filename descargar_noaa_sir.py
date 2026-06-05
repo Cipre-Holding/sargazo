@@ -3,7 +3,7 @@ Descarga datos de NOAA Sargassum Inundation Risk (SIR) v1.5.
 - KMZ con segmentos de riesgo costero (diario desde Jul 2025)
 - Extrae riesgo completo para Quintana Roo (histórico)
 - Agrega riesgo para todo el Caribe en una malla ligera
-- Genera GeoJSON de las últimas 7 fechas para todo el Caribe
+- Genera GeoJSON de las últimas 3 fechas (live) + compuesto deduplicado de 7 días
 """
 
 import requests
@@ -159,7 +159,9 @@ def main():
     risk_map = {'low': 0.2, 'warning': 0.45, 'medium': 0.7, 'high': 0.95}
 
     kmz_files = sorted(KMZ_DIR.glob("sargassum_risk_*.kmz"))
-    recent_dates = [f.stem.replace('sargassum_risk_', '') for f in kmz_files][-7:]
+    # Always keep the 3 most recent dates as "live" Caribbean coverage.
+    # The composite file (below) handles the 7-day deduplication for QRoo gaps.
+    recent_dates = [f.stem.replace('sargassum_risk_', '') for f in kmz_files][-3:]
     print(f"Fechas recientes a conservar completas (Caribe): {recent_dates}")
 
     for kmz_path in kmz_files:
@@ -202,12 +204,45 @@ def main():
         json.dump(qr_combined, f)
     print(f"\n✅ GeoJSON QRoo histórico: {qr_path} ({len(qr_features)} features)")
 
-    # Save Caribbean reduced (last 3 dates)
+    # Save Caribbean reduced (last 3 dates — live coverage, ~15 MB)
     reduced_combined = {"type": "FeatureCollection", "features": recent_carib_features}
     reduced_path = ROOT / "noaa_sir_riesgo_costero_qroo_reduced.geojson"
     with open(reduced_path, 'w') as f:
         json.dump(reduced_combined, f)
-    print(f"✅ GeoJSON Caribe reducido (7 fechas): {reduced_path} ({len(recent_carib_features)} features)")
+    print(f"✅ GeoJSON Caribe reducido (3 fechas): {reduced_path} ({len(recent_carib_features)} features)")
+
+    # Build compact 7-day composite — one feature per 0.05° coastal cell, highest risk wins.
+    # This fills satellite gaps (e.g. QRoo cloud cover) without duplicating 7× the features.
+    risk_rank = {'high': 3, 'medium': 2, 'warning': 1, 'low': 0}
+    composite_7d_dates = [f.stem.replace('sargassum_risk_', '') for f in kmz_files][-7:]
+    cell_best: dict = {}  # (lon_key, lat_key) → {'risk': str, 'coords': list, 'date': str}
+    for kmz_path in kmz_files:
+        date_str = kmz_path.stem.replace('sargassum_risk_', '')
+        if date_str not in composite_7d_dates:
+            continue
+        _, carib_segs = parse_kml_risk(str(kmz_path))
+        for seg in carib_segs:
+            if not seg['coordinates']:
+                continue
+            # Representative cell key = midpoint of segment rounded to 0.05°
+            mid = seg['coordinates'][len(seg['coordinates']) // 2]
+            cell_key = (round(mid[0] / 0.05) * 0.05, round(mid[1] / 0.05) * 0.05)
+            existing = cell_best.get(cell_key)
+            if existing is None or risk_rank.get(seg['risk'], 0) >= risk_rank.get(existing['risk'], 0):
+                cell_best[cell_key] = {'risk': seg['risk'], 'coordinates': seg['coordinates'], 'date': date_str}
+
+    composite_features = [
+        {
+            "type": "Feature",
+            "properties": {"risk": v['risk'], "date": v['date'], "color": RISK_COLORS.get(v['risk'], '#888888')},
+            "geometry": {"type": "LineString", "coordinates": v['coordinates']},
+        }
+        for v in cell_best.values()
+    ]
+    composite_path = ROOT / "noaa_sir_composite_7d.geojson"
+    with open(composite_path, 'w') as f:
+        json.dump({"type": "FeatureCollection", "features": composite_features}, f)
+    print(f"✅ GeoJSON compuesto 7d (deduplicado): {composite_path} ({len(composite_features)} features)")
 
     # Save Caribbean aggregated grid
     aggregated_grid = []
