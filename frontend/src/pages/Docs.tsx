@@ -308,13 +308,13 @@ export function Docs({ type: initialType, onBack, onEnter }: DocsProps) {
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 max(40px, 6vw)", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, ...T.label }}>
           <span>© 2026 Cipre Holding · Cozumel, Quintana Roo</span>
           <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
-            <button onClick={onBack} style={{ background: "transparent", border: "none", cursor: "pointer", color: C.slate, ...T.label, transition: "color 0.15s" }}
+            <button onClick={onBack} style={{ background: "transparent", border: "none", cursor: "pointer", ...T.label, transition: "color 0.15s" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = C.frost }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = C.slate }}>
               Volver a Inicio
             </button>
             <span style={{ color: C.border }}>·</span>
-            <button onClick={onEnter} style={{ background: "transparent", border: "none", cursor: "pointer", color: C.slate, ...T.label, transition: "color 0.15s" }}
+            <button onClick={onEnter} style={{ background: "transparent", border: "none", cursor: "pointer", ...T.label, transition: "color 0.15s" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = C.gold }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = C.slate }}>
               Entrar al Sistema
