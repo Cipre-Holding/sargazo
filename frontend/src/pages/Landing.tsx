@@ -803,7 +803,7 @@ function WaveFieldBackground() {
 const STATS = [
   { value:"52.6k", unit:"ton",  label:"Predicción junio 2026" },
   { value:"83",    unit:"/100", label:"Confianza del sistema"  },
-  { value:"315",   unit:"días", label:"Historial NOAA SIR"     },
+  { value:"338",   unit:"días", label:"Historial NOAA SIR"     },
   { value:"14",    unit:"días", label:"Horizonte de forecast"  },
   { value:"604",   unit:"reg.", label:"Boletines SEMAR 2014–26" },
   { value:"H=0.80",unit:"Hurst",label:"Memoria larga fOU"      },
@@ -812,7 +812,7 @@ const STATS = [
 ]
 const ACCORDION = [
   { num:"01", label:"TELEDETECCIÓN SATELITAL",
-    body:"Procesamiento de imágenes Copernicus / Sentinel-3 con índice AFAI. 315 fechas diarias NOAA AOML interpoladas con kernel Wendland C2 sobre una malla costera de ~4 km. 582 celdas de riesgo costero activas." },
+    body:"Procesamiento de imágenes Copernicus / Sentinel-3 con índice AFAI. 338 fechas diarias NOAA AOML interpoladas con kernel Wendland C2 sobre una malla costera de ~4 km. 18,294 celdas de riesgo costero activas." },
   { num:"02", label:"MODELADO ESTOCÁSTICO fOU",
     body:"Proceso de Ornstein-Uhlenbeck fraccional calibrado a la serie SEMAR/GASB (2000-2026). Hurst H = 0.80, reversión τ½ = 13.3 meses. Correlación predictor ACO→CM r = 0.95." },
   { num:"03", label:"PREDICCIÓN ENSEMBLE ACO→CM",
@@ -1167,7 +1167,21 @@ export function Landing({ onEnter }: LandingProps) {
             Sargazo Cozumel
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-5 mr-2">
+            <a href="/docs/METHODOLOGY_AND_PAPERS.md" target="_blank" rel="noopener noreferrer"
+              style={{...FONT,fontSize:12,letterSpacing:"0.48px",color:"#858484",textTransform:"uppercase",textDecoration:"none",transition:"color 0.15s"}}
+              onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color="#ffffff"}}
+              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color="#858484"}}>
+              Bases Científicas ↗
+            </a>
+            <a href="/docs/LAYERS_AND_SOURCES.md" target="_blank" rel="noopener noreferrer"
+              style={{...FONT,fontSize:12,letterSpacing:"0.48px",color:"#858484",textTransform:"uppercase",textDecoration:"none",transition:"color 0.15s"}}
+              onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color="#ffffff"}}
+              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color="#858484"}}>
+              Capas y Datos ↗
+            </a>
+          </div>
           <span className="hidden md:inline"
             style={{fontSize:12,letterSpacing:"0.48px",color:"#858484",textTransform:"uppercase"}}>
             Cipre Holding
@@ -1222,7 +1236,7 @@ export function Landing({ onEnter }: LandingProps) {
         </div>
 
         {/* CTA */}
-        <div style={{position:"absolute",left:"max(40px,6vw)",bottom:48,zIndex:10,display:"flex",alignItems:"center",gap:32}}>
+        <div style={{position:"absolute",left:"max(40px,6vw)",bottom:48,zIndex:10,display:"flex",flexWrap:"wrap",alignItems:"center",gap:24}}>
           <button onClick={onEnter} className="inline-flex items-center gap-2"
             style={{...FONT,background:"#cfb53b",color:"#000000",fontSize:14,letterSpacing:"0.56px",textTransform:"uppercase",border:"none",borderRadius:0,padding:"13px 28px",cursor:"pointer",transition:"background 0.15s,transform 0.1s"}}
             onMouseEnter={e=>{e.currentTarget.style.background="#baa335"}}
@@ -1232,10 +1246,23 @@ export function Landing({ onEnter }: LandingProps) {
             Entrar al sistema <ArrowRight size={14} />
           </button>
           <a href="#metodologia"
+            style={{...FONT,color:"#ffffff",fontSize:13,letterSpacing:"0.325px",textDecoration:"none",transition:"opacity 0.15s",textTransform:"uppercase"}}
+            onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.opacity="0.8"}}
+            onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.opacity="1"}}>
+            Ver metodología
+          </a>
+          <span style={{color:"rgba(255,255,255,0.2)"}}>|</span>
+          <a href="/docs/METHODOLOGY_AND_PAPERS.md" target="_blank" rel="noopener noreferrer"
             style={{...FONT,color:"#858484",fontSize:13,letterSpacing:"0.325px",textDecoration:"none",transition:"color 0.15s",textTransform:"uppercase"}}
             onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color="#ffffff"}}
             onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color="#858484"}}>
-            Ver metodología
+            Bases Científicas ↗
+          </a>
+          <a href="/docs/LAYERS_AND_SOURCES.md" target="_blank" rel="noopener noreferrer"
+            style={{...FONT,color:"#858484",fontSize:13,letterSpacing:"0.325px",textDecoration:"none",transition:"color 0.15s",textTransform:"uppercase"}}
+            onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color="#ffffff"}}
+            onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color="#858484"}}>
+            Capas y Datos ↗
           </a>
         </div>
 
@@ -1696,8 +1723,8 @@ export function Landing({ onEnter }: LandingProps) {
               desc:"Ensemble de 3 modelos ML ponderados por R² LOOCV. IC 80% calibrado. Horizonte: siguiente mes.",
               tags:["Ridge","Bayesian","Ensemble"]},
             {Icon:Satellite,title:"Riesgo costero satelital",
-              desc:"315 días históricos NOAA SIR interpolados con kernel Wendland C2. Malla ~4 km, 582 celdas.",
-              tags:["NOAA AOML","~4 km","582 celdas"]},
+              desc:"338 días históricos NOAA SIR interpolados con kernel Wendland C2. Malla ~4 km, 18,294 celdas.",
+              tags:["NOAA AOML","~4 km","18,294 celdas"]},
             {Icon:Navigation,title:"Forecast Lagrangiano",
               desc:"2 000 partículas con OpenDrift sobre corrientes RTOFS y viento GFS. 25 horizontes KDE.",
               tags:["2 000 part.","RTOFS+GFS","14 días"]},
@@ -1764,7 +1791,7 @@ export function Landing({ onEnter }: LandingProps) {
                     <tbody>
                       {[
                         ["Boletines SEMAR",      "2014 – 2026", "604",  "Semanal",  "Caribe Mexicano"],
-                        ["NOAA SIR (satélite)",  "2019 – 2024", "315",  "Diario",   "~4 km costero"  ],
+                        ["NOAA SIR (satélite)",  "2025 – 2026", "338",  "Diario",   "~4 km costero"  ],
                         ["SATsum Caribe",        "2011 – 2024", "162",  "Mensual",  "Regional"        ],
                         ["SATsum ZEE México",    "2011 – 2024", "162",  "Mensual",  "ZEE nacional"    ],
                         ["SST Cozumel (OISST)",  "2000 – 2026", "316",  "Mensual",  "0.25°"           ],
@@ -1825,17 +1852,39 @@ export function Landing({ onEnter }: LandingProps) {
       </section>
 
       {/* 10. Footer */}
-      <footer style={{background:"#000000",borderTop:"1px solid rgba(255,255,255,0.07)",padding:"24px max(40px,6vw)"}}>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4" style={{maxWidth:1280,margin:"0 auto"}}>
-          <div className="flex items-center gap-3">
-            <Waves size={13} style={{color:"#858484"}} />
-            <span style={{fontSize:12,fontWeight:300,color:"#858484",letterSpacing:"0.48px"}}>
-              © 2026 Cipre Holding · Cozumel, Quintana Roo
+      <footer style={{background:"#000000",borderTop:"1px solid rgba(255,255,255,0.07)",padding:"40px max(40px,6vw) 24px"}}>
+        <div style={{maxWidth:1280,margin:"0 auto"}}>
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8" style={{borderBottom:"1px solid rgba(255,255,255,0.05)",marginBottom:24}}>
+            <div className="flex flex-col gap-2">
+              <span style={{fontSize:12,fontWeight:400,color:"#ffffff",letterSpacing:"0.96px",textTransform:"uppercase"}}>Documentación Técnica</span>
+              <p style={{fontSize:13,color:"#858484",maxWidth:400,lineHeight:1.4}}>Accede a los reportes de validación y especificaciones científicas del modelo de predicción y capas de datos.</p>
+            </div>
+            <div className="flex flex-wrap gap-x-8 gap-y-3">
+              <a href="/docs/METHODOLOGY_AND_PAPERS.md" target="_blank" rel="noopener noreferrer"
+                style={{...FONT,fontSize:13,letterSpacing:"0.52px",color:"#cfb53b",textTransform:"uppercase",textDecoration:"none",transition:"color 0.15s"}}
+                onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color="#ffffff"}}
+                onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color="#cfb53b"}}>
+                Bases Científicas y Metodología ↗
+              </a>
+              <a href="/docs/LAYERS_AND_SOURCES.md" target="_blank" rel="noopener noreferrer"
+                style={{...FONT,fontSize:13,letterSpacing:"0.52px",color:"#cfb53b",textTransform:"uppercase",textDecoration:"none",transition:"color 0.15s"}}
+                onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color="#ffffff"}}
+                onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color="#cfb53b"}}>
+                Capas de Mapeo y Fuentes ↗
+              </a>
+            </div>
+          </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Waves size={13} style={{color:"#858484"}} />
+              <span style={{fontSize:12,fontWeight:300,color:"#858484",letterSpacing:"0.48px"}}>
+                © 2026 Cipre Holding · Cozumel, Quintana Roo
+              </span>
+            </div>
+            <span style={{fontSize:11,fontWeight:300,color:"#858484",letterSpacing:"0.44px",textTransform:"uppercase"}}>
+              SEMAR · NOAA AOML · RTOFS · GFS · OISST
             </span>
           </div>
-          <span style={{fontSize:11,fontWeight:300,color:"#858484",letterSpacing:"0.44px",textTransform:"uppercase"}}>
-            SEMAR · NOAA AOML · RTOFS · GFS · OISST
-          </span>
         </div>
       </footer>
 
