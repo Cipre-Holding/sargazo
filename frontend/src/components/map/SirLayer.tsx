@@ -20,12 +20,10 @@ export function SirLayer({ geojson, visible, opacity = 0.6, selectedDate, onDate
     if (onDatesAvailable && d.length > 0) {
       onDatesAvailable(d)
     }
-    let filtered = geojson.features
-    if (selectedDate) {
-      filtered = geojson.features.filter((f) => f.properties?.date === selectedDate)
-    }
-    return { features: filtered, dates: d }
-  }, [geojson, selectedDate])
+    // Do not filter by selectedDate on the frontend because the API (?date=...)
+    // already returns the correct 7-day rolling composite of features for that selected date.
+    return { features: geojson.features, dates: d }
+  }, [geojson])
 
   const filteredCollection: GeoJSON.FeatureCollection = useMemo(
     () => ({ type: "FeatureCollection", features }),
@@ -57,11 +55,11 @@ export function SirLayer({ geojson, visible, opacity = 0.6, selectedDate, onDate
         ],
         "line-width": [
           "match", ["get", "risk"],
-          "high", 3, "medium", 2, "warning", 1.5, "low", 1, 1,
+          "high", 3.5, "medium", 2.5, "warning", 2.0, "low", 1.5, 1.5,
         ],
         "line-opacity": [
           "match", ["get", "risk"],
-          "high", 0.75, "medium", 0.55, "warning", 0.35, "low", 0.12, 0.2,
+          "high", 0.80, "medium", 0.65, "warning", 0.50, "low", 0.30, 0.3,
         ],
       },
     })

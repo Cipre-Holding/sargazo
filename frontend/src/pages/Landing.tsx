@@ -1167,57 +1167,53 @@ export function Landing({ onEnter }: LandingProps) {
             Sargazo Cozumel
           </span>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="hidden lg:flex items-center gap-4 mr-2">
-            <a href="?view=methodology" target="_blank" rel="noopener noreferrer"
-              style={{
-                ...FONT,
-                fontSize:12,
-                letterSpacing:"0.48px",
-                color:"#ffffff",
-                textTransform:"uppercase",
-                textDecoration:"none",
-                border:"1px solid rgba(255,255,255,0.2)",
-                borderRadius:0,
-                padding:"8px 18px",
-                background:"transparent",
-                transition:"border-color 0.15s,background 0.15s"
-              }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor="#ffffff";e.currentTarget.style.background="rgba(255,255,255,0.05)"}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.2)";e.currentTarget.style.background="transparent"}}>
-              Bases Científicas ↗
-            </a>
-            <a href="?view=layers" target="_blank" rel="noopener noreferrer"
-              style={{
-                ...FONT,
-                fontSize:12,
-                letterSpacing:"0.48px",
-                color:"#ffffff",
-                textTransform:"uppercase",
-                textDecoration:"none",
-                border:"1px solid rgba(255,255,255,0.2)",
-                borderRadius:0,
-                padding:"8px 18px",
-                background:"transparent",
-                transition:"border-color 0.15s,background 0.15s"
-              }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor="#ffffff";e.currentTarget.style.background="rgba(255,255,255,0.05)"}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.2)";e.currentTarget.style.background="transparent"}}>
-              Capas y Datos ↗
-            </a>
-          </div>
+        <div className="flex items-center gap-3">
           <span className="hidden md:inline mr-2"
             style={{fontSize:12,letterSpacing:"0.48px",color:"#858484",textTransform:"uppercase"}}>
             Cipre Holding
           </span>
-          <button onClick={onEnter}
-            style={{...FONT,fontSize:12,letterSpacing:"0.48px",color:"#000000",textTransform:"uppercase",border:"none",borderRadius:0,padding:"8px 22px",background:"#cfb53b",cursor:"pointer",transition:"background 0.15s,transform 0.1s"}}
+          <a href="?view=methodology" target="_blank" rel="noopener noreferrer"
+            style={{
+              ...FONT,
+              fontSize:12,
+              letterSpacing:"0.48px",
+              color:"#ffffff",
+              textTransform:"uppercase",
+              textDecoration:"none",
+              border:"1px solid rgba(255,255,255,0.28)",
+              borderRadius:0,
+              padding:"8px 22px",
+              background:"transparent",
+              cursor:"pointer",
+              display:"inline-block",
+              transition:"border-color 0.15s,background 0.15s"
+            }}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor="#ffffff";e.currentTarget.style.background="rgba(255,255,255,0.05)"}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.28)";e.currentTarget.style.background="transparent"}}>
+            Bases Científicas ↗
+          </a>
+          <a href="?view=layers" target="_blank" rel="noopener noreferrer"
+            style={{
+              ...FONT,
+              fontSize:12,
+              letterSpacing:"0.48px",
+              color:"#000000",
+              textTransform:"uppercase",
+              textDecoration:"none",
+              border:"none",
+              borderRadius:0,
+              padding:"8px 22px",
+              background:"#cfb53b",
+              cursor:"pointer",
+              display:"inline-block",
+              transition:"background 0.15s,transform 0.1s"
+            }}
             onMouseEnter={e=>{e.currentTarget.style.background="#baa335"}}
             onMouseLeave={e=>{e.currentTarget.style.background="#cfb53b"}}
             onMouseDown={e=>{e.currentTarget.style.transform="scale(0.97)"}}
             onMouseUp={e=>{e.currentTarget.style.transform="scale(1)"}}>
-            Entrar al Sistema →
-          </button>
+            Capas y Datos ↗
+          </a>
         </div>
       </header>
 
@@ -1254,7 +1250,7 @@ export function Landing({ onEnter }: LandingProps) {
         </div>
 
         {/* CTA */}
-        <div style={{position:"absolute",left:"max(40px,6vw)",bottom:48,zIndex:10,display:"flex",flexWrap:"wrap",alignItems:"center",gap:16}}>
+        <div style={{position:"absolute",left:"max(40px,6vw)",bottom:48,zIndex:10,display:"flex",alignItems:"center",gap:32}}>
           <button onClick={onEnter} className="inline-flex items-center gap-2"
             style={{...FONT,background:"#cfb53b",color:"#000000",fontSize:14,letterSpacing:"0.56px",textTransform:"uppercase",border:"none",borderRadius:0,padding:"13px 28px",cursor:"pointer",transition:"background 0.15s,transform 0.1s"}}
             onMouseEnter={e=>{e.currentTarget.style.background="#baa335"}}
@@ -1267,46 +1263,16 @@ export function Landing({ onEnter }: LandingProps) {
           <a href="?view=methodology" target="_blank" rel="noopener noreferrer"
             style={{
               ...FONT,
+              color:"#858484",
               fontSize:13,
-              letterSpacing:"0.52px",
-              color:"#ffffff",
-              textTransform:"uppercase",
+              letterSpacing:"0.325px",
               textDecoration:"none",
-              border:"1px solid rgba(255,255,255,0.2)",
-              borderRadius:0,
-              padding:"12px 24px",
-              background:"transparent",
-              transition:"border-color 0.15s,background 0.15s"
+              transition:"color 0.15s",
+              textTransform:"uppercase"
             }}
-            onMouseEnter={e=>{e.currentTarget.style.borderColor="#ffffff";e.currentTarget.style.background="rgba(255,255,255,0.05)"}}
-            onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.2)";e.currentTarget.style.background="transparent"}}>
-            Bases Científicas ↗
-          </a>
-
-          <a href="?view=layers" target="_blank" rel="noopener noreferrer"
-            style={{
-              ...FONT,
-              fontSize:13,
-              letterSpacing:"0.52px",
-              color:"#ffffff",
-              textTransform:"uppercase",
-              textDecoration:"none",
-              border:"1px solid rgba(255,255,255,0.2)",
-              borderRadius:0,
-              padding:"12px 24px",
-              background:"transparent",
-              transition:"border-color 0.15s,background 0.15s"
-            }}
-            onMouseEnter={e=>{e.currentTarget.style.borderColor="#ffffff";e.currentTarget.style.background="rgba(255,255,255,0.05)"}}
-            onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.2)";e.currentTarget.style.background="transparent"}}>
-            Capas y Datos ↗
-          </a>
-
-          <a href="#metodologia"
-            style={{...FONT,color:"#9d9d9d",fontSize:13,letterSpacing:"0.325px",textDecoration:"none",transition:"color 0.15s",textTransform:"uppercase",marginLeft:8}}
             onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color="#ffffff"}}
-            onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color="#9d9d9d"}}>
-            Ver metodología
+            onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color="#858484"}}>
+            Bases Científicas ↗
           </a>
         </div>
 
