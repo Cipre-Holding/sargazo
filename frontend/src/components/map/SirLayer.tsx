@@ -78,11 +78,11 @@ export function SirLayer({ geojson, visible, opacity = 0.6, selectedDate, onDate
     if (!isLoaded || !map) return
     try {
       const src = map.getSource(sourceId) as any
-      if (src && features.length > 0) {
+      if (src) {
         src.setData(filteredCollection)
       }
     } catch {}
-  }, [isLoaded, map, filteredCollection, features.length])
+  }, [isLoaded, map, filteredCollection])
 
   // Toggle visibility
   useEffect(() => {

@@ -16,11 +16,11 @@ const HORIZONTES = [
 const LAYERS = [
   {
     id: "mlrisk", label: "Riesgo ML", desc: "Interpolación de riesgo costero",
-    info: "915 celdas interpoladas con kernel Wendland C2 (max-pooling).\nFuente: 52,551 segmentos NOAA SIR de 315 días.\nMalla: 4km. Radio: 67×20 km.\nFecha: 2026-05-11."
+    info: "18,294 celdas interpoladas con kernel Wendland C2 (max-pooling).\nFuente: 52,551 segmentos NOAA SIR de 338 días.\nMalla: 4km. Radio: 67×20 km.\nFecha: 2026-05-11."
   },
   {
     id: "sir", label: "NOAA SIR", desc: "Riesgo costero satelital",
-    info: "Segmentos de riesgo de NOAA Sargassum Inundation Risk v1.5.\nColores: rojo=HIGH, naranja=MED, amarillo=WARN, azul=LOW.\nSlider para navegar entre 315 fechas disponibles.\nFuente: cwcgom.aoml.noaa.gov"
+    info: "Segmentos de riesgo de NOAA Sargassum Inundation Risk v1.5.\nColores: rojo=HIGH, naranja=MED, amarillo=WARN, azul=LOW.\nSlider para navegar entre 338 fechas disponibles.\nFuente: cwcgom.aoml.noaa.gov"
   },
   {
     id: "kde", label: "Acumulación KDE", desc: "Densidad de partículas",

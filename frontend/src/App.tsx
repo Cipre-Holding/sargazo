@@ -668,13 +668,17 @@ function App({ onBack }: AppProps) {
                       <span>{allSirDates?.[0]}</span>
                       <span>{allSirDates?.[allSirDates.length - 1]}</span>
                     </div>
+                    <p className="text-[10px] text-muted/65 leading-normal mt-2.5 pt-2 border-t border-border/20">
+                      <span className="text-amber-500 font-semibold mr-1">⚠ Nota:</span>
+                      Las observaciones diarias de la NOAA pueden presentar vacíos por nubosidad. Use el control para explorar fechas previas o active <strong>Riesgo ML</strong> para ver el mapa interpolado continuo.
+                    </p>
                   </div>
                 )}
 
                 {/* Info about layer counts */}
                 <div className="rounded-xl border border-border/30 p-3 text-xs text-muted/60 space-y-1">
-                  <div className="flex justify-between"><span>Fechas NOAA SIR</span><span className="font-mono">315</span></div>
-                  <div className="flex justify-between"><span>Celdas ML interpoladas</span><span className="font-mono">915</span></div>
+                  <div className="flex justify-between"><span>Fechas NOAA SIR</span><span className="font-mono">338</span></div>
+                  <div className="flex justify-between"><span>Celdas ML interpoladas</span><span className="font-mono">18,294</span></div>
                   <div className="flex justify-between"><span>Partículas Lagrangianas</span><span className="font-mono">2 000</span></div>
                   <div className="flex justify-between"><span>Horizontes disponibles</span><span className="font-mono">12h – 14d</span></div>
                 </div>
@@ -706,7 +710,7 @@ function App({ onBack }: AppProps) {
                     {[
                       ["Serie histórica", "2000-2026"],
                       ["Fuentes",         "SEMAR + Mendeley + SATsum"],
-                      ["Datos NOAA SIR",  "315 días"],
+                      ["Datos NOAA SIR",  "338 días"],
                       ["Partículas",      "2000 · RTOFS+GFS"],
                       ["Modelos activos", "Fase 0/1/2 + Ensemble"],
                       ["Pipeline",        "Lunes 06:00 UTC"],

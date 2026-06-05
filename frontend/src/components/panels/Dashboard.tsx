@@ -460,7 +460,7 @@ export function Dashboard({ predictions, beachRisk, confidence, features, backte
                     )}
                     {[
                       ["Modelos activos",  `${modelData.length}`],
-                      ["Datos NOAA SIR",   "315 días"],
+                      ["Datos NOAA SIR",   "338 días"],
                       ["Serie histórica",  "2000-2026 (298 meses)"],
                       ["Predicción activa","Jun 2026"],
                     ].map(([k, v]) => (
