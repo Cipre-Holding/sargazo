@@ -3,7 +3,7 @@ Descarga datos de NOAA Sargassum Inundation Risk (SIR) v1.5.
 - KMZ con segmentos de riesgo costero (diario desde Jul 2025)
 - Extrae riesgo completo para Quintana Roo (histórico)
 - Agrega riesgo para todo el Caribe en una malla ligera
-- Genera GeoJSON de las últimas 3 fechas para todo el Caribe
+- Genera GeoJSON de las últimas 7 fechas para todo el Caribe
 """
 
 import requests
@@ -159,7 +159,7 @@ def main():
     risk_map = {'low': 0.2, 'warning': 0.45, 'medium': 0.7, 'high': 0.95}
 
     kmz_files = sorted(KMZ_DIR.glob("sargassum_risk_*.kmz"))
-    recent_dates = [f.stem.replace('sargassum_risk_', '') for f in kmz_files][-3:]
+    recent_dates = [f.stem.replace('sargassum_risk_', '') for f in kmz_files][-7:]
     print(f"Fechas recientes a conservar completas (Caribe): {recent_dates}")
 
     for kmz_path in kmz_files:
@@ -207,7 +207,7 @@ def main():
     reduced_path = ROOT / "noaa_sir_riesgo_costero_qroo_reduced.geojson"
     with open(reduced_path, 'w') as f:
         json.dump(reduced_combined, f)
-    print(f"✅ GeoJSON Caribe reducido (3 fechas): {reduced_path} ({len(recent_carib_features)} features)")
+    print(f"✅ GeoJSON Caribe reducido (7 fechas): {reduced_path} ({len(recent_carib_features)} features)")
 
     # Save Caribbean aggregated grid
     aggregated_grid = []
