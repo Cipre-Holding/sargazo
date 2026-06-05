@@ -34,6 +34,7 @@ def run_forecast_7dias():
     # RTOFS surface currents (scaled x1.5)
     try:
         r = reader_netCDF_CF_generic.Reader(str(ROOT / 'rtofs_carib_surface.nc'))
+        r.set_buffer_size(max_speed=5.0)
         o.add_reader(r)
         print("✅ RTOFS surface currents")
     except Exception as e:
@@ -43,6 +44,7 @@ def run_forecast_7dias():
     # GFS wind
     try:
         rw = reader_netCDF_CF_generic.Reader(str(ROOT / 'gfs_carib_wind.nc'))
+        rw.set_buffer_size(max_speed=25.0)
         o.add_reader(rw)
         print("✅ GFS wind")
     except Exception as e:
@@ -56,16 +58,16 @@ def run_forecast_7dias():
     np.random.seed(123)
     n = 2000  # aumentado de 500 para mejor cobertura
     lons = np.concatenate([
-        np.random.uniform(-88, -85, int(n*0.25)),   # Yucatan/QRoo
-        np.random.uniform(-82, -76, int(n*0.25)),   # Caribe central
-        np.random.uniform(-72, -64, int(n*0.25)),   # Caribe este
-        np.random.uniform(-58, -48, int(n*0.25)),   # Atlántico
+        np.random.uniform(-88.0, -83.0, int(n*0.25)),   # Caribe Oeste
+        np.random.uniform(-82.0, -74.0, int(n*0.25)),   # Caribe Central
+        np.random.uniform(-72.0, -64.0, int(n*0.25)),   # Caribe Este
+        np.random.uniform(-62.0, -56.0, int(n*0.25)),   # Entrada Caribe
     ])
     lats = np.concatenate([
-        np.random.uniform(18, 22, int(n*0.25)),
-        np.random.uniform(15, 20, int(n*0.25)),
-        np.random.uniform(12, 18, int(n*0.25)),
-        np.random.uniform(8, 14, int(n*0.25)),
+        np.random.uniform(15.0, 21.0, int(n*0.25)),
+        np.random.uniform(12.0, 18.0, int(n*0.25)),
+        np.random.uniform(12.0, 18.0, int(n*0.25)),
+        np.random.uniform(10.5, 16.0, int(n*0.25)),
     ])
     # Use the start time of the RTOFS reader to align the elements seeding time
     sim_time = r.start_time if hasattr(r, 'start_time') and r.start_time else datetime(2026, 5, 12, 12, 0)
@@ -80,7 +82,9 @@ def run_forecast_7dias():
     
     # ── Extraer posiciones por horizonte ──
     ds = o.result
-    n_steps_total = ds.lon.shape[0]
+    # ds.lon tiene dimensiones (trajectory, time)
+    n_elements = ds.lon.shape[0]     # 2000
+    n_steps_total = ds.lon.shape[1]  # 337
     # Horizontes: cada 12h hasta 336h (14 días)
     horizontes_h = list(range(12, 337, 12))
     
@@ -93,9 +97,9 @@ def run_forecast_7dias():
     all_horizontes = {}
     for h_name, h_step in zip([f'{h}h' for h in horizontes_h], horizonte_steps):
         positions = []
-        for e in range(min(ds.lon.shape[1], 2000)):
-            lon = float(ds.lon.values[h_step, e])
-            lat = float(ds.lat.values[h_step, e])
+        for e in range(n_elements):
+            lon = float(ds.lon.values[e, h_step])
+            lat = float(ds.lat.values[e, h_step])
             if not np.isnan(lon) and 5 < lat < 35 and -100 < lon < -40:
                 positions.append([lon, lat])
         all_horizontes[h_name] = np.array(positions) if positions else np.array([[0, 0]])
@@ -142,9 +146,9 @@ def run_forecast_7dias():
     traj_rows = []
     step_sample = max(1, n_steps_total // 30)
     for t in range(0, n_steps_total, step_sample):
-        for e in range(min(ds.lon.shape[1], 1000)):
-            lon = float(ds.lon.values[t, e])
-            lat = float(ds.lat.values[t, e])
+        for e in range(n_elements):
+            lon = float(ds.lon.values[e, t])
+            lat = float(ds.lat.values[e, t])
             if not np.isnan(lon) and 5 < lat < 35 and -100 < lon < -40:
                 traj_rows.append({'lon': lon, 'lat': lat, 'step': t, 'id': e})
     

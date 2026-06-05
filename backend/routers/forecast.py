@@ -16,16 +16,39 @@ _sir_index_ready = False
 
 def _build_sir_index() -> None:
     global _sir_index_ready
+    # 1. Cargar segmentos históricos de Quintana Roo
     fp = ROOT / "noaa_sir_riesgo_costero_qroo.geojson"
-    if not fp.exists():
-        _sir_index_ready = True
-        return
-    with open(fp) as f:
-        data = json.load(f)
-    for feat in data.get("features", []):
-        d = feat.get("properties", {}).get("date")
-        if d:
-            _sir_index.setdefault(d, []).append(feat)
+    if fp.exists():
+        with open(fp) as f:
+            data = json.load(f)
+        for feat in data.get("features", []):
+            d = feat.get("properties", {}).get("date")
+            if d:
+                _sir_index.setdefault(d, []).append(feat)
+
+    # 2. Cargar segmentos de todo el Caribe para las últimas 3 fechas (sobrescribe para evitar duplicados)
+    reduced_fp = ROOT / "noaa_sir_riesgo_costero_qroo_reduced.geojson"
+    if reduced_fp.exists():
+        with open(reduced_fp) as f:
+            reduced_data = json.load(f)
+        
+        # Obtener las fechas recientes del archivo reducido
+        recent_dates = set()
+        for feat in reduced_data.get("features", []):
+            d = feat.get("properties", {}).get("date")
+            if d:
+                recent_dates.add(d)
+        
+        # Limpiar esas fechas en el índice histórico de QRoo
+        for d in recent_dates:
+            _sir_index[d] = []
+            
+        # Llenar con los segmentos de todo el Caribe
+        for feat in reduced_data.get("features", []):
+            d = feat.get("properties", {}).get("date")
+            if d:
+                _sir_index[d].append(feat)
+
     _sir_index_ready = True
 
 
