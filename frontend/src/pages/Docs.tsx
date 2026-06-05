@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { ArrowLeft, BookOpen, Layers, ArrowRight, FileText, Database, AlertTriangle, CheckCircle2 } from "lucide-react"
+import React, { useState } from "react"
+import { ArrowLeft, Waves, ArrowRight, Database, AlertTriangle, CheckCircle2 } from "lucide-react"
 
 interface DocsProps {
   type: "methodology" | "layers"
@@ -7,9 +7,8 @@ interface DocsProps {
   onEnter: () => void
 }
 
-const FONT = {
+const FONT: React.CSSProperties = {
   fontFamily: "'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif",
-  letterSpacing: "0.025em",
   fontWeight: 300,
 }
 
@@ -130,43 +129,128 @@ export function Docs({ type: initialType, onBack, onEnter }: DocsProps) {
   ]
 
   return (
-    <div className="min-h-screen text-white flex flex-col" style={{ background: "#05080c", ...FONT }}>
-      
-      {/* Top Header */}
-      <header className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-12 border-b border-white/5" style={{ height: 64, background: "#05080c" }}>
-        <div className="flex items-center gap-4">
-          <button onClick={onBack} className="flex items-center justify-center p-2 rounded-md hover:bg-white/5 transition-colors text-zinc-400 hover:text-white" title="Volver a la Landing">
-            <ArrowLeft size={16} />
+    <div style={{ minHeight: "100vh", color: "#ffffff", display: "flex", flexDirection: "column", background: "#000000", ...FONT }}>
+
+      {/* Top Header — matches Landing nav exactly */}
+      <header style={{
+        position: "sticky", top: 0, zIndex: 50,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "0 max(40px, 6vw)",
+        height: 56,
+        background: "#000000",
+        borderBottom: "1px solid rgba(255,255,255,0.07)",
+      }}>
+        {/* Left: back + wordmark */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            onClick={onBack}
+            title="Volver"
+            style={{ ...FONT, background: "transparent", border: "none", cursor: "pointer", padding: 0, color: "#858484", display: "flex", alignItems: "center", transition: "color 0.15s" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#ffffff" }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#858484" }}
+          >
+            <ArrowLeft size={14} />
           </button>
-          <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">Documentación Técnica</span>
+          <Waves size={14} style={{ color: "#ffffff" }} />
+          <span style={{ fontSize: 13, letterSpacing: "0.52px", color: "#ffffff", textTransform: "uppercase" }}>
+            Documentación Técnica
+          </span>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex bg-zinc-950 p-1 border border-white/10 rounded-md">
-          <button 
+        {/* Center: tabs styled as Landing nav ghost buttons */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button
             onClick={() => setActiveTab("methodology")}
-            className={`flex items-center gap-2 px-4 py-1.5 text-xs uppercase tracking-wider transition-all duration-150 ${activeTab === "methodology" ? "bg-zinc-800 text-white font-medium" : "text-zinc-500 hover:text-zinc-350"}`}
+            style={{
+              ...FONT,
+              fontSize: 12,
+              letterSpacing: "0.48px",
+              color: activeTab === "methodology" ? "#ffffff" : "#858484",
+              textTransform: "uppercase",
+              border: activeTab === "methodology" ? "1px solid rgba(255,255,255,0.55)" : "1px solid rgba(255,255,255,0.18)",
+              borderRadius: 0,
+              padding: "8px 22px",
+              background: activeTab === "methodology" ? "rgba(255,255,255,0.04)" : "transparent",
+              cursor: "pointer",
+              transition: "all 0.15s",
+            }}
+            onMouseEnter={e => {
+              if (activeTab !== "methodology") {
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.38)"
+                ;(e.currentTarget as HTMLElement).style.color = "#d4d4d4"
+              }
+            }}
+            onMouseLeave={e => {
+              if (activeTab !== "methodology") {
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.18)"
+                ;(e.currentTarget as HTMLElement).style.color = "#858484"
+              }
+            }}
           >
-            <BookOpen size={12} />
             Bases Científicas
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab("layers")}
-            className={`flex items-center gap-2 px-4 py-1.5 text-xs uppercase tracking-wider transition-all duration-150 ${activeTab === "layers" ? "bg-zinc-800 text-white font-medium" : "text-zinc-500 hover:text-zinc-350"}`}
+            style={{
+              ...FONT,
+              fontSize: 12,
+              letterSpacing: "0.48px",
+              color: activeTab === "layers" ? "#000000" : "#858484",
+              textTransform: "uppercase",
+              border: "none",
+              borderRadius: 0,
+              padding: "8px 22px",
+              background: activeTab === "layers" ? "#cfb53b" : "transparent",
+              cursor: "pointer",
+              transition: "all 0.15s",
+              outline: activeTab === "layers" ? "none" : "1px solid rgba(255,255,255,0.18)",
+              outlineOffset: "-1px",
+            }}
+            onMouseEnter={e => {
+              if (activeTab === "layers") {
+                (e.currentTarget as HTMLElement).style.background = "#baa335"
+              } else {
+                (e.currentTarget as HTMLElement).style.outlineColor = "rgba(255,255,255,0.38)"
+                ;(e.currentTarget as HTMLElement).style.color = "#d4d4d4"
+              }
+            }}
+            onMouseLeave={e => {
+              if (activeTab === "layers") {
+                (e.currentTarget as HTMLElement).style.background = "#cfb53b"
+              } else {
+                (e.currentTarget as HTMLElement).style.outlineColor = "rgba(255,255,255,0.18)"
+                ;(e.currentTarget as HTMLElement).style.color = "#858484"
+              }
+            }}
           >
-            <Layers size={12} />
             Capas y Datos
           </button>
         </div>
 
-        <button onClick={onEnter} className="flex items-center gap-2 bg-[#cfb53b] hover:bg-[#baa335] text-black text-xs font-medium uppercase tracking-wider px-5 py-2.5 transition-colors">
+        {/* Right: enter CTA */}
+        <button
+          onClick={onEnter}
+          style={{
+            ...FONT,
+            display: "inline-flex", alignItems: "center", gap: 8,
+            fontSize: 12, letterSpacing: "0.48px",
+            color: "#000000", textTransform: "uppercase",
+            border: "none", borderRadius: 0,
+            padding: "8px 22px",
+            background: "#cfb53b",
+            cursor: "pointer",
+            transition: "background 0.15s",
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#baa335" }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "#cfb53b" }}
+        >
           Entrar al Sistema
           <ArrowRight size={12} />
         </button>
       </header>
 
       {/* Main Content Scroll Area */}
-      <main className="flex-1 max-w-[1200px] w-full mx-auto px-6 md:px-12 py-12">
+      <main style={{ flex: 1, maxWidth: 1200, width: "100%", margin: "0 auto", padding: "48px max(40px, 6vw)" }}>
         
         {activeTab === "methodology" ? (
           <div className="space-y-16 animate-fade-in">
@@ -459,13 +543,21 @@ export function Docs({ type: initialType, onBack, onEnter }: DocsProps) {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-8 mt-12 bg-black/40">
-        <div className="max-w-[1200px] w-full mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-zinc-500 font-mono">
+      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.07)", padding: "32px 0", marginTop: 48, background: "#000000" }}>
+        <div style={{ maxWidth: 1200, width: "100%", margin: "0 auto", padding: "0 max(40px, 6vw)", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, fontSize: 12, letterSpacing: "0.48px", color: "#858484", textTransform: "uppercase", fontFamily: "monospace" }}>
           <span>© 2026 Cipre Holding · Cozumel, Quintana Roo</span>
-          <div className="flex gap-4">
-            <button onClick={onBack} className="hover:text-white transition-colors">Volver a Inicio</button>
-            <span>·</span>
-            <button onClick={onEnter} className="hover:text-[#cfb53b] transition-colors">Entrar al Sistema</button>
+          <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
+            <button onClick={onBack} style={{ background: "transparent", border: "none", cursor: "pointer", color: "#858484", fontSize: 12, letterSpacing: "0.48px", textTransform: "uppercase", fontFamily: "monospace", transition: "color 0.15s" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#ffffff" }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#858484" }}>
+              Volver a Inicio
+            </button>
+            <span style={{ color: "rgba(255,255,255,0.15)" }}>·</span>
+            <button onClick={onEnter} style={{ background: "transparent", border: "none", cursor: "pointer", color: "#858484", fontSize: 12, letterSpacing: "0.48px", textTransform: "uppercase", fontFamily: "monospace", transition: "color 0.15s" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#cfb53b" }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#858484" }}>
+              Entrar al Sistema
+            </button>
           </div>
         </div>
       </footer>

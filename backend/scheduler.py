@@ -1,6 +1,6 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from backend.database import init_db, SessionLocal
+from backend.database import SessionLocal
 from backend.models import DownloadLog
 
 scheduler = BackgroundScheduler()
@@ -19,7 +19,6 @@ def weekly_pipeline_job():
 
 
 def start_scheduler():
-    init_db()
     scheduler.add_job(
         weekly_pipeline_job,
         CronTrigger(day_of_week="mon", hour=6, minute=0),
