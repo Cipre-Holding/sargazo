@@ -67,10 +67,11 @@ def run_forecast_7dias():
         np.random.uniform(12, 18, int(n*0.25)),
         np.random.uniform(8, 14, int(n*0.25)),
     ])
-    
+    # Use the start time of the RTOFS reader to align the elements seeding time
+    sim_time = r.start_time if hasattr(r, 'start_time') and r.start_time else datetime(2026, 5, 12, 12, 0)
     o.seed_elements(lon=lons, lat=lats, number=n,
-                    time=datetime(2026, 5, 12, 12, 0))
-    print(f"Seed: {n} partículas")
+                    time=sim_time)
+    print(f"Seed: {n} partículas en {sim_time}")
     
     # Run 14 days (336h) usando GFS para viento extendido
     print("Ejecutando (14 días)...")

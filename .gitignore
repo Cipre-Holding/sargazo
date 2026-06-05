@@ -13,6 +13,7 @@ backend/boletines_2024/
 backend/boletines_2025/
 backend/boletines_2026/
 *.pdf
+rtofs_carib_surface.nc
 
 # Database
 *.db

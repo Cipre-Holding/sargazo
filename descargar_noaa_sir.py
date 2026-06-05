@@ -130,7 +130,7 @@ def main():
     print("=" * 60)
 
     start = datetime(2025, 7, 1)
-    end = datetime(2026, 5, 11)
+    end = datetime.utcnow()
     all_dates = []
     d = start
     while d <= end:
@@ -172,6 +172,16 @@ def main():
     with open(combined_path, 'w') as f:
         json.dump(combined, f)
     print(f"\n✅ GeoJSON combinado: {combined_path} ({len(all_features)} features)")
+
+    # Save reduced GeoJSON containing only the last 3 dates' features
+    if all_features:
+        recent_dates = sorted(list(set(f["properties"]["date"] for f in all_features)))[-3:]
+        reduced_features = [f for f in all_features if f["properties"]["date"] in recent_dates]
+        reduced_combined = {"type": "FeatureCollection", "features": reduced_features}
+        reduced_path = ROOT / "noaa_sir_riesgo_costero_qroo_reduced.geojson"
+        with open(reduced_path, 'w') as f:
+            json.dump(reduced_combined, f)
+        print(f"✅ GeoJSON reducido: {reduced_path} ({len(reduced_features)} features, fechas: {recent_dates})")
 
     # Save daily summary
     import csv

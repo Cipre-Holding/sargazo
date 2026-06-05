@@ -1,159 +1,159 @@
 {
   "fecha_generacion": "2026-05-13",
-  "n_dias": 315,
+  "n_dias": 338,
   "segmentos": [
     {
       "id": "isla_mujeres",
       "name": "Isla Mujeres",
       "lat": 21.23,
       "lon": -86.73,
-      "n_features": 689,
-      "n_dias_con_datos": 315,
-      "pct_high_medium": 70.8,
-      "pct_high": 53.7,
+      "n_features": 731,
+      "n_dias_con_datos": 335,
+      "pct_high_medium": 72.5,
+      "pct_high": 56.1,
       "risk_levels_pct": {
-        "high": 49.9,
-        "medium": 23.1,
-        "low": 24.4,
-        "warning": 2.6
+        "high": 52.3,
+        "medium": 22.3,
+        "low": 23.0,
+        "warning": 2.5
       },
-      "riesgo_promedio": 1.96
+      "riesgo_promedio": 2.02
     },
     {
       "id": "cancun",
       "name": "Canc\u00fan / Puerto Ju\u00e1rez",
       "lat": 21.15,
       "lon": -86.82,
-      "n_features": 2305,
-      "n_dias_con_datos": 315,
-      "pct_high_medium": 66.0,
-      "pct_high": 54.3,
+      "n_features": 2456,
+      "n_dias_con_datos": 335,
+      "pct_high_medium": 68.1,
+      "pct_high": 57.0,
       "risk_levels_pct": {
-        "high": 50.7,
-        "medium": 20.3,
-        "warning": 5.1,
-        "low": 23.9
+        "high": 53.2,
+        "medium": 19.5,
+        "warning": 4.8,
+        "low": 22.4
       },
-      "riesgo_promedio": 1.94
+      "riesgo_promedio": 2.0
     },
     {
       "id": "cozumel_norte",
       "name": "Cozumel Norte",
       "lat": 20.51,
       "lon": -86.95,
-      "n_features": 559,
-      "n_dias_con_datos": 315,
-      "pct_high_medium": 65.1,
-      "pct_high": 42.2,
+      "n_features": 581,
+      "n_dias_con_datos": 335,
+      "pct_high_medium": 66.9,
+      "pct_high": 45.1,
       "risk_levels_pct": {
-        "high": 44.5,
-        "medium": 30.2,
-        "low": 20.4,
+        "high": 46.1,
+        "medium": 29.4,
+        "low": 19.6,
         "warning": 4.8
       },
-      "riesgo_promedio": 1.82
+      "riesgo_promedio": 1.88
     },
     {
       "id": "chetumal",
       "name": "Chetumal / Xcalak",
       "lat": 18.5,
       "lon": -88.3,
-      "n_features": 27561,
-      "n_dias_con_datos": 315,
-      "pct_high_medium": 61.9,
-      "pct_high": 22.9,
+      "n_features": 29729,
+      "n_dias_con_datos": 338,
+      "pct_high_medium": 64.5,
+      "pct_high": 23.7,
       "risk_levels_pct": {
-        "medium": 46.3,
-        "high": 27.9,
-        "warning": 5.0,
-        "low": 20.8
+        "medium": 47.2,
+        "high": 28.7,
+        "warning": 4.8,
+        "low": 19.3
       },
-      "riesgo_promedio": 1.73
+      "riesgo_promedio": 1.77
     },
     {
       "id": "muyil",
       "name": "Costa Central / Muyil",
       "lat": 19.3,
       "lon": -87.6,
-      "n_features": 5476,
-      "n_dias_con_datos": 315,
-      "pct_high_medium": 62.5,
-      "pct_high": 34.9,
+      "n_features": 5853,
+      "n_dias_con_datos": 338,
+      "pct_high_medium": 64.2,
+      "pct_high": 37.6,
       "risk_levels_pct": {
-        "high": 34.9,
-        "medium": 35.8,
-        "low": 26.5,
-        "warning": 2.8
+        "high": 36.6,
+        "medium": 35.4,
+        "low": 24.8,
+        "warning": 3.1
       },
-      "riesgo_promedio": 1.68
+      "riesgo_promedio": 1.75
     },
     {
       "id": "sian_kaan",
       "name": "Sian Ka'an / Punta Allen",
       "lat": 19.8,
       "lon": -87.55,
-      "n_features": 6040,
-      "n_dias_con_datos": 315,
-      "pct_high_medium": 59.0,
-      "pct_high": 43.2,
+      "n_features": 6401,
+      "n_dias_con_datos": 335,
+      "pct_high_medium": 61.5,
+      "pct_high": 43.9,
       "risk_levels_pct": {
-        "high": 35.6,
-        "medium": 30.3,
-        "low": 29.3,
-        "warning": 4.8
+        "high": 37.2,
+        "medium": 30.6,
+        "low": 27.6,
+        "warning": 4.6
       },
-      "riesgo_promedio": 1.64
+      "riesgo_promedio": 1.7
     },
     {
       "id": "playa_carmen",
       "name": "Playa del Carmen",
       "lat": 20.63,
       "lon": -87.07,
-      "n_features": 864,
-      "n_dias_con_datos": 315,
-      "pct_high_medium": 62.5,
-      "pct_high": 29.8,
+      "n_features": 918,
+      "n_dias_con_datos": 335,
+      "pct_high_medium": 64.2,
+      "pct_high": 33.1,
       "risk_levels_pct": {
-        "medium": 43.3,
-        "high": 26.3,
-        "low": 26.6,
-        "warning": 3.8
+        "medium": 42.3,
+        "high": 28.5,
+        "low": 25.5,
+        "warning": 3.7
       },
-      "riesgo_promedio": 1.58
+      "riesgo_promedio": 1.65
     },
     {
       "id": "puerto_morelos",
       "name": "Puerto Morelos",
       "lat": 20.85,
       "lon": -87.0,
-      "n_features": 476,
-      "n_dias_con_datos": 315,
-      "pct_high_medium": 60.0,
-      "pct_high": 33.0,
+      "n_features": 517,
+      "n_dias_con_datos": 335,
+      "pct_high_medium": 61.8,
+      "pct_high": 34.0,
       "risk_levels_pct": {
-        "high": 34.9,
-        "medium": 35.7,
-        "low": 24.2,
-        "warning": 5.3
+        "high": 35.8,
+        "medium": 36.8,
+        "low": 22.2,
+        "warning": 5.2
       },
-      "riesgo_promedio": 1.53
+      "riesgo_promedio": 1.58
     },
     {
       "id": "tulum",
       "name": "Tulum",
       "lat": 20.21,
       "lon": -87.46,
-      "n_features": 461,
-      "n_dias_con_datos": 315,
-      "pct_high_medium": 58.7,
-      "pct_high": 34.6,
+      "n_features": 499,
+      "n_dias_con_datos": 335,
+      "pct_high_medium": 60.6,
+      "pct_high": 37.6,
       "risk_levels_pct": {
-        "high": 27.8,
-        "medium": 36.9,
-        "low": 32.5,
-        "warning": 2.8
+        "high": 30.5,
+        "medium": 36.5,
+        "low": 30.1,
+        "warning": 3.0
       },
-      "riesgo_promedio": 1.46
+      "riesgo_promedio": 1.54
     },
     {
       "id": "cozumel_sur",
