@@ -123,9 +123,26 @@ def get_sir(date: Optional[str] = Query(default=None, description="Filter by dat
     _ensure_sir_index()
     if not _sir_index:
         raise HTTPException(503, "SIR full index not available (full GeoJSON missing)")
-    if date not in _sir_index:
-        raise HTTPException(404, f"Date {date} not found in SIR data")
-    return JSONResponse({"type": "FeatureCollection", "features": _sir_index[date]})
+        
+    from datetime import datetime, timedelta
+    try:
+        dt = datetime.strptime(date, "%Y%m%d")
+        target_dates = []
+        for i in range(7):
+            d_str = (dt - timedelta(days=i)).strftime("%Y%m%d")
+            if d_str in _sir_index:
+                target_dates.append(d_str)
+    except ValueError:
+        if date in _sir_index:
+            target_dates = [date]
+        else:
+            raise HTTPException(404, f"Date {date} not found in SIR data")
+
+    combined_features = []
+    for d in target_dates:
+        combined_features.extend(_sir_index[d])
+        
+    return JSONResponse({"type": "FeatureCollection", "features": combined_features})
 
 
 @router.get("/geodata/ml-risk")
