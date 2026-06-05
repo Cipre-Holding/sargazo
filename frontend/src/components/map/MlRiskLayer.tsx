@@ -12,11 +12,16 @@ export function MlRiskLayer({ geojson, visible, opacity = 0.6 }: MlRiskLayerProp
   const sourceId = "mlrisk-source"
   const layerId = "mlrisk-layer"
 
+  // 1. Add source and layer once
   useEffect(() => {
-    if (!isLoaded || !map || !geojson || geojson.features.length === 0) return
+    if (!isLoaded || !map) return
     if (map.getSource(sourceId)) return
 
-    map.addSource(sourceId, { type: "geojson", data: geojson })
+    map.addSource(sourceId, {
+      type: "geojson",
+      data: { type: "FeatureCollection", features: [] },
+    })
+
     map.addLayer({
       id: layerId,
       type: "fill",
@@ -42,7 +47,23 @@ export function MlRiskLayer({ geojson, visible, opacity = 0.6 }: MlRiskLayerProp
       },
     })
     return () => {
-      try { if (map.getLayer(layerId)) map.removeLayer(layerId); if (map.getSource(sourceId)) map.removeSource(sourceId) } catch {}
+      try {
+        if (map.getLayer(layerId)) map.removeLayer(layerId)
+        if (map.getSource(sourceId)) map.removeSource(sourceId)
+      } catch {}
+    }
+  }, [isLoaded, map])
+
+  // 2. Update data when geojson changes
+  useEffect(() => {
+    if (!isLoaded || !map || !geojson) return
+    try {
+      const src = map.getSource(sourceId) as any
+      if (src) {
+        src.setData(geojson)
+      }
+    } catch (e) {
+      console.error("Error updating ML risk data:", e)
     }
   }, [isLoaded, map, geojson])
 

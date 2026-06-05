@@ -58,17 +58,17 @@
       "name": "Chetumal / Xcalak",
       "lat": 18.5,
       "lon": -88.3,
-      "n_features": 29729,
+      "n_features": 28297,
       "n_dias_con_datos": 338,
-      "pct_high_medium": 64.5,
-      "pct_high": 23.7,
+      "pct_high_medium": 63.9,
+      "pct_high": 21.3,
       "risk_levels_pct": {
-        "medium": 47.2,
-        "high": 28.7,
+        "medium": 47.8,
+        "high": 28.0,
         "warning": 4.8,
-        "low": 19.3
+        "low": 19.4
       },
-      "riesgo_promedio": 1.77
+      "riesgo_promedio": 1.76
     },
     {
       "id": "muyil",

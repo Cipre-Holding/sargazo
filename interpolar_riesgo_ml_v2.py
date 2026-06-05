@@ -96,6 +96,7 @@ def build_temporal_risk():
         (-67.5, -65.5, 17.8, 18.6),  # Puerto Rico
         (-86.0, -77.0, 7.0, 15.0),   # Central America
         (-77.0, -55.0, 7.0, 12.3),   # South America
+        (-94.0, -90.0, 15.0, 21.0),  # Campeche / Tabasco (Western Gulf/Yucatan base)
     ]
 
     ocean_m = np.ones(len(grid_points))

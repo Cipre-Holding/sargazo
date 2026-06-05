@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useMap, MapRoute } from "@/components/ui/map"
 
 interface TrajPoint {
@@ -8,11 +8,12 @@ interface TrajPoint {
 interface TrajectoryLayerProps {
   trajectories: TrajPoint[] | null
   visible: boolean
+  horizon: string
+  setHorizon: (horizon: string) => void
 }
 
-export function TrajectoryLayer({ trajectories, visible }: TrajectoryLayerProps) {
+export function TrajectoryLayer({ trajectories, visible, horizon, setHorizon }: TrajectoryLayerProps) {
   const { map, isLoaded } = useMap()
-  const [currentStep, setCurrentStep] = useState(0)
   const [playing, setPlaying] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const dotSourceId = "traj-dots-source"
@@ -23,7 +24,7 @@ export function TrajectoryLayer({ trajectories, visible }: TrajectoryLayerProps)
   const particles = useMemo(() => {
     if (!trajectories) return []
     const filtered = trajectories.filter(
-      (t) => t.lon > -90 && t.lon < -55 && t.lat > 8 && t.lat < 24
+      (t) => t.lon > -93 && t.lon < -55 && t.lat > 8 && t.lat < 25
     )
     const grouped: Record<number, { step: number; lon: number; lat: number }[]> = {}
     for (const t of filtered) {
@@ -51,6 +52,13 @@ export function TrajectoryLayer({ trajectories, visible }: TrajectoryLayerProps)
     }
     return Array.from(stepSet).sort((a, b) => a - b)
   }, [particles])
+
+  // Current step value in hours derived from horizon
+  const currentStep = useMemo(() => {
+    const h = parseInt(horizon)
+    if (isNaN(h)) return allSteps[0] ?? 12
+    return h
+  }, [horizon, allSteps])
 
   // Map step value to slider index
   const stepIdx = allSteps.indexOf(currentStep)
@@ -99,19 +107,18 @@ export function TrajectoryLayer({ trajectories, visible }: TrajectoryLayerProps)
     } catch {}
   }, [isLoaded, map, currentStep, particles])
 
-  // Animation timer
+  // Animation timer synchronized with parent horizon
   useEffect(() => {
     if (playing && allSteps.length > 1) {
       timerRef.current = setInterval(() => {
-        setCurrentStep((prev) => {
-          const idx = allSteps.indexOf(prev)
-          const next = idx < allSteps.length - 1 ? idx + 1 : 0
-          return allSteps[next]
-        })
-      }, 500)
+        const idx = allSteps.indexOf(currentStep)
+        const nextIdx = idx < allSteps.length - 1 ? idx + 1 : 0
+        const nextH = allSteps[nextIdx]
+        setHorizon(`${nextH}h`)
+      }, 750)
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
-  }, [playing, allSteps])
+  }, [playing, allSteps, currentStep, setHorizon])
 
   // Visibility
   useEffect(() => {
@@ -130,7 +137,7 @@ export function TrajectoryLayer({ trajectories, visible }: TrajectoryLayerProps)
       }
     }
     return result
-  }, [particles, currentStep])
+  }, [particles, currentStep, allSteps])
 
   if (!visible || allSteps.length === 0) return null
 
@@ -168,7 +175,9 @@ export function TrajectoryLayer({ trajectories, visible }: TrajectoryLayerProps)
           value={Math.max(0, stepIdx)}
           onChange={(e) => {
             const idx = parseInt(e.target.value)
-            if (idx >= 0 && idx < allSteps.length) setCurrentStep(allSteps[idx])
+            if (idx >= 0 && idx < allSteps.length) {
+              setHorizon(`${allSteps[idx]}h`)
+            }
           }}
           className="w-32 cursor-pointer h-1.5 rounded-lg accent-primary"
           style={{ accentColor: 'var(--color-primary)' }}

@@ -21,8 +21,8 @@ KMZ_DIR = ROOT / "noaa_sir_kmz"
 os.makedirs(KMZ_DIR, exist_ok=True)
 
 # Bboxes
-QR_BBOX = {"min_lat": 17.5, "max_lat": 22.0, "min_lon": -89.0, "max_lon": -86.0}
-CARIB_BBOX = {"min_lat": 8.0, "max_lat": 23.5, "min_lon": -90.0, "max_lon": -55.0}
+QR_BBOX = {"min_lat": 17.0, "max_lat": 22.5, "min_lon": -90.0, "max_lon": -86.0}
+CARIB_BBOX = {"min_lat": 8.0, "max_lat": 24.5, "min_lon": -93.0, "max_lon": -55.0}
 
 RISK_MAP_INT = {'0': 'low', '1': 'warning', '2': 'medium', '3': 'high'}
 RISK_COLORS = {'low': '#0000ff', 'warning': '#ffff00', 'medium': '#ffa500', 'high': '#ff0000'}

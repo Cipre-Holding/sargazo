@@ -58,13 +58,13 @@ def run_forecast_7dias():
     np.random.seed(123)
     n = 2000  # aumentado de 500 para mejor cobertura
     lons = np.concatenate([
-        np.random.uniform(-88.0, -83.0, int(n*0.25)),   # Caribe Oeste
+        np.random.uniform(-91.0, -83.0, int(n*0.25)),   # Caribe Oeste y Yucatán
         np.random.uniform(-82.0, -74.0, int(n*0.25)),   # Caribe Central
         np.random.uniform(-72.0, -64.0, int(n*0.25)),   # Caribe Este
         np.random.uniform(-62.0, -56.0, int(n*0.25)),   # Entrada Caribe
     ])
     lats = np.concatenate([
-        np.random.uniform(15.0, 21.0, int(n*0.25)),
+        np.random.uniform(15.0, 22.5, int(n*0.25)),
         np.random.uniform(12.0, 18.0, int(n*0.25)),
         np.random.uniform(12.0, 18.0, int(n*0.25)),
         np.random.uniform(10.5, 16.0, int(n*0.25)),
@@ -120,9 +120,9 @@ def run_forecast_7dias():
             continue
             
         try:
-            # Fixed grid for Cozumel/QRoo region
-            xi = np.linspace(-90.0, -55.0, 150)  # fixed lon range
-            yi = np.linspace(8.0, 23.5, 100)     # fixed lat range
+            # Fixed grid covering Yucatan and QRoo up to -93.0W and 24.5N
+            xi = np.linspace(-93.0, -55.0, 150)  # expanded lon range
+            yi = np.linspace(8.0, 24.5, 100)     # expanded lat range
             X, Y = np.meshgrid(xi, yi)
             
             # Use FIXED bandwidth (not Scott's adaptive rule)

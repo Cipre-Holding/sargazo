@@ -180,7 +180,7 @@ function App({ onBack }: AppProps) {
         />
         <MlRiskLayer  geojson={mlRisk as any}         visible={layers.mlrisk} />
         <KdeLayer     kdeData={kdeData as any}         horizon={horizon}       visible={layers.kde} />
-        <TrajectoryLayer trajectories={trajectories as any}                    visible={layers.trajectories} />
+        <TrajectoryLayer trajectories={trajectories as any}                    visible={layers.trajectories} horizon={horizon} setHorizon={setHorizon} />
 
         {/* Beach risk markers */}
         {beachSegments.map((beach: any) => {
