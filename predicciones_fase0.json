@@ -9,9 +9,9 @@
     "beta_1": 1.7178,
     "sigma_residual": 1.1164,
     "holdout_mayo": {
-      "real_mt": 0.051837,
+      "real_mt": 0.057255,
       "predicho_mt": 0.017557,
-      "error_pct": -66.1
+      "error_pct": -69.3
     },
     "prediccion_junio": {
       "log_cm": -3.2637,
@@ -32,9 +32,9 @@
     "beta_1_log_aco_lag1": -0.0752,
     "beta_2_delta_aco": 1.3089,
     "holdout_mayo": {
-      "real_delta": 0.4682,
+      "real_delta": 0.5676,
       "predicho_delta": 0.7922,
-      "error_pct": 38.3
+      "error_pct": 25.2
     },
     "prediccion_junio": {
       "delta_log_cm": 0.5533,
@@ -76,8 +76,8 @@
     "modelo": "0.4_prophet",
     "n_entrenamiento": 303,
     "changepoints": 25,
-    "proyeccion_junio_2026_aco_mt": 3.6489,
-    "estimacion_indirecta_cm_julio_mt": 1.115888,
+    "proyeccion_junio_2026_aco_mt": 3.7541,
+    "estimacion_indirecta_cm_julio_mt": 1.171738,
     "cm_reliable": false,
     "nota": "CM estimado indirectamente v\u00eda ACO\u2192coefs 0.1. No usar para decisiones operativas."
   },
@@ -90,9 +90,9 @@
     "beta_0": -2.4727,
     "beta_1": 0.5593,
     "holdout_mayo": {
-      "real_mt": 0.051837,
+      "real_mt": 0.057255,
       "predicho_mt": 0.012402,
-      "error_pct": -76.1
+      "error_pct": -78.3
     },
     "prediccion_junio": {
       "log_cm": -4.128,
@@ -106,7 +106,7 @@
     }
   },
   "metadata": {
-    "generado": "2026-05-26T19:40:54.713423",
+    "generado": "2026-06-04T21:18:53.921584",
     "proyecto": "Predicci\u00f3n Sargazo Cozumel",
     "fase": "0_refinada",
     "modelos": [

@@ -93,7 +93,7 @@ def run_forecast_7dias():
     all_horizontes = {}
     for h_name, h_step in zip([f'{h}h' for h in horizontes_h], horizonte_steps):
         positions = []
-        for e in range(min(ds.lon.shape[1], 500)):
+        for e in range(min(ds.lon.shape[1], 2000)):
             lon = float(ds.lon.values[h_step, e])
             lat = float(ds.lat.values[h_step, e])
             if not np.isnan(lon) and 5 < lat < 35 and -100 < lon < -40:
@@ -117,8 +117,8 @@ def run_forecast_7dias():
             
         try:
             # Fixed grid for Cozumel/QRoo region
-            xi = np.linspace(-89.5, -86.0, 60)  # fixed lon range
-            yi = np.linspace(18.0, 22.5, 55)     # fixed lat range
+            xi = np.linspace(-90.0, -55.0, 150)  # fixed lon range
+            yi = np.linspace(8.0, 23.5, 100)     # fixed lat range
             X, Y = np.meshgrid(xi, yi)
             
             # Use FIXED bandwidth (not Scott's adaptive rule)
@@ -142,7 +142,7 @@ def run_forecast_7dias():
     traj_rows = []
     step_sample = max(1, n_steps_total // 30)
     for t in range(0, n_steps_total, step_sample):
-        for e in range(min(ds.lon.shape[1], 100)):
+        for e in range(min(ds.lon.shape[1], 1000)):
             lon = float(ds.lon.values[t, e])
             lat = float(ds.lat.values[t, e])
             if not np.isnan(lon) and 5 < lat < 35 and -100 < lon < -40:

@@ -18,9 +18,9 @@
   --color-primary-on:     #000000;   /* Text color ON lime bg                 */
 
   /* ── Plasma Blue — full-bleed section accent ─────────────────── */
-  --color-accent:         #0d1b3e;   /* Deep Cobalt/Navy Blue                 */
-  --color-accent-hover:   #0a1532;
-  --color-accent-soft:    rgba(13,27,62,0.15);
+  --color-accent:         #1019ec;   /* Plasma Blue — Electric Violet-Blue    */
+  --color-accent-hover:   #0d14bd;
+  --color-accent-soft:    rgba(16,25,236,0.15);
 
   /* ── Surface stack ───────────────────────────────────────────── */
   --color-surface:        #18181b;   /* Graphite     — elevated card L1       */

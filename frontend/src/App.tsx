@@ -74,9 +74,9 @@ function RecenterBtn() {
   const { map } = useMap()
   return (
     <button
-      onClick={() => map?.flyTo({ center: [-86.95, 20.51], zoom: 10, duration: 1000 })}
+      onClick={() => map?.flyTo({ center: [-75.0, 16.0], zoom: 4.8, duration: 1000 })}
       className="flex size-9 items-center justify-center rounded-xl border border-border/40 bg-surface/80 backdrop-blur text-muted hover:text-fg hover:bg-surface-raised transition-all duration-150 cursor-pointer shadow-lg shadow-black/30"
-      title="Centrar en Cozumel"
+      title="Centrar mapa en el Caribe"
     >
       <Target className="size-4" />
     </button>
@@ -167,7 +167,7 @@ function App({ onBack }: AppProps) {
     <div className="relative h-screen w-full overflow-hidden" style={{ background: '#000000' }}>
 
       {/* ── Map (full background) ────────────────────────────────────────── */}
-      <Map ref={mapRef} className="absolute inset-0" center={[-87.0, 20.3]} zoom={8.5} theme="dark">
+      <Map ref={mapRef} className="absolute inset-0" center={[-75.0, 16.0]} zoom={4.8} theme="dark">
         <div className="absolute top-[4.5rem] right-3 z-20">
           <RecenterBtn />
         </div>

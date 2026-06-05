@@ -84,7 +84,7 @@ def calculate_confidence():
     # 4. Error histórico (máx 20 puntos)
     if 'ensemble' in pred and isinstance(pred['ensemble'], dict):
         if 'backtest' in pred:
-            r2_values = [m.get('R²', 0) for m in pred['backtest']]
+            r2_values = [m.get('R²', 0) for m in pred['backtest'] if m.get('Modelo') != '0.2_delta']
             if r2_values:
                 avg_r2 = np.mean(r2_values)
                 score_history = min(20, max(0, int(avg_r2 * 25)))

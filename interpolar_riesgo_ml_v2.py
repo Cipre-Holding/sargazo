@@ -30,41 +30,17 @@ def build_temporal_risk():
     print("INTERPOLACIÓN ML TEMPORAL (315 días)")
     print("=" * 60)
 
-    # ── 1. Cargar todos los datos NOAA SIR ────────────────────────────────
-    with open(ROOT / "noaa_sir_riesgo_costero_qroo.geojson") as f:
-        sir = json.load(f)
-
-    features = sir["features"]
-    dates = sorted(set(f["properties"]["date"] for f in features))
-    print(f"Datos: {len(features)} features, {len(dates)} fechas ({dates[0]} → {dates[-1]})")
+    # ── 1. Cargar datos agregados (Caribe completo) ──────────────────────
+    with open(ROOT / "noaa_sir_aggregated_grid.json") as f:
+        grid_data = json.load(f)
+    print(f"Datos agregados cargados: {len(grid_data)} puntos")
 
     # ── 2. Crear grid de costa muestreado ──────────────────────────────────
-    # Tomar todas las coordenadas de todos los días, muestreadas cada 0.04°
-    risk_map = {"low": 0.2, "warning": 0.45, "medium": 0.7, "high": 0.95}
-
-    # Agrupar por coordenada (redondeada a 0.02°)
-    coord_risk_sum = defaultdict(float)
-    coord_risk_count = defaultdict(int)
-
-    for feat in features:
-        risk_label = feat["properties"]["risk"]
-        risk_val = risk_map.get(risk_label, 0)
-        coords = feat["geometry"]["coordinates"]
-
-        for lon, lat in coords:
-            # Redondear a 0.01° para agrupar puntos cercanos
-            key = (round(lon, 2), round(lat, 2))
-            coord_risk_sum[key] += risk_val
-            coord_risk_count[key] += 1
-
-    # Calcular riesgo promedio por coordenada
     X_train = []
     y_train = []
-    for (lon, lat), total in coord_risk_sum.items():
-        n = coord_risk_count[(lon, lat)]
-        avg_risk = total / n
-        X_train.append([lon, lat])
-        y_train.append(avg_risk)
+    for pt in grid_data:
+        X_train.append([pt["lon"], pt["lat"]])
+        y_train.append(pt["avg_risk"])
 
     X_train = np.array(X_train)
     y_train = np.array(y_train)
@@ -80,7 +56,7 @@ def build_temporal_risk():
 
     X_train = X_train[kept]
     y_train = y_train[kept]
-    print(f"Puntos de entrenamiento (temporal, 315 días): {len(X_train)}")
+    print(f"Puntos de entrenamiento (temporal, Caribe): {len(X_train)}")
 
     # Estadísticas
     risk_levels = {"bajo": sum(1 for y in y_train if y < 0.35),
@@ -109,11 +85,17 @@ def build_temporal_risk():
         (-86.85, -86.75, 21.1, 21.2),
     ]
     land_zones = [
-        (-91.0, -87.0, 15.5, 22.5),
-        (-87.5, -85.5, 15.0, 18.0),
-        (-85.5, -84.5, 21.5, 23.0),
-        (-83.0, -80.0, 24.5, 25.5),
-        (-89.0, -87.5, 14.5, 15.5),
+        (-91.0, -87.0, 15.5, 22.5),  # Yucatan / Belize / Guatemala
+        (-87.5, -85.5, 15.0, 18.0),  # Honduras
+        (-85.5, -84.5, 21.5, 23.0),  # Western Cuba tip
+        (-83.0, -80.0, 24.5, 25.5),  # Florida
+        (-89.0, -87.5, 14.5, 15.5),  # El Salvador / Honduras / Nicaragua south
+        (-85.0, -74.0, 19.8, 23.5),  # Cuba main body
+        (-78.5, -76.0, 17.6, 18.6),  # Jamaica
+        (-74.5, -68.0, 17.4, 20.2),  # Hispaniola
+        (-67.5, -65.5, 17.8, 18.6),  # Puerto Rico
+        (-86.0, -77.0, 7.0, 15.0),   # Central America
+        (-77.0, -55.0, 7.0, 12.3),   # South America
     ]
 
     ocean_m = np.ones(len(grid_points))
@@ -140,12 +122,16 @@ def build_temporal_risk():
 
     print(f"Radio: {R_eff * sigma_lon:.2f}° ({R_eff*sigma_lon*111:.0f}km) × {R_eff * sigma_lat:.2f}° ({R_eff*sigma_lat*111:.0f}km)")
 
-    dists = cdist(grid_t, X_train_t)
-    kernel_vals = wendland_c2(dists, R=R_eff)
+    # Chunked calculation to prevent OOM on large grids
+    chunk_size = 10000
+    risk_grid = np.zeros(len(grid_points))
+    for start_idx in range(0, len(grid_points), chunk_size):
+        end_idx = min(start_idx + chunk_size, len(grid_points))
+        dists_chunk = cdist(grid_t[start_idx:end_idx], X_train_t)
+        kernel_vals_chunk = wendland_c2(dists_chunk, R=R_eff)
+        weighted_chunk = kernel_vals_chunk * y_train[np.newaxis, :]
+        risk_grid[start_idx:end_idx] = np.max(weighted_chunk, axis=1)
 
-    # Max-pooling del riesgo temporal
-    weighted = kernel_vals * y_train[np.newaxis, :]
-    risk_grid = np.max(weighted, axis=1)
     risk_grid = risk_grid * ocean_m
     risk_grid = np.clip(risk_grid, 0, 1)
 

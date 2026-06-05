@@ -377,9 +377,11 @@ def modelo_16_prophet_tuned(coefs_01=None):
     results = []
     best_rmse = np.inf
     best_params = None
-    best_model = None
 
-    from prophet.diagnostics import cross_validation, performance_metrics
+    # Train/Validation split: use the last 24 months for hyperparameter validation
+    val_months = 24
+    train_df = prof.iloc[:-val_months]
+    val_df = prof.iloc[-val_months:]
 
     for params in all_params:
         try:
@@ -393,27 +395,38 @@ def modelo_16_prophet_tuned(coefs_01=None):
                 interval_width=0.80,
             )
             m.add_regressor("post_2011")
-            m.fit(prof[["ds", "y", "post_2011"]])
+            m.fit(train_df[["ds", "y", "post_2011"]])
 
-            df_cv = cross_validation(
-                m, initial="2400 days", period="180 days", horizon="365 days",
-                parallel="processes"
-            )
-            df_p = performance_metrics(df_cv, rolling_window=1)
-            rmse = float(df_p["rmse"].values[0])
-            mape = float(df_p["mape"].values[0]) if "mape" in df_p.columns else 0
+            forecast = m.predict(val_df[["ds", "post_2011"]])
+            y_pred = forecast["yhat"].values
+            y_true = val_df["y"].values
+
+            rmse = float(np.sqrt(mean_squared_error(y_true, y_pred)))
+            mape = float(np.mean(np.where(np.abs(y_true) > 1e-6, np.abs((y_true - y_pred) / y_true) * 100, 0)))
 
             results.append({**params, "rmse": rmse, "mape": mape})
             if rmse < best_rmse:
                 best_rmse = rmse
                 best_params = params
-                best_model = m
         except Exception as e:
             continue
 
-    if best_model is None:
+    if best_params is None:
         print("  ⛔ No se encontró modelo válido.")
         return None
+
+    # Fit the best model on the complete dataset
+    best_model = Prophet(
+        yearly_seasonality=3,
+        weekly_seasonality=False,
+        daily_seasonality=False,
+        changepoint_prior_scale=best_params["changepoint_prior_scale"],
+        seasonality_prior_scale=best_params["seasonality_prior_scale"],
+        seasonality_mode=best_params["seasonality_mode"],
+        interval_width=0.80,
+    )
+    best_model.add_regressor("post_2011")
+    best_model.fit(prof[["ds", "y", "post_2011"]])
 
     # Mejor modelo: predicción
     future = best_model.make_future_dataframe(periods=12, freq="ME")

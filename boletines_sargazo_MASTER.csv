@@ -603,3 +603,18 @@ fecha,num_boletin,semaforo,biomasa_caribe_mexicano_ton,biomasa_caribe_central_to
 2026-05-09,1427,MUY ALTO,51649.0,62018.0,265164.0,518912.0,5,SI,1.0,norte,1.4,norte,0.1,oeste,0.3,noroeste,0.4,norte,1.0,norte,14-18,sureste,16,este,SARGAZO_1427_09_MAYO_2026.pdf,2026
 2026-05-10,1428,MUY ALTO,53292.0,72315.0,271187.0,510250.0,6,NO,0.7,norte,1.3,norte,0.1,oeste,0.1,noroeste,0.3,norte,0.7,norte,13-16,sureste,16-19,sureste,SARGAZO_1428_10_MAYO_2026.pdf,2026
 2026-05-11,1429,MUY ALTO,52829.0,72564.0,270298.0,505311.0,5,SI,0.6,norte,1.2,norte,0.1,noroeste,,,,,0.6,norte,12-11,sureste,10-13,este,SARGAZO_1429_11_MAYO_2026.pdf,2026
+2026-05-12,1430,MUY ALTO,41704.0,75402.0,262871.0,477685.0,6,SI,0.5,noreste,0.9,norte,0.1,norte,0.0,noroeste,0.1,norte,0.3,norte,08-12,sureste,12-14,este,SARGAZO_1430_12_MAYO_2026.pdf,2026
+2026-05-13,1431,MUY ALTO,57255.0,84283.0,266954.0,463771.0,6,SI,0.3,noreste,1.0,norte,0.3,norte,0.3,norte,0.3,norte,0.3,norte,07-10,noreste,8-11,este,SARGAZO_1431_13_MAYO_2026.pdf,2026
+2026-05-14,1432,MUY ALTO,66011.0,86023.0,260881.0,421427.0,6,SI,0.5,noreste,1.0,norte,0.4,norte,0.3,norte,0.1,norte,0.1,norte,01-07,noreste,6-8,este,SARGAZO_1432_14_MAYO_2026.pdf,2026
+2026-05-16,1434,MUY ALTO,85523.0,88625.0,231927.0,234740.0,5,SI,0.3,norte,1.0,norte,0.4,norte,1.1,norte,0.6,norte,0.1,norte,,,,,SARGAZO_1434_16_MAYO_2026.pdf,2026
+2026-05-17,1435,EXCESIVO,86201.0,93847.0,220127.0,157971.0,10,SI,0.6,norte,1.0,norte,0.5,norte,1.2,norte,1.3,noreste,0.6,noreste,12-16,este,16-19,sureste,SARGAZO_1435_17_MAYO_2026.pdf,2026
+2026-05-18,1436,EXCESIVO,88287.0,96554.0,218840.0,206190.0,10,SI,0.6,norte,1.0,norte,0.4,norte,1.5,noreste,1.3,noreste,0.6,norte,12-14,sureste,14-17,sureste,SARGAZO_1436_18_MAYO_2026.pdf,2026
+2026-05-19,1437,EXCESIVO,90538.0,92530.0,232885.0,230080.0,10,SI,0.5,norte,0.9,norte,0.3,norte,1.5,noreste,1.4,noreste,0.3,norte,11-13,sureste,11-15,este,SARGAZO_1437_19_MAYO_2026.pdf,2026
+2026-05-21,1439,EXCESIVO,84028.0,92320.0,234779.0,259221.0,7,NO,0.5,norte,0.9,norte,0.5,norte,1.6,norte,1.6,noreste,0.2,norte,,,,,SARGAZO_1439_21_MAYO_2026.pdf,2026
+2026-05-22,1440,EXCESIVO,77642.0,89983.0,242017.0,285249.0,4,NO,0.6,norte,0.9,norte,0.,norte,1.7,norte,1.0,noreste,0.7,norte,,,,,SARGAZO_1440_22_MAYO_2026.pdf,2026
+2026-05-23,1441,EXCESIVO,72541.0,89338.0,200568.0,289904.0,7,SI,0.6,norte,1.0,norte,0.6.,norte,1.7,noreste,2.0,noreste,0.6,norte,,,,,SARGAZO_1441_23_MAYO_2026.pdf,2026
+2026-05-25,1443,EXCESIVO,69624.0,78625.0,206199.0,258642.0,5,NO,0.5,norte,0.9,norte,0.3,norte,1.8,noreste,1.7,noreste,0.8,norte,,,,,SARGAZO_1443_25_MAYO_2026.pdf,2026
+2026-05-26,1444,EXCESIVO,66809.0,78364.0,186356.0,244349.0,8,NO,0.3,norte,0.9,norte,0.3,noroeste,1.8,noreste,1.7,noreste,0.8,norte,10-15,este,12-17,este,SARGAZO_1444_26_MAYO_2026.pdf,2026
+2026-05-27,1445,EXCESIVO,67442.0,70471.0,130902.0,220396.0,5,NO,0.5,noroeste,,,0.4,norte,1.9,noreste,1.8,noreste,0.5,norte,15-22,sureste,18-20,este,SARGAZO_1445_27_MAYO_2026.pdf,2026
+2026-05-30,1448,EXCESIVO,27407.0,42288.0,165196.0,158855.0,8,SI,0.5,norte,0.9,norte,0.4,norte,1.7,noreste,1.7,noreste,0.5,norte,,,12-17,sureste,SARGAZO_1448_30_MAYO_2026.pdf,2026
+2026-05-31,1449,EXCESIVO,26589.0,28840.0,185798.0,147011.0,5,SI,0.6,norte,0.9,norte,0.6,norte,1.6,noreste,1.7,noreste,0.6,noreste,,,15-19,sureste,SARGAZO_1449_31_MAYO_2026.pdf,2026

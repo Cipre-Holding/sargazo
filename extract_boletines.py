@@ -29,8 +29,10 @@ from pathlib import Path
 
 import pdfplumber
 
+ROOT = Path(__file__).resolve().parent
+
 # NVIDIA PaddleOCR — fallback para páginas escaneadas
-NVIDIA_API_KEY = os.environ.get("NVIDIA_API_KEY", "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")
+NVIDIA_API_KEY = os.environ.get("NVIDIA_API_KEY", "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")
 PADDLEOCR_URL  = "https://ai.api.nvidia.com/v1/cv/baidu/paddleocr"
 
 
@@ -415,16 +417,29 @@ def main(pdf_dir: str = "boletines_2026"):
         print(f"No se encontraron PDFs en {pdf_folder.resolve()}")
         return
 
-    print(f"Procesando {len(pdfs)} boletines [{year_tag}]...")
+    existing_rows = {}
+    out_csv_path = Path(out_csv)
+    if out_csv_path.exists():
+        try:
+            with open(out_csv_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for r in reader:
+                    existing_rows[r["archivo"]] = r
+            print(f"Cargados {len(existing_rows)} registros existentes desde {out_csv}")
+        except Exception as e:
+            print(f"No se pudo leer {out_csv} existente: {e}")
 
     rows = []
     for i, pdf_path in enumerate(pdfs, 1):
-        row = parse_bulletin(pdf_path)
-        if row:
-            rows.append(row)
-            print(f"[{i}/{len(pdfs)}] {pdf_path.name}  →  {row['fecha']}  semáforo: {row['semaforo']}")
+        if pdf_path.name in existing_rows:
+            rows.append(existing_rows[pdf_path.name])
         else:
-            print(f"[{i}/{len(pdfs)}] {pdf_path.name}  →  sin datos")
+            row = parse_bulletin(pdf_path)
+            if row:
+                rows.append(row)
+                print(f"[{i}/{len(pdfs)}] {pdf_path.name}  →  {row['fecha']}  semáforo: {row['semaforo']}")
+            else:
+                print(f"[{i}/{len(pdfs)}] {pdf_path.name}  →  sin datos")
 
     rows.sort(key=lambda r: r["fecha"] or "9999")
 
@@ -434,7 +449,110 @@ def main(pdf_dir: str = "boletines_2026"):
         writer.writerows(rows)
 
     print(f"\nCSV generado: {out_csv}  ({len(rows)} filas)")
+    merge_and_sync_db()
     return out_csv
+
+
+def merge_and_sync_db():
+    print("\nCombinando CSVs en boletines_sargazo_MASTER.csv y sincronizando base de datos...")
+    import pandas as pd
+    from backend.database import SessionLocal
+    from backend.models import SEMARObservation
+    
+    # Merge CSVs
+    dfs = []
+    for year in ["2024", "2025", "2026"]:
+        csv_file = ROOT / f"boletines_sargazo_{year}.csv"
+        if csv_file.exists():
+            df_year = pd.read_csv(csv_file)
+            df_year["año"] = int(year)
+            dfs.append(df_year)
+    if not dfs:
+        print("No se encontraron CSVs de años específicos para combinar.")
+        return
+        
+    master_df = pd.concat(dfs, ignore_index=True)
+    master_df = master_df.drop_duplicates(subset=["fecha"])
+    master_df = master_df.sort_values(by="fecha")
+    
+    master_csv = ROOT / "boletines_sargazo_MASTER.csv"
+    master_df.to_csv(master_csv, index=False)
+    print(f"✅ boletines_sargazo_MASTER.csv actualizado ({len(master_df)} filas)")
+    
+    # Sync with DB
+    db = SessionLocal()
+    try:
+        def to_float(val):
+            if pd.isna(val) or val == "":
+                return None
+            try:
+                return float(val)
+            except:
+                return None
+                
+        def to_int(val):
+            if pd.isna(val) or val == "":
+                return None
+            try:
+                return int(float(val))
+            except:
+                return None
+                
+        db_obs = {o.fecha: o for o in db.query(SEMARObservation).all()}
+        new_count = 0
+        update_count = 0
+        
+        for _, r in master_df.iterrows():
+            fecha_str = str(r["fecha"])
+            obs = db_obs.get(fecha_str)
+            is_new = False
+            if not obs:
+                obs = SEMARObservation(fecha=fecha_str)
+                db.add(obs)
+                is_new = True
+                
+            obs.num_boletin = str(r["num_boletin"]) if pd.notna(r["num_boletin"]) else None
+            obs.semaforo = str(r["semaforo"]) if pd.notna(r["semaforo"]) else None
+            obs.biomasa_caribe_mexicano_ton = to_float(r.get("biomasa_caribe_mexicano_ton"))
+            obs.biomasa_caribe_central_ton = to_float(r.get("biomasa_caribe_central_ton"))
+            obs.biomasa_caribe_oriental_ton = to_float(r.get("biomasa_caribe_oriental_ton"))
+            obs.biomasa_atlantico_central_ton = to_float(r.get("biomasa_atlantico_central_ton"))
+            obs.num_conglomerados = to_int(r.get("num_conglomerados"))
+            obs.conglomerado_cozumel = str(r.get("conglomerado_cozumel")) if pd.notna(r.get("conglomerado_cozumel")) else None
+            
+            obs.corriente_xcalak_nudos = to_float(r.get("corriente_xcalak_nudos"))
+            obs.corriente_xcalak_dir = str(r.get("corriente_xcalak_dir")) if pd.notna(r.get("corriente_xcalak_dir")) else None
+            obs.corriente_mahahual_nudos = to_float(r.get("corriente_mahahual_nudos"))
+            obs.corriente_mahahual_dir = str(r.get("corriente_mahahual_dir")) if pd.notna(r.get("corriente_mahahual_dir")) else None
+            obs.corriente_tulum_nudos = to_float(r.get("corriente_tulum_nudos"))
+            obs.corriente_tulum_dir = str(r.get("corriente_tulum_dir")) if pd.notna(r.get("corriente_tulum_dir")) else None
+            obs.corriente_playa_carmen_nudos = to_float(r.get("corriente_playa_carmen_nudos"))
+            obs.corriente_playa_carmen_dir = str(r.get("corriente_playa_carmen_dir")) if pd.notna(r.get("corriente_playa_carmen_dir")) else None
+            obs.corriente_puerto_morelos_nudos = to_float(r.get("corriente_puerto_morelos_nudos"))
+            obs.corriente_puerto_morelos_dir = str(r.get("corriente_puerto_morelos_dir")) if pd.notna(r.get("corriente_puerto_morelos_dir")) else None
+            obs.corriente_cancun_nudos = to_float(r.get("corriente_cancun_nudos"))
+            obs.corriente_cancun_dir = str(r.get("corriente_cancun_dir")) if pd.notna(r.get("corriente_cancun_dir")) else None
+            
+            obs.viento_norte_nudos = str(r.get("viento_norte_nudos")) if pd.notna(r.get("viento_norte_nudos")) else None
+            obs.viento_norte_dir = str(r.get("viento_norte_dir")) if pd.notna(r.get("viento_norte_dir")) else None
+            obs.viento_sur_nudos = str(r.get("viento_sur_nudos")) if pd.notna(r.get("viento_sur_nudos")) else None
+            obs.viento_sur_dir = str(r.get("viento_sur_dir")) if pd.notna(r.get("viento_sur_dir")) else None
+            
+            obs.archivo = str(r.get("archivo")) if pd.notna(r.get("archivo")) else None
+            obs.anio = to_int(r.get("año"))
+            
+            if is_new:
+                new_count += 1
+            else:
+                update_count += 1
+                
+        db.commit()
+        print(f"✅ Sincronización DB completada: {new_count} creados, {update_count} actualizados.")
+    except Exception as e:
+        db.rollback()
+        print(f"❌ Error al sincronizar con la base de datos: {e}")
+    finally:
+        db.close()
 
 
 if __name__ == "__main__":

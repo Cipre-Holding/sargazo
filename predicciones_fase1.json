@@ -2,44 +2,44 @@
   "1.1_ridge": {
     "modelo": "1.1_ridge",
     "n": 13,
-    "rmse_log": 1.2425,
-    "mae_log": 1.0186,
-    "r2": 0.7759,
-    "mape_pct": 140.88,
-    "smape_pct": 85.01,
+    "rmse_log": 1.2502,
+    "mae_log": 1.0288,
+    "r2": 0.7742,
+    "mape_pct": 142.3,
+    "smape_pct": 85.84,
     "coeficientes": [
-      1.2888,
-      0.5475,
-      0.9497,
-      0.0885
+      1.2865,
+      0.5419,
+      0.9526,
+      0.0674
     ],
     "prediccion_junio": {
-      "log_cm": -3.1252,
-      "cm_mt": 0.04393,
-      "cm_ton": 43930.0,
+      "log_cm": -3.1057,
+      "cm_mt": 0.044795,
+      "cm_ton": 44795.0,
       "ci_80_mt": [
-        0.005394,
-        0.357801
+        0.005421,
+        0.370162
       ]
     }
   },
   "1.2_bayesian_ridge": {
     "modelo": "1.2_bayesian_ridge",
     "n": 13,
-    "rmse_log": 1.2546,
-    "mae_log": 1.0376,
-    "r2": 0.7715,
-    "mape_pct": 144.05,
-    "smape_pct": 86.6,
+    "rmse_log": 1.2629,
+    "mae_log": 1.0483,
+    "r2": 0.7696,
+    "mape_pct": 145.67,
+    "smape_pct": 87.46,
     "lambda": 1.07,
-    "alpha": 1.05,
+    "alpha": 1.03,
     "prediccion_junio": {
-      "log_cm": -3.1237,
-      "cm_mt": 0.043995,
-      "cm_ton": 43995.0,
+      "log_cm": -3.1029,
+      "cm_mt": 0.044917,
+      "cm_ton": 44917.0,
       "ci_80_mt": [
-        0.006596,
-        0.293445
+        0.006677,
+        0.302179
       ]
     }
   },
@@ -47,18 +47,18 @@
     "modelo": "1.3_rolling_window",
     "n": 14,
     "k": 6,
-    "rmse_log": 1.5463,
-    "mae_log": 1.3381,
-    "r2": 0.7079,
-    "mape_pct": 286.17,
-    "smape_pct": 106.48,
+    "rmse_log": 1.5445,
+    "mae_log": 1.3257,
+    "r2": 0.7115,
+    "mape_pct": 284.6,
+    "smape_pct": 105.26,
     "prediccion_junio": {
-      "log_cm": -1.6043,
-      "cm_mt": 0.201021,
-      "cm_ton": 201021.0,
+      "log_cm": -1.5597,
+      "cm_mt": 0.21019,
+      "cm_ton": 210190.0,
       "ci_80_mt": [
-        0.018927,
-        2.135058
+        0.020117,
+        2.196136
       ]
     }
   },
@@ -66,24 +66,24 @@
   "1.5_segmentada": {
     "modelo": "1.5_segmentada",
     "n": 14,
-    "rmse_log": 1.1643,
-    "mae_log": 0.9708,
-    "r2": 0.7898,
-    "mape_pct": 157.82,
-    "smape_pct": 83.04,
+    "rmse_log": 1.1705,
+    "mae_log": 0.9786,
+    "r2": 0.7886,
+    "mape_pct": 159.1,
+    "smape_pct": 83.69,
     "coeficientes": {
-      "intercept": -1.6983,
-      "log_aco_lag1": 0.8825,
+      "intercept": -1.6852,
+      "log_aco_lag1": 0.8841,
       "post_2024": 0.0,
-      "aco_x_post2024": 0.8825
+      "aco_x_post2024": 0.8841
     },
     "prediccion_junio": {
-      "log_cm": -2.8798,
-      "cm_mt": 0.056148,
-      "cm_ton": 56148.0,
+      "log_cm": -2.8688,
+      "cm_mt": 0.056769,
+      "cm_ton": 56769.0,
       "ci_80_mt": [
-        0.003825,
-        0.82428
+        0.003812,
+        0.845394
       ]
     }
   },
@@ -92,15 +92,15 @@
     "n_completo": 23,
     "n_con_aco": 14,
     "cv_valid": "11",
-    "cv_rmse": 1.3474,
-    "cv_r2": 0.761,
+    "cv_rmse": 1.35,
+    "cv_r2": 0.7615,
     "prediccion_junio": {
-      "log_cm": -1.5017,
-      "cm_mt": 0.222753,
-      "cm_ton": 222753.0,
+      "log_cm": -1.484,
+      "cm_mt": 0.226722,
+      "cm_ton": 226722.0,
       "ci_80_mt": [
-        0.070468,
-        0.704135
+        0.071391,
+        0.720022
       ]
     }
   },
@@ -114,9 +114,9 @@
     "beta_1": 1.7178,
     "sigma_residual": 1.1164,
     "holdout_mayo": {
-      "real_mt": 0.051837,
+      "real_mt": 0.057255,
       "predicho_mt": 0.017557,
-      "error_pct": -66.1
+      "error_pct": -69.3
     },
     "prediccion_junio": {
       "log_cm": -3.2637,
@@ -137,9 +137,9 @@
     "beta_1_log_aco_lag1": -0.0752,
     "beta_2_delta_aco": 1.3089,
     "holdout_mayo": {
-      "real_delta": 0.4682,
+      "real_delta": 0.5676,
       "predicho_delta": 0.7922,
-      "error_pct": 38.3
+      "error_pct": 25.2
     },
     "prediccion_junio": {
       "delta_log_cm": 0.5533,
@@ -162,9 +162,9 @@
     "beta_0": -2.4727,
     "beta_1": 0.5593,
     "holdout_mayo": {
-      "real_mt": 0.051837,
+      "real_mt": 0.057255,
       "predicho_mt": 0.012402,
-      "error_pct": -76.1
+      "error_pct": -78.3
     },
     "prediccion_junio": {
       "log_cm": -4.128,
@@ -181,8 +181,8 @@
     "modelo": "0.4_prophet",
     "n_entrenamiento": 303,
     "changepoints": 25,
-    "proyeccion_junio_2026_aco_mt": 3.6489,
-    "estimacion_indirecta_cm_julio_mt": 1.115888,
+    "proyeccion_junio_2026_aco_mt": 3.7541,
+    "estimacion_indirecta_cm_julio_mt": 1.171738,
     "cm_reliable": false,
     "nota": "CM estimado indirectamente v\u00eda ACO\u2192coefs 0.1. No usar para decisiones operativas."
   },
@@ -191,108 +191,108 @@
     "n_entrenamiento": 303,
     "best_params": {
       "changepoint_prior_scale": "0.01",
-      "seasonality_prior_scale": "0.1",
+      "seasonality_prior_scale": "0.01",
       "seasonality_mode": "additive"
     },
-    "cv_rmse": 1.8005,
+    "cv_rmse": 3.2081,
     "top5": [
       {
         "changepoint_prior_scale": 0.01,
-        "seasonality_prior_scale": 0.1,
+        "seasonality_prior_scale": 0.01,
         "seasonality_mode": "additive",
-        "rmse": 1.8005
+        "rmse": 3.2081
       },
       {
-        "changepoint_prior_scale": 0.01,
-        "seasonality_prior_scale": 10.0,
+        "changepoint_prior_scale": 0.001,
+        "seasonality_prior_scale": 0.01,
         "seasonality_mode": "additive",
-        "rmse": 1.8057
+        "rmse": 3.2254
       },
       {
         "changepoint_prior_scale": 0.01,
         "seasonality_prior_scale": 1.0,
         "seasonality_mode": "additive",
-        "rmse": 1.8074
+        "rmse": 3.2366
       },
       {
         "changepoint_prior_scale": 0.01,
-        "seasonality_prior_scale": 0.01,
+        "seasonality_prior_scale": 10.0,
         "seasonality_mode": "additive",
-        "rmse": 1.8226
+        "rmse": 3.2439
       },
       {
-        "changepoint_prior_scale": 0.5,
-        "seasonality_prior_scale": 10.0,
-        "seasonality_mode": "multiplicative",
-        "rmse": 1.8398
+        "changepoint_prior_scale": 0.01,
+        "seasonality_prior_scale": 0.1,
+        "seasonality_mode": "additive",
+        "rmse": 3.2463
       }
     ],
-    "proyeccion_junio_2026_aco_mt": 3.8522,
-    "estimacion_indirecta_cm_julio_mt": 1.224826,
+    "proyeccion_junio_2026_aco_mt": 2.5125,
+    "estimacion_indirecta_cm_julio_mt": 0.587804,
     "cm_reliable": false,
     "nota": "CM estimado indirectamente v\u00eda ACO\u2192coefs 0.1. No usar para decisiones operativas."
   },
   "backtest": [
     {
       "Modelo": "1.1_ridge",
-      "R\u00b2": 0.7846,
-      "RMSE(log)": 1.2525,
-      "MAE(log)": 0.9984,
-      "MAPE(%)": 139.5,
-      "SMAPE(%)": 82.4
+      "R\u00b2": 0.7835,
+      "RMSE(log)": 1.2589,
+      "MAE(log)": 1.0071,
+      "MAPE(%)": 140.72,
+      "SMAPE(%)": 83.13
     },
     {
       "Modelo": "0.1_regresion_lineal",
-      "R\u00b2": 0.7822,
-      "RMSE(log)": 1.2593,
-      "MAE(log)": 1.0547,
-      "MAPE(%)": 186.82,
-      "SMAPE(%)": 88.68
+      "R\u00b2": 0.7812,
+      "RMSE(log)": 1.2658,
+      "MAE(log)": 1.0659,
+      "MAPE(%)": 188.89,
+      "SMAPE(%)": 89.65
     },
     {
       "Modelo": "1.2_bayesian_ridge",
-      "R\u00b2": 0.7789,
-      "RMSE(log)": 1.269,
-      "MAE(log)": 1.0207,
-      "MAPE(%)": 142.97,
-      "SMAPE(%)": 84.17
+      "R\u00b2": 0.7776,
+      "RMSE(log)": 1.276,
+      "MAE(log)": 1.03,
+      "MAPE(%)": 144.33,
+      "SMAPE(%)": 84.92
     },
     {
       "Modelo": "0.2_delta",
-      "R\u00b2": -0.1877,
-      "RMSE(log)": 2.2612,
-      "MAE(log)": 1.7246,
-      "MAPE(%)": 768.65,
-      "SMAPE(%)": 110.29
+      "R\u00b2": -0.1858,
+      "RMSE(log)": 2.2614,
+      "MAE(log)": 1.718,
+      "MAPE(%)": 771.43,
+      "SMAPE(%)": 109.54
     }
   ],
   "ensemble": {
     "modelo": "ensemble",
     "n_modelos": 3,
     "ponderacion": {
-      "1.1_ridge": 0.7846,
-      "1.2_bayesian_ridge": 0.7789,
-      "0.1_regresion_lineal": 0.7822
+      "1.1_ridge": 0.7835,
+      "1.2_bayesian_ridge": 0.7776,
+      "0.1_regresion_lineal": 0.7812
     },
     "correction_factor": 1.25,
-    "bias_corrected_from_mt": 0.042057,
+    "bias_corrected_from_mt": 0.042652,
     "prediccion_junio": {
-      "cm_mt": 0.052571,
-      "cm_ton": 52571.0,
-      "cambio_pct_vs_mayo": 1.4,
+      "cm_mt": 0.053315,
+      "cm_ton": 53315.0,
+      "cambio_pct_vs_mayo": 2.9,
       "ci_80_mt": [
         0.003107,
         0.470877
       ]
     },
     "confidence_score": {
-      "score": 83,
+      "score": 84,
       "max": 100,
-      "porcentaje": 83,
+      "porcentaje": 84,
       "nivel": "ALTA",
       "desglose": {
         "freshness": {
-          "puntos": 30,
+          "puntos": 25,
           "max": 30,
           "label": "Actualidad datos"
         },
@@ -307,7 +307,7 @@
           "label": "Concordancia modelos"
         },
         "history": {
-          "puntos": 13,
+          "puntos": 19,
           "max": 20,
           "label": "Precisi\u00f3n hist\u00f3rica"
         },
@@ -320,7 +320,7 @@
     }
   },
   "metadata": {
-    "generado": "2026-05-13T13:22:46.224995",
+    "generado": "2026-06-04T21:19:53.205916",
     "proyecto": "Predicci\u00f3n Sargazo Cozumel",
     "fase": "1_extendida",
     "modelos": [
@@ -335,6 +335,6 @@
       "1.6_prophet_tuned",
       "ensemble"
     ],
-    "confidence_generated": "2026-05-13T13:22:52.163096"
+    "confidence_generated": "2026-06-04T21:33:20.827884"
   }
 }

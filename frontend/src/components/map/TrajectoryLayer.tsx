@@ -17,13 +17,13 @@ export function TrajectoryLayer({ trajectories, visible }: TrajectoryLayerProps)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const dotSourceId = "traj-dots-source"
   const dotLayerId = "traj-dots-layer"
-  const MAX_TRAILS = 20  // show max 20 particle trails
+  const MAX_TRAILS = 150  // show max 150 particle trails over the entire Caribbean
 
-  // Group trajectory data by particle ID, filter to QRoo area
+  // Group trajectory data by particle ID, filter to Caribbean area
   const particles = useMemo(() => {
     if (!trajectories) return []
     const filtered = trajectories.filter(
-      (t) => t.lon > -89 && t.lon < -86 && t.lat > 18 && t.lat < 22
+      (t) => t.lon > -90 && t.lon < -55 && t.lat > 8 && t.lat < 24
     )
     const grouped: Record<number, { step: number; lon: number; lat: number }[]> = {}
     for (const t of filtered) {
