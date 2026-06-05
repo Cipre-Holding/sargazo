@@ -1569,14 +1569,14 @@ export function Landing({ onEnter }: LandingProps) {
                 alignItems:"center",
                 width:"100%"
               }}>
-                {/* Fade masks */}
+                {/* Fade masks — 50px so adjacent items fade gently without looking blurry */}
                 <div style={{
                   position:"absolute",
                   top:0,
                   left:0,
                   right:0,
-                  height:80,
-                  background:"linear-gradient(to bottom, #ffffff, transparent)",
+                  height:50,
+                  background:"linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%)",
                   zIndex:10,
                   pointerEvents:"none"
                 }} />
@@ -1585,8 +1585,8 @@ export function Landing({ onEnter }: LandingProps) {
                   bottom:0,
                   left:0,
                   right:0,
-                  height:80,
-                  background:"linear-gradient(to top, #ffffff, transparent)",
+                  height:50,
+                  background:"linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%)",
                   zIndex:10,
                   pointerEvents:"none"
                 }} />
@@ -1618,7 +1618,7 @@ export function Landing({ onEnter }: LandingProps) {
                   }}
                 >
                   {QUESTIONS_LIST.map((q, idx)=>(
-                    <li 
+                    <li
                       key={idx}
                       ref={el => { questionItemRefs.current[idx] = el }}
                       style={{
@@ -1626,7 +1626,9 @@ export function Landing({ onEnter }: LandingProps) {
                         display:"flex",
                         flexDirection:"column",
                         justifyContent:"center",
-                        transition:"color 0.15s ease-out, opacity 0.25s ease-out, transform 0.25s ease-out",
+                        filter:"none",
+                        WebkitFontSmoothing:"antialiased",
+                        transition:"color 0.15s ease-out, opacity 0.25s ease-out, transform 0.25s ease-out, filter 0.25s ease-out",
                         padding:"0 4px"
                       }}
                     >
