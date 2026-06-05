@@ -231,6 +231,74 @@ const LAYERS = [
   },
 ]
 
+// ── Data sources ─────────────────────────────────────────────────────────────
+const DATA_SOURCES = [
+  {
+    name: "Boletines SEMAR",
+    provider: "Secretaría de Marina — Armada de México",
+    period: "2014 – 2026",
+    records: "604 reportes",
+    provides: "Observaciones semanales de biomasa, semáforo de alerta, corrientes costeras y conglomerados de sargazo en el Caribe Mexicano. Fuente primaria de la serie de entrenamiento del ensemble.",
+    url: "https://www.gob.mx/semar",
+  },
+  {
+    name: "NOAA SIR (KMZ diario)",
+    provider: "AOML — Atlantic Oceanographic and Meteorological Laboratory",
+    period: "Jul 2025 – presente",
+    records: "339 KMZ · 189,815 segmentos",
+    provides: "Riesgo costero satelital diario en segmentos LineString para todo el litoral caribeño. Cubre desde el Golfo de México hasta las Antillas Menores con clasificación low / warning / medium / high.",
+    url: "https://cwcgom.aoml.noaa.gov/SIR/",
+  },
+  {
+    name: "Mendeley GASB",
+    provider: "Hu et al. 2023 — Remote Sensing of Environment",
+    period: "2000 – 2022",
+    records: "282 meses · 6 subregiones",
+    provides: "Biomasa mensual del Gran Cinturón de Sargazo atlántico por subregión. Variable predictora ACO (Atlántico Central Oeste) con r = 0.95 hacia arribo a Cozumel con lag de 1 mes.",
+    url: null,
+  },
+  {
+    name: "SATsum CONABIO",
+    provider: "Comisión Nacional para el Conocimiento y Uso de la Biodiversidad",
+    period: "2011 – 2024",
+    records: "162 meses · 2 regiones",
+    provides: "Biomasa mensual derivada de imágenes MODIS para el Caribe mexicano y la ZEE nacional. Resolución 1 km. Complementa el historial GASB en el dominio local.",
+    url: null,
+  },
+  {
+    name: "OISST v2.1",
+    provider: "NOAA NCEI — National Centers for Environmental Information",
+    period: "2000 – 2026",
+    records: "316 meses",
+    provides: "Temperatura superficial del mar en Cozumel a 0.25°. Evaluada como predictor: incremento marginal de R² +2.7% sobre ACO — excluida por parsimonia.",
+    url: "https://www.ncei.noaa.gov/products/optimum-interpolation-sst",
+  },
+  {
+    name: "NCEP/NCAR Reanalysis",
+    provider: "NOAA PSL — Physical Sciences Laboratory",
+    period: "2000 – 2026",
+    records: "316 meses",
+    provides: "Componentes de viento (u, v) a 2.5°. Cálculo del onshore wind component en Cozumel. Evaluado como predictor: correlación parcial débil r = −0.22 — excluido del ensemble final.",
+    url: "https://psl.noaa.gov/data/reanalysis/reanalysis.shtml",
+  },
+  {
+    name: "RTOFS 1/12°",
+    provider: "NCEP — National Centers for Environmental Prediction",
+    period: "Tiempo real",
+    records: "Operativo (14 días)",
+    provides: "Corrientes oceánicas diarias para el modelo de transporte lagrangiano OpenDrift. Aceleradas 1.5× para ajustar deriva observada en boletines SEMAR. Paso de integración 30 min.",
+    url: null,
+  },
+  {
+    name: "GFS 0.25°",
+    provider: "NCEP / NOAA",
+    period: "Tiempo real",
+    records: "Operativo (14 días)",
+    provides: "Campo de viento global. Arrastre de viento calibrado al 2% (windage) para las 2,000 partículas OpenDrift. Componente clave en el desvío hacia la costa oriental de Cozumel.",
+    url: null,
+  },
+]
+
 // ── Component ─────────────────────────────────────────────────────────────────
 export function Docs({ type: initialType, onBack, onEnter }: DocsProps) {
   const [activeTab, setActiveTab] = useState<"methodology" | "layers">(initialType)
@@ -445,7 +513,7 @@ function MethodologyTab() {
               <div style={{ background: C.navy, padding: "32px 28px", borderRight: "1px solid rgba(255,255,255,0.08)" }}>
                 <p style={{ ...T.label, color: C.gold, marginBottom: 16 }}>Ventana Expandible</p>
                 <p style={{ ...T.bodySm, color: "rgba(255,255,255,0.7)", lineHeight: 1.7, margin: "0 0 20px 0" }}>
-                  Implementado en <code style={{ ...T.mono, color: C.ash, background: "rgba(255,255,255,0.08)", padding: "1px 5px" }}>backtest_modelos.py</code>. En cada paso se entrena recursivamente agregando el mes real más reciente y prediciendo el siguiente. Métricas calculadas en escala real (reversa log).
+                  Implementado en <code style={{ ...T.mono, color: C.ash, background: "rgba(255,255,255,0.08)", padding: "1px 5px" }}>backtest_modelos.py</code>. En cada paso se entrena recursivamente agregando el mes real más reciente y prediciendo el siguiente. Métricas calculadas en escala real (reversa log) sobre la serie SEMAR 2014–2026.
                 </p>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   {["RMSE", "MAE", "SMAPE", "Bias", "Pearson r"].map(m => (
@@ -458,7 +526,7 @@ function MethodologyTab() {
               <div style={{ background: C.navy, padding: "32px 28px" }}>
                 <p style={{ ...T.label, color: C.gold, marginBottom: 16 }}>Validación Cruzada LOOCV</p>
                 <p style={{ ...T.bodySm, color: "rgba(255,255,255,0.7)", lineHeight: 1.7, margin: "0 0 20px 0" }}>
-                  Implementado en <code style={{ ...T.mono, color: C.ash, background: "rgba(255,255,255,0.08)", padding: "1px 5px" }}>modelos_fase1.py</code> para evaluar sobre n = 14. Los R² LOOCV definen dinámicamente los pesos del ensemble final:
+                  Implementado en <code style={{ ...T.mono, color: C.ash, background: "rgba(255,255,255,0.08)", padding: "1px 5px" }}>modelos_fase1.py</code> para evaluar sobre n = 14 puntos independientes. Los R² LOOCV definen dinámicamente los pesos del ensemble final:
                 </p>
                 <div style={{ background: "rgba(0,0,0,0.35)", border: `1px solid rgba(255,255,255,0.1)`, padding: "14px 16px", ...T.mono, color: C.ash, lineHeight: 2 }}>
                   <div>peso_j = max(0.05, R²_LOOCV_j)</div>
@@ -467,6 +535,72 @@ function MethodologyTab() {
                 </div>
               </div>
             </div>
+
+            {/* Results strip */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1, background: "rgba(255,255,255,0.08)", marginTop: 1 }}>
+              {[
+                { metric: "r = 0.95", label: "ACO→CM predictor (lag 1 mes)" },
+                { metric: "n = 14", label: "Puntos validados LOOCV" },
+                { metric: "IC 80%", label: "RMSE_cv × 1.28 calibrado" },
+                { metric: "26 años", label: "Serie histórica 2000–2026" },
+              ].map(r => (
+                <div key={r.label} style={{ background: C.navy, padding: "20px 24px" }}>
+                  <div style={{ fontSize: 22, fontWeight: 300, letterSpacing: "-0.75px", color: C.gold, marginBottom: 6, lineHeight: 1 }}>{r.metric}</div>
+                  <span style={{ ...T.label, color: "rgba(255,255,255,0.45)", fontSize: 10 }}>{r.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Section 05: Data Sources ── */}
+        <section style={{ padding: "64px 0" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 24, marginBottom: 48 }}>
+            <span style={{ ...T.labelGold, fontSize: 10 }}>05 / Corpus de Entrenamiento</span>
+            <h2 style={{ ...T.headingSm, color: C.frost, margin: 0 }}>Fuentes de Datos e Insumos</h2>
+          </div>
+
+          {/* Volume callout */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: C.border, marginBottom: 40 }}>
+            {[
+              { val: "~2,200", unit: "registros", label: "Total desde 7 fuentes independientes" },
+              { val: "26", unit: "años", label: "Serie histórica 2000–2026" },
+              { val: "189,815", unit: "segmentos", label: "Features geoespaciales NOAA" },
+            ].map(s => (
+              <div key={s.label} style={{ background: C.graphite, padding: "24px 20px" }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 6 }}>
+                  <span style={{ fontSize: 28, fontWeight: 300, letterSpacing: "-1px", color: C.frost, lineHeight: 1 }}>{s.val}</span>
+                  <span style={{ fontSize: 12, color: C.gold, letterSpacing: "0.52px" }}>{s.unit}</span>
+                </div>
+                <span style={{ ...T.label, color: C.slate }}>{s.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Sources table */}
+          <div style={{ border: `1px solid ${C.border}` }}>
+            {DATA_SOURCES.map((src, i) => (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "220px 1fr 160px", gap: 24, padding: "20px 28px", borderBottom: i < DATA_SOURCES.length - 1 ? `1px solid ${C.border}` : "none", alignItems: "start" }}>
+                <div>
+                  {src.url ? (
+                    <a href={src.url} target="_blank" rel="noopener noreferrer"
+                      style={{ ...T.bodySm, color: C.gold, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, transition: "color 0.15s" }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = C.frost }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = C.gold }}>
+                      {src.name} ↗
+                    </a>
+                  ) : (
+                    <span style={{ ...T.bodySm, color: C.ash }}>{src.name}</span>
+                  )}
+                  <p style={{ ...T.caption, color: C.slate, margin: "4px 0 0 0", fontSize: 10, lineHeight: 1.4 }}>{src.provider}</p>
+                </div>
+                <p style={{ ...T.bodySm, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.6 }}>{src.provides}</p>
+                <div style={{ textAlign: "right" as const }}>
+                  <span style={{ ...T.mono, color: C.gold, display: "block", marginBottom: 4 }}>{src.records}</span>
+                  <span style={{ ...T.caption, color: C.slate, fontSize: 10 }}>{src.period}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 

@@ -803,7 +803,7 @@ function WaveFieldBackground() {
 const STATS = [
   { value:"52.6k", unit:"ton",  label:"Predicción junio 2026" },
   { value:"83",    unit:"/100", label:"Confianza del sistema"  },
-  { value:"338",   unit:"días", label:"Historial NOAA SIR"     },
+  { value:"339",   unit:"días", label:"Historial NOAA SIR"     },
   { value:"14",    unit:"días", label:"Horizonte de forecast"  },
   { value:"604",   unit:"reg.", label:"Boletines SEMAR 2014–26" },
   { value:"H=0.80",unit:"Hurst",label:"Memoria larga fOU"      },
@@ -816,7 +816,7 @@ const ACCORDION = [
   { num:"02", label:"MODELADO ESTOCÁSTICO fOU",
     body:"Proceso de Ornstein-Uhlenbeck fraccional calibrado a la serie SEMAR/GASB (2000-2026). Hurst H = 0.80, reversión τ½ = 13.3 meses. Correlación predictor ACO→CM r = 0.95." },
   { num:"03", label:"PREDICCIÓN ENSEMBLE ACO→CM",
-    body:"Ensemble ponderado por R² LOOCV de tres modelos ML: Ridge, Bayesian Ridge y Gradient Boosting. Corrección por tendencia secular + IC 80% calibrado. Horizonte: siguiente mes." },
+    body:"Ensemble ponderado por R² LOOCV de Ridge, Bayesian Ridge y Gradient Boosting. Backtesting con ventana expandible sobre la serie 2014–2026: métricas RMSE, MAE, SMAPE y Pearson r evaluadas en escala real. Validación cruzada LOOCV sobre n = 14 puntos. Predictor ACO→CM r = 0.95, lag 1 mes. IC 80% calibrado. Horizonte: siguiente mes." },
   { num:"04", label:"SEMÁFORO OPERATIVO 5 NIVELES",
     body:"Clasificación automática: Escaso → Muy alto. Actualización semanal (APScheduler, lunes 06:00 UTC). 10 playas monitoreadas en Quintana Roo con perfil de riesgo histórico." },
   { num:"05", label:"TRANSPORTE LAGRANGIANO",
@@ -824,7 +824,16 @@ const ACCORDION = [
   { num:"06", label:"ACTUALIZACIÓN CONTINUA DE DATOS",
     body:"Pipeline automatizado: descarga semanal de boletines SEMAR, OCR con pdfplumber/Tesseract, normalización y escritura en SQLite. APScheduler cron lunes 06:00 UTC. Latencia < 2 h desde publicación oficial. 4 formatos PDF cubiertos." },
 ]
-const SOURCES = ["SEMAR","NOAA AOML","Mendeley GASB","RTOFS","GFS 0.25°","OISST v2.1","NCEP/NCAR","SATsum"]
+const SOURCES: { name: string; url?: string }[] = [
+  { name: "SEMAR",        url: "https://www.gob.mx/semar" },
+  { name: "NOAA AOML",   url: "https://cwcgom.aoml.noaa.gov/SIR/" },
+  { name: "Mendeley GASB" },
+  { name: "RTOFS" },
+  { name: "GFS 0.25°" },
+  { name: "OISST v2.1",  url: "https://www.ncei.noaa.gov/products/optimum-interpolation-sst" },
+  { name: "NCEP/NCAR",   url: "https://psl.noaa.gov/data/reanalysis/reanalysis.shtml" },
+  { name: "SATsum" },
+]
 const FONT: React.CSSProperties = { fontFamily:"'Inter',ui-sans-serif,system-ui,sans-serif", fontWeight:300 }
 
 const QUESTIONS_LIST = [
@@ -1770,9 +1779,27 @@ export function Landing({ onEnter }: LandingProps) {
           <p style={{fontSize:12,letterSpacing:"0.96px",color:"#71717a",textTransform:"uppercase",marginBottom:8}}>
             Validación y Cobertura de Datos
           </p>
-          <h2 style={{fontSize:"clamp(24px,2.8vw,34px)",fontWeight:300,letterSpacing:"-1.5px",color:"#09090b",marginBottom:48}}>
+          <h2 style={{fontSize:"clamp(24px,2.8vw,34px)",fontWeight:300,letterSpacing:"-1.5px",color:"#09090b",marginBottom:24}}>
             Simulación física y registro histórico integrado.
           </h2>
+
+          {/* Data volume strip */}
+          <div className="grid grid-cols-2 md:grid-cols-4" style={{borderTop:"1px solid rgba(0,0,0,0.1)",borderBottom:"1px solid rgba(0,0,0,0.1)",marginBottom:48}}>
+            {[
+              { val:"~2,200", unit:"registros", label:"Desde 7 fuentes independientes" },
+              { val:"26",     unit:"años",      label:"Serie histórica 2000–2026" },
+              { val:"189,815",unit:"segmentos", label:"Features geoespaciales NOAA" },
+              { val:"604",    unit:"boletines", label:"SEMAR procesados con OCR" },
+            ].map((s,i)=>(
+              <div key={s.label} style={{padding:"20px 0",borderRight:i<3?"1px solid rgba(0,0,0,0.1)":"none",paddingLeft:i>0?24:0}}>
+                <div style={{display:"flex",alignItems:"baseline",gap:5,marginBottom:4}}>
+                  <span style={{fontSize:26,fontWeight:300,letterSpacing:"-1px",color:"#09090b",lineHeight:1}}>{s.val}</span>
+                  <span style={{fontSize:12,color:"#947814",letterSpacing:"0.48px"}}>{s.unit}</span>
+                </div>
+                <span style={{fontSize:11,letterSpacing:"0.88px",color:"#71717a",textTransform:"uppercase"}}>{s.label}</span>
+              </div>
+            ))}
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 items-start">
             
@@ -1828,11 +1855,20 @@ export function Landing({ onEnter }: LandingProps) {
                   Fuentes de datos
                 </p>
                 <div className="flex flex-wrap items-center gap-2">
-                  {SOURCES.map(src=>(
-                    <span key={src} style={{fontSize:12,fontWeight:400,letterSpacing:"0.48px",color:"#27272a",border:"1px solid rgba(0,0,0,0.12)",padding:"6px 14px",textTransform:"uppercase",background:"rgba(0,0,0,0.02)"}}>
-                      {src}
-                    </span>
-                  ))}
+                  {SOURCES.map(src=>
+                    src.url ? (
+                      <a key={src.name} href={src.url} target="_blank" rel="noopener noreferrer"
+                        style={{...FONT,fontSize:12,fontWeight:400,letterSpacing:"0.48px",color:"#27272a",border:"1px solid rgba(0,0,0,0.18)",padding:"6px 14px",textTransform:"uppercase",background:"rgba(0,0,0,0.02)",textDecoration:"none",display:"inline-flex",alignItems:"center",gap:4,transition:"border-color 0.15s,color 0.15s"}}
+                        onMouseEnter={e=>{const el=e.currentTarget;el.style.borderColor="#947814";el.style.color="#947814"}}
+                        onMouseLeave={e=>{const el=e.currentTarget;el.style.borderColor="rgba(0,0,0,0.18)";el.style.color="#27272a"}}>
+                        {src.name} ↗
+                      </a>
+                    ) : (
+                      <span key={src.name} style={{fontSize:12,fontWeight:400,letterSpacing:"0.48px",color:"#27272a",border:"1px solid rgba(0,0,0,0.12)",padding:"6px 14px",textTransform:"uppercase",background:"rgba(0,0,0,0.02)"}}>
+                        {src.name}
+                      </span>
+                    )
+                  )}
                 </div>
               </div>
 
