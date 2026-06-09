@@ -297,7 +297,7 @@ export function Dashboard({ predictions, beachRisk, confidence, features, backte
         <div className="flex items-center justify-between px-5 py-4 border-b border-border/40 sticky top-0 z-10 backdrop-blur-xl bg-surface/95 shrink-0">
           <div className="flex items-center gap-2.5">
             <Waves className="size-4 text-primary" />
-            <h2 className="text-sm font-bold text-fg tracking-tight">Dashboard · Sargazo Cozumel</h2>
+            <h2 className="text-sm font-bold text-fg tracking-tight">Dashboard · Sargazo - monitoreo y predicción</h2>
           </div>
           <button
             onClick={onClose}

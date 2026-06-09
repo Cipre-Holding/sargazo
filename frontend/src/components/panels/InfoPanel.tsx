@@ -82,7 +82,7 @@ export function InfoPanel({ onClose }: InfoPanelProps) {
         <div className="flex items-center justify-between px-5 py-4 border-b border-border/40 sticky top-0 z-10 backdrop-blur-xl bg-surface/95">
           <div className="flex items-center gap-2.5">
             <Waves className="size-4 text-primary animate-pulse" />
-            <h2 className="text-sm font-bold text-fg tracking-tight">Sargazo Cozumel · Centro de Información</h2>
+            <h2 className="text-sm font-bold text-fg tracking-tight">Sargazo - monitoreo y predicción · Centro de Información</h2>
           </div>
           <button
             onClick={onClose}

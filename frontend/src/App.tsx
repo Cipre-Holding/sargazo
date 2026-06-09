@@ -270,13 +270,7 @@ function App({ onBack }: AppProps) {
           <div className="flex size-6 shrink-0 items-center justify-center" style={{ background: "#cfb53b" }}>
             <Waves className="size-3.5" style={{ color: "#000000" }} />
           </div>
-          <span className="text-sm tracking-tight text-fg" style={{ fontWeight: 300, letterSpacing: "0.52px" }}>Sargazo Cozumel</span>
-          <span
-            className="hidden lg:inline text-[10px] pl-2.5"
-            style={{ borderLeft: "1px solid rgba(255,255,255,0.1)", color: "#9d9d9d", letterSpacing: "0.04em" }}
-          >
-            MONITOREO · PREDICCIÓN
-          </span>
+          <span className="text-sm tracking-tight text-fg" style={{ fontWeight: 300, letterSpacing: "0.52px" }}>Sargazo - monitoreo y predicción</span>
         </div>
 
         <div className="flex-1" />
