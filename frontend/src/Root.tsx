@@ -4,7 +4,7 @@ import { Landing } from "./pages/Landing"
 import { Docs } from "./pages/Docs"
 
 export default function Root() {
-  const [view, setView] = useState<"landing" | "app" | "methodology" | "layers">("landing")
+  const [view, setView] = useState<"landing" | "app" | "methodology" | "layers" | "catalog">("landing")
 
   // Check URL parameters on mount to support opening in a new tab
   useEffect(() => {
@@ -14,6 +14,8 @@ export default function Root() {
       setView("methodology")
     } else if (viewParam === "layers") {
       setView("layers")
+    } else if (viewParam === "catalog") {
+      setView("catalog")
     } else if (viewParam === "app") {
       setView("app")
     }
@@ -21,18 +23,30 @@ export default function Root() {
 
   // Overflow management: landing and docs scroll, map application is fixed
   useEffect(() => {
-    const isScrollable = view === "landing" || view === "methodology" || view === "layers"
+    const isScrollable = view === "landing" || view === "methodology" || view === "layers" || view === "catalog"
     document.documentElement.style.overflow = isScrollable ? "auto" : "hidden"
     document.body.style.overflow            = isScrollable ? "auto" : "hidden"
     document.getElementById("root")!.style.overflow = isScrollable ? "visible" : "hidden"
     document.getElementById("root")!.style.height   = isScrollable ? "auto" : "100%"
   }, [view])
 
+  // Synchronize URL search params when view changes
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (view === "landing" || view === "app") {
+      if (params.has("view")) {
+        params.delete("view")
+        const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname
+        window.history.pushState({}, "", newUrl)
+      }
+    }
+  }, [view])
+
   if (view === "app") {
     return <App onBack={() => setView("landing")} />
   }
   
-  if (view === "methodology" || view === "layers") {
+  if (view === "methodology" || view === "layers" || view === "catalog") {
     return <Docs type={view} onBack={() => setView("landing")} onEnter={() => setView("app")} />
   }
 

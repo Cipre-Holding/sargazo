@@ -31,30 +31,51 @@ import pdfplumber
 
 ROOT = Path(__file__).resolve().parent
 
-# NVIDIA PaddleOCR — fallback para páginas escaneadas
-NVIDIA_API_KEY = os.environ.get("NVIDIA_API_KEY", "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")
-PADDLEOCR_URL  = "https://ai.api.nvidia.com/v1/cv/baidu/paddleocr"
+# NVIDIA NIM — OCR vía vision LLM (meta/llama-3.2-90b-vision-instruct)
+NVIDIA_API_KEY = os.environ.get("NVAPI_KEY", os.environ.get("NVIDIA_API_KEY", ""))
+NIM_CHAT_URL   = "https://integrate.api.nvidia.com/v1/chat/completions"
 
 
 def ocr_page(img) -> str:
-    """Envía una imagen PIL al API PaddleOCR y devuelve el texto concatenado."""
+    """OCR vía NVIDIA NIM vision LLM. Extrae texto estructurado de boletines SEMAR."""
+    import io as _io
     try:
-        from pdf2image import convert_from_path  # importación tardía
-        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-            tmp = f.name
-        img.save(tmp, "PNG")
-        with open(tmp, "rb") as f:
-            b64 = base64.b64encode(f.read()).decode()
-        os.unlink(tmp)
+        buf = _io.BytesIO()
+        img.save(buf, format="PNG")
+        b64 = base64.b64encode(buf.getvalue()).decode()
+
+        payload = {
+            "model": "meta/llama-3.2-90b-vision-instruct",
+            "messages": [{
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/png;base64,{b64}"}
+                    },
+                    {
+                        "type": "text",
+                        "text": (
+                            "Extrae todo el texto de esta imagen de un boletín oficial de sargazo de SEMAR México. "
+                            "Incluye: números de boletín, fechas, nombres de zonas marítimas, valores de biomasa "
+                            "en toneladas, semáforos de riesgo (BAJO/NORMAL/ALTO/CRÍTICO) y cualquier tabla de datos. "
+                            "Responde únicamente con el texto extraído, sin comentarios adicionales."
+                        )
+                    }
+                ]
+            }],
+            "max_tokens": 1024,
+            "temperature": 0
+        }
 
         resp = requests.post(
-            PADDLEOCR_URL,
-            headers={"Authorization": f"Bearer {NVIDIA_API_KEY}", "Accept": "application/json"},
-            json={"input": [{"type": "image_url", "url": f"data:image/png;base64,{b64}"}]},
-            timeout=30,
+            NIM_CHAT_URL,
+            headers={"Authorization": f"Bearer {NVIDIA_API_KEY}", "Content-Type": "application/json"},
+            json=payload,
+            timeout=45,
         )
-        detections = resp.json().get("data", [{}])[0].get("text_detections", [])
-        return " | ".join(d["text_prediction"]["text"] for d in detections)
+        resp.raise_for_status()
+        return resp.json()["choices"][0]["message"]["content"]
     except Exception as e:
         print(f"  OCR error: {e}", file=sys.stderr)
         return ""
@@ -405,6 +426,119 @@ def parse_bulletin(pdf_path: Path) -> dict | None:
         return None
 
 
+def extract_images_from_pdf(pdf_path: Path):
+    """
+    Convierte páginas de un PDF a PNGs y extrae imágenes, mapas embebidos,
+    texto completo (con OCR si es escaneado) y tablas en una carpeta estructurada:
+    boletines_imagenes/{year}/{num_boletin}/
+    """
+    try:
+        from pdf2image import convert_from_path
+        import pdfplumber
+        import json
+
+        name_no_ext = pdf_path.name.replace(".pdf", "")
+        parts = name_no_ext.split("_")
+        if len(parts) < 2:
+            return
+
+        num_boletin = parts[1]
+        year_tag = parts[-1] if re.match(r"^\d{4}$", parts[-1]) else "2026"
+
+        out_root = Path(__file__).resolve().parent / "boletines_imagenes"
+        bulletin_dir = out_root / year_tag / num_boletin
+        
+        # Check if already fully processed
+        if (bulletin_dir / "page_1.png").exists() and (bulletin_dir / "texto_completo.txt").exists() and (bulletin_dir / "tablas.json").exists():
+            return
+
+        bulletin_dir.mkdir(parents=True, exist_ok=True)
+
+        # 1. Convert pages to PNGs (full scans)
+        pages_images = []
+        try:
+            pages_images = convert_from_path(str(pdf_path), dpi=150)
+            for idx, page_img in enumerate(pages_images, 1):
+                img_path = bulletin_dir / f"page_{idx}.png"
+                if not img_path.exists():
+                    page_img.save(img_path, "PNG")
+        except Exception as e:
+            print(f"    Error converting pages to PNG for {pdf_path.name}: {e}", file=sys.stderr)
+
+        # 2. Extract text, tables, and figures page by page
+        text_by_page = {}
+        tables_by_page = {}
+
+        try:
+            with pdfplumber.open(pdf_path) as pdf:
+                for page_num, page in enumerate(pdf.pages, 1):
+                    # Extract text
+                    page_text = page.extract_text() or ""
+                    # Check if text is scanned/empty (less than 100 chars)
+                    if len(page_text.strip()) < 100 and len(pages_images) >= page_num:
+                        print(f"    → Running NIM OCR on page {page_num} for {pdf_path.name}...")
+                        ocr_txt = ocr_page(pages_images[page_num - 1])
+                        if ocr_txt:
+                            page_text = ocr_txt
+                    
+                    text_by_page[page_num] = page_text
+
+                    # Extract tables
+                    tables = page.extract_tables()
+                    if tables:
+                        tables_by_page[page_num] = tables
+
+                    # Extract large embedded maps/figures
+                    large_img_idx = 1
+                    for img_dict in page.images:
+                        w = img_dict["width"]
+                        h = img_dict["height"]
+
+                        # Skip background images (full page)
+                        if w > 540 and h > 740:
+                            continue
+                        # Skip tiny icons
+                        if w < 100 or h < 100:
+                            continue
+
+                        x0 = img_dict["x0"]
+                        top = img_dict["top"]
+                        x1 = img_dict["x1"]
+                        bottom = img_dict["bottom"]
+
+                        try:
+                            fig_path = bulletin_dir / f"page_{page_num}_fig_{large_img_idx}.png"
+                            if not fig_path.exists():
+                                cropped = page.crop((x0, top, x1, bottom))
+                                pil_img = cropped.to_image(resolution=200).original
+                                pil_img.save(fig_path, "PNG")
+                            large_img_idx += 1
+                        except Exception:
+                            pass
+        except Exception as e:
+            print(f"    Error extracting assets from {pdf_path.name}: {e}", file=sys.stderr)
+
+        # Write texto_completo.txt
+        if text_by_page:
+            texto_completo = ""
+            for page_num in sorted(text_by_page.keys()):
+                texto_completo += f"--- PÁGINA {page_num} ---\n"
+                texto_completo += text_by_page[page_num] + "\n\n"
+            
+            with open(bulletin_dir / "texto_completo.txt", "w", encoding="utf-8") as f:
+                f.write(texto_completo)
+
+        # Write tablas.json
+        if tables_by_page:
+            with open(bulletin_dir / "tablas.json", "w", encoding="utf-8") as f:
+                json.dump(tables_by_page, f, ensure_ascii=False, indent=2)
+
+        print(f"    → Extracción completada para boletín {num_boletin} ({year_tag}): {len(pages_images)} págs, {len(tables_by_page)} págs con tablas.")
+
+    except Exception as e:
+        print(f"    Image/Text/Table extraction error for {pdf_path.name}: {e}", file=sys.stderr)
+
+
 def main(pdf_dir: str = "boletines_2026"):
     pdf_folder = Path(pdf_dir)
     # Detectar año desde el nombre de la carpeta (ej. "boletines_2025" → "2025")
@@ -431,6 +565,9 @@ def main(pdf_dir: str = "boletines_2026"):
 
     rows = []
     for i, pdf_path in enumerate(pdfs, 1):
+        # Asegurar extracción de imágenes de los boletines procesados
+        extract_images_from_pdf(pdf_path)
+
         if pdf_path.name in existing_rows:
             rows.append(existing_rows[pdf_path.name])
         else:

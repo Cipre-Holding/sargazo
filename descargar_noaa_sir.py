@@ -21,7 +21,7 @@ KMZ_DIR = ROOT / "noaa_sir_kmz"
 os.makedirs(KMZ_DIR, exist_ok=True)
 
 # Bboxes
-QR_BBOX = {"min_lat": 15.0, "max_lat": 24.5, "min_lon": -93.0, "max_lon": -86.0}
+QR_BBOX = {"min_lat": 15.0, "max_lat": 24.5, "min_lon": -93.0, "max_lon": -84.8}
 CARIB_BBOX = {"min_lat": 8.0, "max_lat": 24.5, "min_lon": -93.0, "max_lon": -55.0}
 
 RISK_MAP_INT = {'0': 'low', '1': 'warning', '2': 'medium', '3': 'high'}
@@ -79,31 +79,34 @@ def parse_kml_risk(kml_path):
             continue
 
         coord_text = coords_match.group(1).strip()
-        qr_coords = []
-        carib_coords = []
+        coords = []
         
         for part in coord_text.split():
             parts = part.split(',')
             if len(parts) >= 2:
                 try:
                     lon, lat = float(parts[0]), float(parts[1])
+                    coords.append([lon, lat])
                 except ValueError:
                     continue
-                
-                # Check Quintana Roo Box
-                if (QR_BBOX['min_lat'] <= lat <= QR_BBOX['max_lat'] and
-                    QR_BBOX['min_lon'] <= lon <= QR_BBOX['max_lon']):
-                    qr_coords.append([lon, lat])
-                
-                # Check Caribbean Box
-                if (CARIB_BBOX['min_lat'] <= lat <= CARIB_BBOX['max_lat'] and
-                    CARIB_BBOX['min_lon'] <= lon <= CARIB_BBOX['max_lon']):
-                    carib_coords.append([lon, lat])
 
-        if len(qr_coords) >= 2:
-            qr_segments.append({'risk': risk_label, 'coordinates': qr_coords})
-        if len(carib_coords) >= 2:
-            carib_segments.append({'risk': risk_label, 'coordinates': carib_coords})
+        if len(coords) < 2:
+            continue
+
+        # Check if any coordinate falls inside bounding boxes (keeps lines 100% original and unbroken)
+        in_qr = any(
+            QR_BBOX['min_lat'] <= lat <= QR_BBOX['max_lat'] and QR_BBOX['min_lon'] <= lon <= QR_BBOX['max_lon']
+            for lon, lat in coords
+        )
+        in_carib = any(
+            CARIB_BBOX['min_lat'] <= lat <= CARIB_BBOX['max_lat'] and CARIB_BBOX['min_lon'] <= lon <= CARIB_BBOX['max_lon']
+            for lon, lat in coords
+        )
+
+        if in_qr:
+            qr_segments.append({'risk': risk_label, 'coordinates': coords})
+        if in_carib:
+            carib_segments.append({'risk': risk_label, 'coordinates': coords})
 
     return qr_segments, carib_segments
 
@@ -124,6 +127,27 @@ def segments_to_geojson(segments, date_str):
             },
         })
     return {"type": "FeatureCollection", "features": features}
+
+
+def load_segments_cache():
+    cache_path = KMZ_DIR / "parsed_segments_cache.json"
+    if cache_path.exists():
+        try:
+            with open(cache_path, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"  ⚠️ Error al cargar caché de segmentos: {e}")
+            return {}
+    return {}
+
+
+def save_segments_cache(cache):
+    cache_path = KMZ_DIR / "parsed_segments_cache.json"
+    try:
+        with open(cache_path, 'w') as f:
+            json.dump(cache, f)
+    except Exception as e:
+        print(f"  ⚠️ Error al guardar caché de segmentos: {e}")
 
 
 def main():
@@ -147,7 +171,20 @@ def main():
     for date_str in to_download:
         download_kmz(date_str)
 
-    # Parse all KMZs
+    # Fast path: check if outputs already exist and no new downloads were made
+    required_outputs = [
+        ROOT / "noaa_sir_riesgo_costero_qroo.geojson",
+        ROOT / "noaa_sir_riesgo_costero_qroo_reduced.geojson",
+        ROOT / "noaa_sir_composite_7d.geojson",
+        ROOT / "noaa_sir_aggregated_grid.json",
+        ROOT / "noaa_sir_resumen_diario.csv"
+    ]
+    all_outputs_exist = all(fp.exists() for fp in required_outputs)
+    if len(to_download) == 0 and all_outputs_exist:
+        print("\n  ✅ No hay nuevas descargas y todos los archivos de salida existen.")
+        print("  Se omite el procesamiento de KMLs para ahorrar tiempo (ejecución instantánea).")
+        return
+
     print(f"\nProcesando archivos KMZ...")
     qr_features = []
     recent_carib_features = []
@@ -164,9 +201,20 @@ def main():
     recent_dates = [f.stem.replace('sargassum_risk_', '') for f in kmz_files][-3:]
     print(f"Fechas recientes a conservar completas (Caribe): {recent_dates}")
 
+    # Load cache
+    cache = load_segments_cache()
+    cache_updated = False
+
     for kmz_path in kmz_files:
         date_str = kmz_path.stem.replace('sargassum_risk_', '')
-        qr_segs, carib_segs = parse_kml_risk(str(kmz_path))
+        
+        if date_str in cache:
+            qr_segs = cache[date_str]["qr"]
+            carib_segs = cache[date_str]["carib"]
+        else:
+            qr_segs, carib_segs = parse_kml_risk(str(kmz_path))
+            cache[date_str] = {"qr": qr_segs, "carib": carib_segs}
+            cache_updated = True
         
         # 1. QRoo History (Keep all features in memory for risk_by_beach compatibility)
         if qr_segs:
@@ -220,7 +268,13 @@ def main():
         date_str = kmz_path.stem.replace('sargassum_risk_', '')
         if date_str not in composite_7d_dates:
             continue
-        _, carib_segs = parse_kml_risk(str(kmz_path))
+        
+        # Load from cache to make 7d composite build super fast too
+        if date_str in cache:
+            carib_segs = cache[date_str]["carib"]
+        else:
+            _, carib_segs = parse_kml_risk(str(kmz_path))
+            
         for seg in carib_segs:
             if not seg['coordinates']:
                 continue
@@ -265,6 +319,11 @@ def main():
             writer.writeheader()
             writer.writerows(daily_summary)
     print(f"✅ Resumen diario: {summary_path} ({len(daily_summary)} días)")
+
+    # Save cache if updated
+    if cache_updated:
+        print("Guardando caché de segmentos procesados...")
+        save_segments_cache(cache)
 
 
 if __name__ == "__main__":

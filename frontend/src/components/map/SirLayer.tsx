@@ -55,11 +55,11 @@ export function SirLayer({ geojson, visible, opacity = 0.6, selectedDate, onDate
         ],
         "line-width": [
           "match", ["get", "risk"],
-          "high", 3.5, "medium", 2.5, "warning", 2.0, "low", 1.5, 1.5,
+          "high", 7.0, "medium", 5.0, "warning", 4.0, "low", 3.0, 3.0,
         ],
         "line-opacity": [
           "match", ["get", "risk"],
-          "high", 0.80, "medium", 0.65, "warning", 0.50, "low", 0.30, 0.3,
+          "high", 1.0, "medium", 0.90, "warning", 0.80, "low", 0.60, 0.60,
         ],
       },
     })

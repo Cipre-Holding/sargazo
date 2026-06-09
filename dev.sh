@@ -11,9 +11,9 @@ echo "=== Sargazo Cozumel — Local Dev ==="
 source venv/bin/activate
 
 # Start backend in background
-echo "Starting backend on :8001..."
+echo "Starting backend on :8002..."
 cd backend
-python -m uvicorn app:app --host 0.0.0.0 --port 8001 --reload --reload-dir . &
+python -m uvicorn app:app --host 0.0.0.0 --port 8002 --reload --reload-dir . &
 BACKEND_PID=$!
 cd ..
 
@@ -25,9 +25,9 @@ FRONTEND_PID=$!
 cd ..
 
 echo ""
-echo "Backend:  http://localhost:8001"
+echo "Backend:  http://localhost:8002"
 echo "Frontend: http://localhost:5173"
-echo "API docs: http://localhost:8001/docs"
+echo "API docs: http://localhost:8002/docs"
 echo ""
 echo "Press Ctrl+C to stop"
 

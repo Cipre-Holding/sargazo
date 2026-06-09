@@ -42,3 +42,8 @@ skills-lock.json
 
 # Generated GeoJSON (large, can be regenerated)
 noaa_sir_riesgo_costero_qroo.geojson
+
+# Scratch files and temporary media
+scratch/
+boletines_imagenes/
+videos/

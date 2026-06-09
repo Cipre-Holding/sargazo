@@ -1173,7 +1173,7 @@ export function Landing({ onEnter }: LandingProps) {
         <div className="flex items-center gap-3">
           <Waves size={14} style={{color:"#ffffff"}} />
           <span style={{fontSize:13,letterSpacing:"0.52px",color:"#ffffff",textTransform:"uppercase"}}>
-            Sargazo Cozumel
+            Sargazo - monitoreo y prediccion
           </span>
         </div>
         <div className="flex items-center gap-3">
@@ -1206,6 +1206,26 @@ export function Landing({ onEnter }: LandingProps) {
               ...FONT,
               fontSize:12,
               letterSpacing:"0.48px",
+              color:"#ffffff",
+              textTransform:"uppercase",
+              textDecoration:"none",
+              border:"1px solid rgba(255,255,255,0.28)",
+              borderRadius:0,
+              padding:"8px 22px",
+              background:"transparent",
+              cursor:"pointer",
+              display:"inline-block",
+              transition:"border-color 0.15s,background 0.15s"
+            }}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor="#ffffff";e.currentTarget.style.background="rgba(255,255,255,0.05)"}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.28)";e.currentTarget.style.background="transparent"}}>
+            Capas y Datos ↗
+          </a>
+          <a href="?view=catalog" target="_blank" rel="noopener noreferrer"
+            style={{
+              ...FONT,
+              fontSize:12,
+              letterSpacing:"0.48px",
               color:"#000000",
               textTransform:"uppercase",
               textDecoration:"none",
@@ -1221,7 +1241,7 @@ export function Landing({ onEnter }: LandingProps) {
             onMouseLeave={e=>{e.currentTarget.style.background="#cfb53b"}}
             onMouseDown={e=>{e.currentTarget.style.transform="scale(0.97)"}}
             onMouseUp={e=>{e.currentTarget.style.transform="scale(1)"}}>
-            Capas y Datos ↗
+            Centro de Datos ↗
           </a>
         </div>
       </header>
@@ -1912,13 +1932,19 @@ export function Landing({ onEnter }: LandingProps) {
                 style={{...FONT,fontSize:13,letterSpacing:"0.52px",color:"#cfb53b",textTransform:"uppercase",textDecoration:"none",transition:"color 0.15s"}}
                 onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color="#ffffff"}}
                 onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color="#cfb53b"}}>
-                Bases Científicas y Metodología ↗
+                Bases Científicas ↗
               </a>
               <a href="?view=layers" target="_blank" rel="noopener noreferrer"
                 style={{...FONT,fontSize:13,letterSpacing:"0.52px",color:"#cfb53b",textTransform:"uppercase",textDecoration:"none",transition:"color 0.15s"}}
                 onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color="#ffffff"}}
                 onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color="#cfb53b"}}>
-                Capas de Mapeo y Fuentes ↗
+                Capas y Datos ↗
+              </a>
+              <a href="?view=catalog" target="_blank" rel="noopener noreferrer"
+                style={{...FONT,fontSize:13,letterSpacing:"0.52px",color:"#cfb53b",textTransform:"uppercase",textDecoration:"none",transition:"color 0.15s"}}
+                onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color="#ffffff"}}
+                onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color="#cfb53b"}}>
+                Centro de Datos ↗
               </a>
             </div>
           </div>
