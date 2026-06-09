@@ -188,7 +188,7 @@ export function TrajectoryLayer({ trajectories, visible, horizon, setHorizon }: 
   if (!visible || allSteps.length === 0) return null
 
   return (
-    <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3.5 rounded-xl border border-border/40 bg-surface/90 px-4 py-2.5 shadow-2xl shadow-black/40 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3.5 rounded-xl border border-border/40 bg-surface/90 px-4 py-2.5 shadow-2xl shadow-black/40 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
       <button
         onClick={() => setPlaying(!playing)}
         className="flex size-8 items-center justify-center rounded-lg bg-surface-raised/80 hover:bg-surface-raised border border-border/30 text-fg hover:text-primary transition-all duration-150 cursor-pointer active:scale-95"

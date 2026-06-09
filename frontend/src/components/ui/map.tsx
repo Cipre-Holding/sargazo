@@ -311,7 +311,7 @@ type MapControlsProps = {
   className?: string; onLocate?: (coords: { longitude: number; latitude: number }) => void;
 };
 
-const positionClasses = { "top-left": "top-2 left-2", "top-right": "top-2 right-2", "bottom-left": "bottom-2 left-2", "bottom-right": "bottom-10 right-2" };
+const positionClasses = { "top-left": "top-2 left-2", "top-right": "top-2 right-2", "bottom-left": "bottom-2 left-2", "bottom-right": "bottom-20 right-2" };
 
 function MapControls({ position = "bottom-right", showZoom = true, showCompass = false, showLocate = false, showFullscreen = false, className, onLocate }: MapControlsProps) {
   const { map } = useMap();
