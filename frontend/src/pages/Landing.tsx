@@ -1173,7 +1173,7 @@ export function Landing({ onEnter }: LandingProps) {
         <div className="flex items-center gap-3">
           <Waves size={14} style={{color:"#ffffff"}} />
           <span style={{fontSize:13,letterSpacing:"0.52px",color:"#ffffff",textTransform:"uppercase"}}>
-            Sargazo - monitoreo y prediccion
+            Sargazo - monitoreo y predicción
           </span>
         </div>
         <div className="flex items-center gap-3">
